@@ -69,6 +69,7 @@
       nnn
       ripgrep
       rsync
+      gnupg
     ];
   };
 
@@ -141,6 +142,10 @@
     package = pkgs.plocate;
     localuser = null;
   };
+
+  # Enable SSH & GPG agents.
+  programs.ssh.startAgent = true;
+  programs.gnupg.agent.enable = true;
 
   # Enable powertop auto-tuning.
   powerManagement.powertop.enable = true;
