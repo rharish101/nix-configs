@@ -171,6 +171,20 @@
   # accidentally delete configuration.nix.
   # system.copySystemConfiguration = true; # Doesn't work with flakes
 
+  # Enable automatic upgrades.
+  system.autoUpgrade = {
+    enable = true;
+    dates = "weekly";
+  };
+
+  # Enable automatic garbage collection & optimisation.
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
+  nix.settings.auto-optimise-store = true;
+
   # Enable flakes (required for Lanzaboote)
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
