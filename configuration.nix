@@ -34,9 +34,11 @@
   #   useXkbConfig = true; # use xkb.options in tty.
   # };
 
-  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # Define user accounts declaratively (required by impermanence) and their passwords.
+  users.mutableUsers = false;
   users.users.rharish = {
     isNormalUser = true;
+    hashedPasswordFile = "/persist/etc/passwords/rharish.passwd"; # NOTE: This file is read *before* impermanence mounts are made.
     extraGroups = [
       "wheel" # Enable 'sudo' for the user.
       "networkmanager" # Allow NetworkManager access.

@@ -13,9 +13,9 @@
   boot.kernelParams = [ "pcie_aspm.policy=powersupersave" ];
 
   fileSystems."/" = {
-    device = "/dev/disk/by-uuid/76177813-16ba-4a28-98fc-10efcdea03b1";
-    fsType = "btrfs";
-    options = [ "subvol=@" "noatime" "compress-force=zstd:1" ];
+    device = "none";
+    fsType = "tmpfs";
+    options = [ "defaults" "size=4g" "mode=755" ];
   };
 
   boot.initrd.luks.devices.root = {
@@ -34,22 +34,29 @@
     '';
   };
 
-  fileSystems."/var" = {
+  fileSystems."/persist" = {
     device = "/dev/disk/by-uuid/76177813-16ba-4a28-98fc-10efcdea03b1";
     fsType = "btrfs";
-    options = [ "subvol=@var" "noatime" "compress-force=zstd:1" ];
+    options = [ "subvol=@persist" "noatime" "compress-force=zstd:1" ];
+    neededForBoot = true;
   };
 
-  fileSystems."/swap" = {
+  fileSystems."/persist/.snapshots" = {
     device = "/dev/disk/by-uuid/76177813-16ba-4a28-98fc-10efcdea03b1";
     fsType = "btrfs";
-    options = [ "subvol=@swap" "noatime" "compress-force=zstd:1" ];
+    options = [ "subvol=@snapshots-persist" "noatime" "compress-force=zstd:1" ];
   };
 
-  fileSystems."/.snapshots" = {
+  fileSystems."/nix" = {
     device = "/dev/disk/by-uuid/76177813-16ba-4a28-98fc-10efcdea03b1";
     fsType = "btrfs";
-    options = [ "subvol=@snapshots" "noatime" "compress-force=zstd:1" ];
+    options = [ "subvol=@nix" "noatime" "compress-force=zstd:1" ];
+  };
+
+  fileSystems."/nix/.snapshots" = {
+    device = "/dev/disk/by-uuid/76177813-16ba-4a28-98fc-10efcdea03b1";
+    fsType = "btrfs";
+    options = [ "subvol=@snapshots-nix" "noatime" "compress-force=zstd:1" ];
   };
 
   fileSystems."/home" = {
@@ -62,6 +69,12 @@
     device = "/dev/disk/by-uuid/76177813-16ba-4a28-98fc-10efcdea03b1";
     fsType = "btrfs";
     options = [ "subvol=@snapshots-home" "noatime" "compress-force=zstd:1" ];
+  };
+
+  fileSystems."/swap" = {
+    device = "/dev/disk/by-uuid/76177813-16ba-4a28-98fc-10efcdea03b1";
+    fsType = "btrfs";
+    options = [ "subvol=@swap" "noatime" "compress-force=zstd:1" ];
   };
 
   fileSystems."/boot" = {
