@@ -36,6 +36,12 @@
 
   # Define user accounts declaratively (required by impermanence) and their passwords.
   users.mutableUsers = false;
+  users.users.root = {
+    hashedPasswordFile = "/persist/etc/passwords/root.passwd"; # NOTE: This file is read *before* impermanence mounts are made.
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIETY0BUwxJxpgVCRR6BXXqihGGXKy5e2h67XTDcDhcP4 artorias"
+    ];
+  };
   users.users.rharish = {
     isNormalUser = true;
     hashedPasswordFile = "/persist/etc/passwords/rharish.passwd"; # NOTE: This file is read *before* impermanence mounts are made.
