@@ -28,9 +28,9 @@
     mode = "0600";
     text = ''
       # <name> <device>                                  <password>              <options>
-      cache    UUID=764e86a8-67c0-4ffd-bd71-1327a80c2c0c /root/keyfiles/cache.key nofail,x-systemd.device-timeout=5s,discard,no-read-workqueue,no-write-workqueue
-      data1    UUID=1288769a-3175-4068-b184-67dc6004b658 /root/keyfiles/data1.key nofail,x-systemd.device-timeout=5s
-      data2    UUID=9f0339bc-ef75-4fb7-8125-24a90d5aab92 /root/keyfiles/data2.key nofail,x-systemd.device-timeout=5s
+      cache    UUID=764e86a8-67c0-4ffd-bd71-1327a80c2c0c /etc/keyfiles/cache.key nofail,x-systemd.device-timeout=5s,discard,no-read-workqueue,no-write-workqueue
+      data1    UUID=1288769a-3175-4068-b184-67dc6004b658 /etc/keyfiles/data1.key nofail,x-systemd.device-timeout=5s
+      data2    UUID=9f0339bc-ef75-4fb7-8125-24a90d5aab92 /etc/keyfiles/data2.key nofail,x-systemd.device-timeout=5s
     '';
   };
 
