@@ -71,6 +71,11 @@
     options = [ "subvol=@snapshots-home" "noatime" "compress-force=zstd:1" ];
   };
 
+  fileSystems."/etc/nixos" = {
+    device = "/home/rharish/nix-configs";
+    options = [ "bind" "x-gvfs-hide" ];
+  };
+
   fileSystems."/swap" = {
     device = "/dev/disk/by-uuid/76177813-16ba-4a28-98fc-10efcdea03b1";
     fsType = "btrfs";

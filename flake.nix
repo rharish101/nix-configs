@@ -30,7 +30,6 @@
             directories = [
               "/etc/NetworkManager/system-connections"
               "/etc/keyfiles"
-              "/etc/nixos"
               "/var/lib/containers"
               "/var/lib/nixos"
               "/var/lib/sbctl"
