@@ -86,13 +86,13 @@
   fileSystems."/data" = {
     device = "/dev/disk/by-uuid/cc21decd-809a-4634-9b81-65a057f945dc";
     fsType = "btrfs";
-    options = [ "nofail" "x-systemd.device-timeout=5s" "subvol=@" "noatime" "compress-force=zstd:1" ];
+    options = [ "nofail" "x-systemd.device-timeout=10s" "subvol=@" "noatime" "compress-force=zstd:1" ];
   };
 
   fileSystems."/data/.snapshots" = {
     device = "/dev/disk/by-uuid/cc21decd-809a-4634-9b81-65a057f945dc";
     fsType = "btrfs";
-    options = [ "nofail" "x-systemd.device-timeout=5s" "subvol=@snapshots" "noatime" "compress-force=zstd:1" ];
+    options = [ "nofail" "x-systemd.device-timeout=10s" "subvol=@snapshots" "noatime" "compress-force=zstd:1" ];
   };
 
   swapDevices = [ {
