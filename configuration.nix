@@ -56,6 +56,7 @@
     packages = with pkgs; [
       tree
       git
+      difftastic
       stow
       cowsay
       fortune
