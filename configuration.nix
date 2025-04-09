@@ -77,6 +77,7 @@
       rsync
       gnupg
       nixfmt-rfc-style
+      pre-commit
     ];
   };
 
