@@ -80,6 +80,7 @@
       ripgrep
       rsync
       gnupg
+      nixd
       nixfmt-rfc-style
       pre-commit
     ];
