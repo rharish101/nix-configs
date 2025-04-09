@@ -11,51 +11,61 @@
     };
   };
 
-  outputs = { self, nixpkgs, impermanence, lanzaboote }: {
-    nixosConfigurations.raime = nixpkgs.lib.nixosSystem {
-      system = "x86_64-linux";
-      modules = [
-        ./configuration.nix
-        impermanence.nixosModules.impermanence
-        lanzaboote.nixosModules.lanzaboote
+  outputs =
+    {
+      self,
+      nixpkgs,
+      impermanence,
+      lanzaboote,
+    }:
+    {
+      nixosConfigurations.raime = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./configuration.nix
+          impermanence.nixosModules.impermanence
+          lanzaboote.nixosModules.lanzaboote
 
-        ({ pkgs, lib, ... }: {
-          environment.systemPackages = [
-            # For debugging and troubleshooting Secure Boot.
-            pkgs.sbctl
-          ];
+          (
+            { pkgs, lib, ... }:
+            {
+              environment.systemPackages = [
+                # For debugging and troubleshooting Secure Boot.
+                pkgs.sbctl
+              ];
 
-          environment.persistence."/persist" = {
-            hideMounts = true;
-            directories = [
-              "/etc/NetworkManager/system-connections"
-              "/etc/keyfiles"
-              "/var/lib/containers"
-              "/var/lib/nixos"
-              "/var/lib/sbctl"
-              "/var/lib/systemd/coredump"
-              "/var/log"
-            ];
-            files = [
-              "/etc/machine-id"
-              "/etc/ssh/ssh_host_ed25519_key"
-              "/etc/ssh/ssh_host_ed25519_key.pub"
-              "/etc/ssh/ssh_host_rsa_key"
-              "/etc/ssh/ssh_host_rsa_key.pub"
-            ];
-          };
+              environment.persistence."/persist" = {
+                hideMounts = true;
+                directories = [
+                  "/etc/NetworkManager/system-connections"
+                  "/etc/keyfiles"
+                  "/var/lib/containers"
+                  "/var/lib/nixos"
+                  "/var/lib/sbctl"
+                  "/var/lib/systemd/coredump"
+                  "/var/log"
+                ];
+                files = [
+                  "/etc/machine-id"
+                  "/etc/ssh/ssh_host_ed25519_key"
+                  "/etc/ssh/ssh_host_ed25519_key.pub"
+                  "/etc/ssh/ssh_host_rsa_key"
+                  "/etc/ssh/ssh_host_rsa_key.pub"
+                ];
+              };
 
-          # Lanzaboote currently replaces the systemd-boot module.
-          # This setting is usually set to true in configuration.nix
-          # generated at installation time. So we force it to false
-          # for now.
-          boot.loader.systemd-boot.enable = lib.mkForce false;
-          boot.lanzaboote = {
-            enable = true;
-            pkiBundle = "/var/lib/sbctl";
-          };
-        })
-      ];
+              # Lanzaboote currently replaces the systemd-boot module.
+              # This setting is usually set to true in configuration.nix
+              # generated at installation time. So we force it to false
+              # for now.
+              boot.loader.systemd-boot.enable = lib.mkForce false;
+              boot.lanzaboote = {
+                enable = true;
+                pkiBundle = "/var/lib/sbctl";
+              };
+            }
+          )
+        ];
+      };
     };
-  };
 }
