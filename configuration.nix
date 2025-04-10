@@ -6,17 +6,12 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-
+{ pkgs, ... }:
 {
   imports = [
-    # Include the results of the hardware scan.
-    ./hardware-configuration.nix
+    ./hardware-configuration.nix # Include the results of the hardware scan.
+    ./modules/lanzaboote.nix
+    ./modules/impermanence.nix
   ];
 
   # Use the systemd-boot EFI boot loader.
