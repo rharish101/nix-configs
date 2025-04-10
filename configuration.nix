@@ -14,29 +14,17 @@
     ./modules/impermanence.nix
   ];
 
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
+  # Allow modifying EFI variables.
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "raime"; # Define your hostname.
-  # Pick only one of the below networking options.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable = true; # Easiest to use and most distros use this by default.
 
   # Set your time zone.
   time.timeZone = "Europe/Zurich";
 
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
-
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
-  # console = {
-  #   font = "Lat2-Terminus16";
-  #   keyMap = "us";
-  #   useXkbConfig = true; # use xkb.options in tty.
-  # };
 
   # Define user accounts declaratively (required by impermanence) and their passwords.
   users.mutableUsers = false;
@@ -88,21 +76,11 @@
     bcache-tools
   ];
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  # programs.mtr.enable = true;
-  # programs.gnupg.agent = {
-  #   enable = true;
-  #   enableSSHSupport = true;
-  # };
-
   # Enable fish globally to enable vendor completions.
   programs.fish.enable = true;
 
   # Set the default editor.
   environment.variables.EDITOR = "vim";
-
-  # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
@@ -178,11 +156,6 @@
     oci-containers.backend = "podman";
     oci-containers.containers = { };
   };
-
-  # Copy the NixOS configuration file and link it from the resulting system
-  # (/run/current-system/configuration.nix). This is useful in case you
-  # accidentally delete configuration.nix.
-  # system.copySystemConfiguration = true; # Doesn't work with flakes
 
   # Enable automatic upgrades.
   system.autoUpgrade = {
