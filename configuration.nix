@@ -6,7 +6,7 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 {
   imports = [
     ./hardware-configuration.nix # Include the results of the hardware scan.
@@ -160,6 +160,12 @@
   # Enable automatic upgrades.
   system.autoUpgrade = {
     enable = true;
+    flake = inputs.self.outPath;
+    flags = [
+      "--update-input"
+      "nixpkgs"
+      "--commit-lock-file"
+    ];
     dates = "weekly";
   };
 
