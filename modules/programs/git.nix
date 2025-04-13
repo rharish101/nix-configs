@@ -6,6 +6,7 @@
 {
   users.users.rharish.packages = with pkgs; [
     git
+    tig
     difftastic
     gnupg
     pre-commit
