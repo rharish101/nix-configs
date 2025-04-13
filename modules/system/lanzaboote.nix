@@ -9,13 +9,10 @@
   ...
 }:
 {
-  imports = [
-    inputs.lanzaboote.nixosModules.lanzaboote
-  ];
+  imports = [ inputs.lanzaboote.nixosModules.lanzaboote ];
 
-  environment.systemPackages = [
-    pkgs.sbctl # For debugging and troubleshooting Secure Boot.
-  ];
+  # For debugging and troubleshooting Secure Boot.
+  environment.systemPackages = [ pkgs.sbctl ];
 
   # Lanzaboote currently replaces the systemd-boot module.
   # This setting is usually set to true in configuration.nix
