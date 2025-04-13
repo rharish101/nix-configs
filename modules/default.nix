@@ -19,5 +19,6 @@
     ./system/impermanence.nix
     ./system/lanzaboote.nix
     ./system/secrets.nix
+    ./system/ucodenix.nix
   ];
 }
