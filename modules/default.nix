@@ -5,6 +5,7 @@
 { ... }:
 {
   imports = [
+    ./containers/minecraft.nix
     ./programs/editor.nix
     ./programs/git.nix
     ./programs/misc.nix
