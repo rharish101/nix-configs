@@ -8,6 +8,9 @@
     inputs.impermanence.nixosModules.impermanence
   ];
 
+  # Define user accounts declaratively, as `/etc/passwd` is on tmpfs.
+  users.mutableUsers = false;
+
   environment.persistence."/persist" = {
     hideMounts = true;
     directories = [

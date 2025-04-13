@@ -21,7 +21,19 @@
       nixosConfigurations.raime = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = { inherit inputs; };
-        modules = [ ./configuration.nix ];
+        modules = [
+          ./configuration.nix
+          (
+            { ... }:
+            {
+              # Enable flakes, since they're experimental now.
+              nix.settings.experimental-features = [
+                "nix-command"
+                "flakes"
+              ];
+            }
+          )
+        ];
       };
     };
 }

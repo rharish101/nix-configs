@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2025 Harish Rajagopal <harish.rajagopals@gmail.com>
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+{ inputs, ... }:
+{
+  # Enable automatic upgrades.
+  system.autoUpgrade = {
+    enable = true;
+    flake = inputs.self.outPath;
+    flags = [
+      "--update-input"
+      "nixpkgs"
+      "--commit-lock-file"
+    ];
+    dates = "weekly";
+  };
+
+  # Enable automatic garbage collection & optimisation.
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
+  nix.settings.auto-optimise-store = true;
+}

@@ -6,12 +6,11 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ pkgs, inputs, ... }:
+{ ... }:
 {
   imports = [
     ./hardware-configuration.nix # Include the results of the hardware scan.
-    ./modules/lanzaboote.nix
-    ./modules/impermanence.nix
+    ./modules # Include custom modules.
   ];
 
   # Allow modifying EFI variables.
@@ -20,6 +19,12 @@
   networking.hostName = "raime"; # Define your hostname.
   networking.networkmanager.enable = true; # Easiest to use and most distros use this by default.
 
+  # Open ports in the firewall.
+  # networking.firewall.allowedTCPPorts = [ ... ];
+  # networking.firewall.allowedUDPPorts = [ ... ];
+  # Or disable the firewall altogether.
+  networking.firewall.enable = false;
+
   # Set your time zone.
   time.timeZone = "Europe/Zurich";
 
@@ -27,160 +32,19 @@
   i18n.defaultLocale = "en_US.UTF-8";
 
   # Define user accounts declaratively (required by impermanence) and their passwords.
-  users.mutableUsers = false;
-  users.users.root = {
-    hashedPasswordFile = "/persist/etc/passwords/root.passwd"; # NOTE: This file is read *before* impermanence mounts are made.
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIETY0BUwxJxpgVCRR6BXXqihGGXKy5e2h67XTDcDhcP4 artorias"
-    ];
-  };
   users.users.rharish = {
     isNormalUser = true;
-    hashedPasswordFile = "/persist/etc/passwords/rharish.passwd"; # NOTE: This file is read *before* impermanence mounts are made.
     extraGroups = [
       "wheel" # Enable 'sudo' for the user.
       "networkmanager" # Allow NetworkManager access.
-    ];
-    shell = pkgs.fish;
-    openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIETY0BUwxJxpgVCRR6BXXqihGGXKy5e2h67XTDcDhcP4 artorias"
-    ];
-    packages = with pkgs; [
-      tree
-      git
-      difftastic
-      stow
-      cowsay
-      fortune
-      dotacat
-      fishPlugins.tide
-      any-nix-shell
-      tmux
-      gdu
-      htop
-      nix-index
-      nnn
-      ripgrep
-      rsync
-      gnupg
-      nixd
-      nixfmt-rfc-style
-      pre-commit
     ];
   };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  environment.systemPackages = with pkgs; [
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  ];
-
-  # Enable fish globally to enable vendor completions.
-  programs.fish.enable = true;
-
-  # Set the default editor.
-  environment.variables.EDITOR = "vim";
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
-
-  # Enable snapper for automatic Btrfs snapshots.
-  services.snapper.configs = {
-    persist = {
-      SUBVOLUME = "/persist";
-      TIMELINE_CREATE = true;
-      TIMELINE_CLEANUP = true;
-      TIMELINE_LIMIT_HOURLY = 0;
-      TIMELINE_LIMIT_DAILY = 5;
-      TIMELINE_LIMIT_WEEKLY = 0;
-      TIMELINE_LIMIT_MONTHLY = 5;
-      TIMELINE_LIMIT_QUARTERLY = 2;
-      TIMELINE_LIMIT_YEARLY = 2;
-    };
-    nix = {
-      SUBVOLUME = "/nix";
-      TIMELINE_CREATE = true;
-      TIMELINE_CLEANUP = true;
-      TIMELINE_LIMIT_HOURLY = 0;
-      TIMELINE_LIMIT_DAILY = 5;
-      TIMELINE_LIMIT_WEEKLY = 0;
-      TIMELINE_LIMIT_MONTHLY = 5;
-      TIMELINE_LIMIT_QUARTERLY = 0;
-      TIMELINE_LIMIT_YEARLY = 0;
-    };
-    home = {
-      SUBVOLUME = "/home";
-      TIMELINE_CREATE = true;
-      TIMELINE_CLEANUP = true;
-      TIMELINE_LIMIT_HOURLY = 5;
-      TIMELINE_LIMIT_DAILY = 5;
-      TIMELINE_LIMIT_WEEKLY = 0;
-      TIMELINE_LIMIT_MONTHLY = 5;
-      TIMELINE_LIMIT_QUARTERLY = 0;
-      TIMELINE_LIMIT_YEARLY = 0;
-    };
-  };
-
-  # Enable locate.
-  services.locate = {
-    enable = true;
-    package = pkgs.plocate;
-    localuser = null;
-  };
-
-  # Enable SSH & GPG agents.
-  programs.ssh.startAgent = true;
-  programs.gnupg.agent.enable = true;
-
-  # Enable powertop auto-tuning.
-  powerManagement.powertop.enable = true;
-
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  networking.firewall.enable = false;
-
-  virtualisation = {
-    # Enable common container config files in /etc/containers.
-    containers.enable = true;
-
-    podman = {
-      enable = true;
-      dockerCompat = true;
-      # Required for containers under podman-compose to be able to talk to each other.
-      defaultNetwork.settings.dns_enabled = true;
-    };
-
-    oci-containers.backend = "podman";
-    oci-containers.containers = { };
-  };
-
-  # Enable automatic upgrades.
-  system.autoUpgrade = {
-    enable = true;
-    flake = inputs.self.outPath;
-    flags = [
-      "--update-input"
-      "nixpkgs"
-      "--commit-lock-file"
-    ];
-    dates = "weekly";
-  };
-
-  # Enable automatic garbage collection & optimisation.
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-    options = "--delete-older-than 30d";
-  };
-  nix.settings.auto-optimise-store = true;
-
-  # Enable flakes (required for Lanzaboote)
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
 
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
