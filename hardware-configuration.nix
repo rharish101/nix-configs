@@ -46,10 +46,10 @@
   environment.etc.crypttab = {
     mode = "0600";
     text = ''
-      # <name> <device>                                  <password>              <options>
-      cache    UUID=764e86a8-67c0-4ffd-bd71-1327a80c2c0c /etc/keyfiles/cache.key nofail,x-systemd.device-timeout=5s,discard,no-read-workqueue,no-write-workqueue
-      data1    UUID=1288769a-3175-4068-b184-67dc6004b658 /etc/keyfiles/data1.key nofail,x-systemd.device-timeout=5s
-      data2    UUID=9f0339bc-ef75-4fb7-8125-24a90d5aab92 /etc/keyfiles/data2.key nofail,x-systemd.device-timeout=5s
+      # <name> <device>                                  <password>                                   <options>
+      cache    UUID=764e86a8-67c0-4ffd-bd71-1327a80c2c0c ${config.sops.secrets."crypttab/cache".path} nofail,x-systemd.device-timeout=5s,discard,no-read-workqueue,no-write-workqueue
+      data1    UUID=1288769a-3175-4068-b184-67dc6004b658 ${config.sops.secrets."crypttab/data1".path} nofail,x-systemd.device-timeout=5s
+      data2    UUID=9f0339bc-ef75-4fb7-8125-24a90d5aab92 ${config.sops.secrets."crypttab/data2".path} nofail,x-systemd.device-timeout=5s
     '';
   };
 

@@ -15,7 +15,6 @@
     hideMounts = true;
     directories = [
       "/etc/NetworkManager/system-connections"
-      "/etc/keyfiles"
       "/var/lib/containers"
       "/var/lib/nixos"
       "/var/lib/sbctl"

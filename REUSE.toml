@@ -4,3 +4,8 @@ version = 1
 path = "flake.lock"
 SPDX-FileCopyrightText = "2025 Harish Rajagopal <harish.rajagopals@gmail.com>"
 SPDX-License-Identifier = "0BSD"
+
+[[annotations]]
+path = "secrets/secrets.yaml"
+SPDX-FileCopyrightText = "2025 Harish Rajagopal <harish.rajagopals@gmail.com>"
+SPDX-License-Identifier = "0BSD"

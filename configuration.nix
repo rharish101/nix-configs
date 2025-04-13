@@ -40,6 +40,11 @@
     ];
   };
 
+  # Enable the following secrets.
+  sops.secrets."crypttab/cache" = { };
+  sops.secrets."crypttab/data1" = { };
+  sops.secrets."crypttab/data2" = { };
+
   # List packages installed in system profile. To search, run:
   # $ nix search wget
 

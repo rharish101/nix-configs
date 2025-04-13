@@ -1,0 +1,13 @@
+# SPDX-FileCopyrightText: 2025 Harish Rajagopal <harish.rajagopals@gmail.com>
+#
+# SPDX-License-Identifier: 0BSD
+
+keys:
+  - &artorias age1dhup3ygq2cr2gg9rcvqyf3aq32g9yvdmgxwsu38jwxvvl9uwg5sqtmmhvs
+  - &raime age13gl08h455qhjerpd2mpn0g38eh90xyecxjxpldkwgnuvj3fnj3ys892lr4
+creation_rules:
+  - path_regex: secrets/secrets.yaml$
+    key_groups:
+      - age:
+        - *artorias
+        - *raime

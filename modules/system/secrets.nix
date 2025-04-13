@@ -4,16 +4,25 @@
 
 let
   artorias_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIETY0BUwxJxpgVCRR6BXXqihGGXKy5e2h67XTDcDhcP4 artorias";
-  passwords_dir = "/persist/etc/passwords";
 in
-{ ... }:
+{ config, inputs, ... }:
 {
+  imports = [
+    inputs.sops-nix.nixosModules.sops
+  ];
+
+  sops.defaultSopsFile = ../../secrets/secrets.yaml;
+  sops.age.sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
+
+  sops.secrets."users/root".neededForUsers = true;
+  sops.secrets."users/rharish".neededForUsers = true;
+
   users.users.root = {
-    hashedPasswordFile = "${passwords_dir}/root.passwd"; # NOTE: This file is read *before* impermanence mounts are made.
+    hashedPasswordFile = config.sops.secrets."users/root".path;
     openssh.authorizedKeys.keys = [ artorias_key ];
   };
   users.users.rharish = {
-    hashedPasswordFile = "${passwords_dir}/rharish.passwd"; # NOTE: This file is read *before* impermanence mounts are made.
+    hashedPasswordFile = config.sops.secrets."users/rharish".path;
     openssh.authorizedKeys.keys = [ artorias_key ];
   };
 }
