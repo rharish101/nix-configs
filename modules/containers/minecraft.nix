@@ -29,8 +29,9 @@ in
 
   # User for the Minecraft server.
   users.users.minecraft = {
+    uid = 2001;
     group = "minecraft";
     isNormalUser = true;
   };
-  users.groups.minecraft = { };
+  users.groups.minecraft.gid = 901;
 }

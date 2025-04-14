@@ -34,6 +34,7 @@
   # Define user accounts declaratively (required by impermanence) and their passwords.
   users.users.rharish = {
     isNormalUser = true;
+    uid = 1000; # Keep this fixed, so that adding more users doesn't change this UID.
     extraGroups = [
       "wheel" # Enable 'sudo' for the user.
       "networkmanager" # Allow NetworkManager access.
