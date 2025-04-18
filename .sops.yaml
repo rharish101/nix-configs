@@ -5,9 +5,11 @@
 keys:
   - &artorias age1dhup3ygq2cr2gg9rcvqyf3aq32g9yvdmgxwsu38jwxvvl9uwg5sqtmmhvs
   - &raime age13gl08h455qhjerpd2mpn0g38eh90xyecxjxpldkwgnuvj3fnj3ys892lr4
+  - &shalquoir age186jcseaqgxe7n8ur9eurwjdqhpc8r5ztevslyg2cnsy8042e89sqdtafe2
 creation_rules:
   - path_regex: secrets/secrets.yaml$
     key_groups:
       - age:
         - *artorias
         - *raime
+        - *shalquoir
