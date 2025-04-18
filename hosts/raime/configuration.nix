@@ -55,6 +55,9 @@
   # Enable fresh AMD microcode updates.
   services.ucodenix.enable = true;
 
+  # Enable firmware updates.
+  services.fwupd.enable = true;
+
   # Custom module configuration
   modules.git.dev = true;
   modules.impermanence.path = "/persist";
