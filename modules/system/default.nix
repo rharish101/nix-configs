@@ -4,6 +4,10 @@
 
 { inputs, ... }:
 {
-  imports = [ inputs.ucodenix.nixosModules.default ];
-  services.ucodenix.enable = true;
+  imports = [
+    ./impermanence.nix
+    ./lanzaboote.nix
+    ./secrets.nix
+    inputs.ucodenix.nixosModules.default
+  ];
 }

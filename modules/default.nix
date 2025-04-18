@@ -5,21 +5,15 @@
 { ... }:
 {
   imports = [
-    ./containers/minecraft.nix
-    ./programs/editor.nix
-    ./programs/git.nix
-    ./programs/misc.nix
-    ./programs/shell.nix
-    ./programs/terminal.nix
-    ./services/locate.nix
-    ./services/maintenance.nix
-    ./services/podman.nix
-    ./services/power-management.nix
-    ./services/secrets.nix
-    ./services/snapper.nix
-    ./system/impermanence.nix
-    ./system/lanzaboote.nix
-    ./system/secrets.nix
-    ./system/ucodenix.nix
+    ./containers
+    ./programs
+    ./services
+    ./system
+  ];
+
+  # Enable flakes, since they're experimental now.
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
   ];
 }

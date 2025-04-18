@@ -2,13 +2,26 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{ pkgs, ... }:
 {
-  users.users.rharish.packages = with pkgs; [
-    git
-    tig
-    difftastic
-    gnupg
-    pre-commit
-  ];
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+{
+  options.modules.git.dev = lib.mkEnableOption "Install packages for development with Git";
+  config = {
+    users.users.rharish.packages =
+      with pkgs;
+      [
+        git
+        tig
+        difftastic
+      ]
+      ++ lib.optionals config.modules.git.dev [
+        gnupg
+        pre-commit
+      ];
+    programs.gnupg.agent.enable = config.modules.git.dev;
+  };
 }

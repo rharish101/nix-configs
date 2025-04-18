@@ -2,14 +2,23 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{ pkgs, ... }:
 {
-  users.users.rharish.packages = with pkgs; [
-    gdu
-    tmux
-    htop
-    nnn
-    ripgrep
-    tree
-  ];
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+{
+  options.modules.terminal.utils.enable =
+    lib.mkEnableOption "Install useful terminal tools & utilities";
+  config.users.users.rharish.packages =
+    with pkgs;
+    lib.mkIf config.modules.terminal.utils.enable [
+      gdu
+      tmux
+      htop
+      nnn
+      ripgrep
+      tree
+    ];
 }

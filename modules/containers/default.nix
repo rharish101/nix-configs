@@ -4,7 +4,7 @@
 
 { ... }:
 {
-  # Enable SSH & GPG agents.
-  programs.ssh.startAgent = true;
-  programs.gnupg.agent.enable = true;
+  imports = [
+    ./minecraft.nix
+  ];
 }

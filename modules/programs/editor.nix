@@ -2,17 +2,29 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{ pkgs, ... }:
 {
-  # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-  environment.systemPackages = [ pkgs.vim ];
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+{
+  options.modules.editor.nixLsp.enable =
+    lib.mkEnableOption "Install LSP servers for editing Nix files";
 
-  # Set the default editor.
-  environment.variables.EDITOR = "vim";
+  config = {
+    # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+    environment.systemPackages = [ pkgs.vim ];
 
-  # Add LSP servers.
-  users.users.rharish.packages = with pkgs; [
-    nixd
-    nixfmt-rfc-style
-  ];
+    # Set the default editor.
+    environment.variables.EDITOR = "vim";
+
+    # Add LSP servers.
+    users.users.rharish.packages =
+      with pkgs;
+      lib.mkIf config.modules.editor.nixLsp.enable [
+        nixd
+        nixfmt-rfc-style
+      ];
+  };
 }

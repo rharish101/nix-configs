@@ -10,7 +10,7 @@
 {
   imports = [
     ./hardware-configuration.nix # Include the results of the hardware scan.
-    ./modules # Include custom modules.
+    ../../modules # Include custom modules.
   ];
 
   # Allow modifying EFI variables.
@@ -51,6 +51,15 @@
 
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
+
+  # Enable fresh AMD microcode updates.
+  services.ucodenix.enable = true;
+
+  # Custom module configuration
+  modules.git.dev = true;
+  modules.impermanence.path = "/persist";
+  modules.minecraft.enable = true;
+  modules.secureBoot.enable = true;
 
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.

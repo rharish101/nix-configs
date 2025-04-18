@@ -10,7 +10,7 @@ in
   imports = [ inputs.sops-nix.nixosModules.sops ];
 
   sops.defaultSopsFile = ../../secrets/secrets.yaml;
-  sops.age.sshKeyPaths = [ "/persist/etc/ssh/ssh_host_ed25519_key" ];
+  sops.age.sshKeyPaths = [ "${config.modules.impermanence.path}/etc/ssh/ssh_host_ed25519_key" ];
 
   sops.secrets."users/root".neededForUsers = true;
   sops.secrets."users/rharish".neededForUsers = true;
