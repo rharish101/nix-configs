@@ -6,7 +6,7 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ ... }:
+{ config, ... }:
 {
   imports = [
     ./hardware-configuration.nix # Include the results of the hardware scan.
@@ -27,6 +27,20 @@
   # Or disable the firewall altogether.
   networking.firewall.enable = false;
 
+  # Set up a wireguard server for Raime.
+  networking.wg-quick.interfaces.wg0 = {
+    address = [ "10.100.0.1/24" ];
+    listenPort = 34104;
+    privateKeyFile = config.sops.secrets."wireguard/shalquoir".path;
+    peers = [
+      {
+        publicKey = "+lFv4mihO8w3eho26ebsrwU+NA5DlqgJPHTvYxINnS4=";
+        presharedKeyFile = config.sops.secrets."wireguard/psk".path;
+        allowedIPs = [ "10.100.0.2/32" ];
+      }
+    ];
+  };
+
   # Set your time zone.
   time.timeZone = "Europe/Berlin";
 
@@ -43,6 +57,10 @@
       "networkmanager" # Allow NetworkManager access.
     ];
   };
+
+  # Enable the following secrets.
+  sops.secrets."wireguard/psk" = { };
+  sops.secrets."wireguard/shalquoir" = { };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget

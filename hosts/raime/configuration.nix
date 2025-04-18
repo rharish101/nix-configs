@@ -6,7 +6,7 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ ... }:
+{ config, ... }:
 {
   imports = [
     ./hardware-configuration.nix # Include the results of the hardware scan.
@@ -24,6 +24,25 @@
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   networking.firewall.enable = false;
+
+  # Set up a wireguard tunnel to Shalquoir.
+  networking.wg-quick.interfaces.wg0 = {
+    address = [ "10.100.0.2/24" ];
+    dns = [ "10.0.0.1" ];
+    privateKeyFile = config.sops.secrets."wireguard/raime".path;
+    peers = [
+      {
+        publicKey = "XbJDoKyhl3dHS002Oa/Fm3rkWZ+NP/LipiYAoMILahU=";
+        presharedKeyFile = config.sops.secrets."wireguard/psk".path;
+        allowedIPs = [
+          "0.0.0.0/0"
+          "::/0"
+        ];
+        endpoint = "rharish.dev:34104";
+        persistentKeepalive = 25; # in seconds
+      }
+    ];
+  };
 
   # Set your time zone.
   time.timeZone = "Europe/Zurich";
@@ -45,6 +64,8 @@
   sops.secrets."crypttab/cache" = { };
   sops.secrets."crypttab/data1" = { };
   sops.secrets."crypttab/data2" = { };
+  sops.secrets."wireguard/psk" = { };
+  sops.secrets."wireguard/raime" = { };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
