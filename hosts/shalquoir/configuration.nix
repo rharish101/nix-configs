@@ -6,7 +6,10 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, ... }:
+{ config, pkgs, ... }:
+let
+  ssh_port = 8398;
+in
 {
   imports = [
     ./hardware-configuration.nix # Include the results of the hardware scan.
@@ -66,7 +69,19 @@
   # $ nix search wget
 
   # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
+  services.openssh = {
+    enable = true;
+    ports = [ ssh_port ];
+    settings = {
+      AllowUsers = [ "rharish" ];
+      KbdInteractiveAuthentication = false;
+      PasswordAuthentication = false;
+      PermitRootLogin = "no";
+    };
+  };
+
+  # Enable fail2ban.
+  services.fail2ban.enable = true;
 
   # Custom module configuration
   modules.editor.nixLsp.enable = false;
