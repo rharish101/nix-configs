@@ -6,5 +6,6 @@
 {
   imports = [
     ./minecraft.nix
+    ./caddy-wg-server.nix
   ];
 }

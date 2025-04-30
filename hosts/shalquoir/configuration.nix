@@ -8,7 +8,10 @@
 
 { config, pkgs, ... }:
 let
+  mc_port = 26460;
   ssh_port = 8398;
+  wg_port = 34104;
+  wg_ip_client = "10.100.0.2";
 in
 {
   imports = [
@@ -25,23 +28,40 @@ in
   networking.networkmanager.enable = true; # Easiest to use and most distros use this by default.
 
   # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
+  networking.firewall.allowedTCPPorts = [
+    443
+    mc_port
+    ssh_port
+  ];
+  networking.firewall.allowedUDPPorts = [
+    mc_port
+    wg_port
+  ];
   # Or disable the firewall altogether.
-  networking.firewall.enable = false;
+  # networking.firewall.enable = false;
+
+  networking.nat = {
+    enable = true;
+    externalInterface = "enp1s0";
+    internalInterfaces = [ "ve-+" ];
+  };
 
   # Set up a wireguard server for Raime.
-  networking.wg-quick.interfaces.wg0 = {
-    address = [ "10.100.0.1/24" ];
-    listenPort = 34104;
-    privateKeyFile = config.sops.secrets."wireguard/shalquoir".path;
-    peers = [
-      {
+  modules.caddy-wg-server = {
+    enable = true;
+    wireguard = {
+      port = wg_port;
+      privateKeyFile = config.sops.secrets."wireguard/shalquoir".path;
+      client = {
+        address = "10.100.0.2";
         publicKey = "+lFv4mihO8w3eho26ebsrwU+NA5DlqgJPHTvYxINnS4=";
         presharedKeyFile = config.sops.secrets."wireguard/psk".path;
-        allowedIPs = [ "10.100.0.2/32" ];
-      }
-    ];
+      };
+    };
+    caddy = {
+      minecraftPort = mc_port;
+      environmentFile = config.sops.secrets."cloudflare".path;
+    };
   };
 
   # Set your time zone.
@@ -62,8 +82,9 @@ in
   };
 
   # Enable the following secrets.
-  sops.secrets."wireguard/psk" = { };
-  sops.secrets."wireguard/shalquoir" = { };
+  sops.secrets."cloudflare".owner = "caddywg";
+  sops.secrets."wireguard/psk".owner = "caddywg";
+  sops.secrets."wireguard/shalquoir".owner = "caddywg";
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
