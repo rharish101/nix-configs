@@ -14,7 +14,10 @@
     lib.mkIf (config.modules.podman.enable && config.modules.minecraft.enable) {
       virtualisation.oci-containers.containers.minecraft = {
         image = "itzg/minecraft-server";
-        ports = [ "25565:25565" ];
+        ports = [
+          "25565:25565"
+          "25565:19132/udp"
+        ];
         environment = {
           EULA = "TRUE";
           TYPE = "PAPER";
