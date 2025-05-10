@@ -91,6 +91,7 @@ in
   modules.git.dev = true;
   modules.impermanence.path = "/persist";
   modules.minecraft.enable = true;
+  modules.minecraft.dataDir = "/data/minecraft";
   modules.secureBoot.enable = true;
 
   # This option defines the first version of NixOS you have installed on this particular machine,

@@ -13,7 +13,6 @@
     ./snapper.nix
   ];
 
-  modules.podman.enable = lib.mkDefault true;
   modules.autoUpdate = lib.mkDefault true;
   modules.snapshots.enable = lib.mkDefault true;
 }
