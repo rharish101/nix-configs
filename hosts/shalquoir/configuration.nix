@@ -12,6 +12,11 @@ let
   ssh_port = 8398;
   wg_port = 34104;
   wg_ip_client = "10.100.0.2";
+  caddywg_key_config = {
+    owner = "caddywg";
+    group = "caddywg";
+    restartUnits = [ "container@caddy-wg-server.service" ];
+  };
 in
 {
   imports = [
@@ -81,9 +86,9 @@ in
   };
 
   # Enable the following secrets.
-  sops.secrets."cloudflare".owner = "caddywg";
-  sops.secrets."wireguard/psk".owner = "caddywg";
-  sops.secrets."wireguard/shalquoir".owner = "caddywg";
+  sops.secrets."cloudflare" = caddywg_key_config;
+  sops.secrets."wireguard/psk" = caddywg_key_config;
+  sops.secrets."wireguard/shalquoir" = caddywg_key_config;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget

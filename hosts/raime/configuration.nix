@@ -7,6 +7,13 @@
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
 { config, pkgs, ... }:
+let
+  caddywg_key_config = {
+    owner = "caddywg";
+    group = "caddywg";
+    restartUnits = [ "container@caddy-wg-client.service" ];
+  };
+in
 {
   imports = [
     ./hardware-configuration.nix # Include the results of the hardware scan.
@@ -65,8 +72,8 @@
   sops.secrets."crypttab/cache" = { };
   sops.secrets."crypttab/data1" = { };
   sops.secrets."crypttab/data2" = { };
-  sops.secrets."wireguard/psk".owner = "caddywg";
-  sops.secrets."wireguard/raime".owner = "caddywg";
+  sops.secrets."wireguard/psk" = caddywg_key_config;
+  sops.secrets."wireguard/raime" = caddywg_key_config;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
