@@ -6,7 +6,7 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, ... }:
+{ config, pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix # Include the results of the hardware scan.
@@ -15,6 +15,9 @@
 
   # Allow modifying EFI variables.
   boot.loader.efi.canTouchEfiVariables = true;
+
+  # Use the latest stable Linux kernel (for better Intel Battlemage support).
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   networking.hostName = "raime"; # Define your hostname.
   networking.networkmanager.enable = true; # Easiest to use and most distros use this by default.
