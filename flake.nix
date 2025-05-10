@@ -6,10 +6,6 @@
   description = "Harish's flake";
 
   inputs = {
-    cpu-microcodes = {
-      url = "github:platomav/CPUMicrocodes/0be0bd7b6a3ec1f1b59562729f1ce14b9569b697";
-      flake = false;
-    };
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     impermanence.url = "github:nix-community/impermanence";
     lanzaboote = {
@@ -20,10 +16,7 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    ucodenix = {
-      url = "github:e-tho/ucodenix";
-      inputs.cpu-microcodes.follows = "cpu-microcodes";
-    };
+    ucodenix.url = "github:e-tho/ucodenix";
   };
 
   outputs =
