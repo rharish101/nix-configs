@@ -172,7 +172,7 @@
                   }
                 '';
                 virtualHosts."rharish.dev".extraConfig = reverse_proxy_config;
-                virtualHosts."www.rharish.dev".extraConfig = "redir https://rharish.dev";
+                virtualHosts."www.rharish.dev".extraConfig = "redir https://rharish.dev 301";
               };
 
             system.stateVersion = "25.05";
