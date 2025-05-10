@@ -180,6 +180,9 @@
   # networking.interfaces.enp1s0f0u2.useDHCP = lib.mkDefault true;
   # networking.interfaces.enp6s0.useDHCP = lib.mkDefault true;
 
+  # Set the default interface for NAT.
+  networking.nat.externalInterface = "enp6s0";
+
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }

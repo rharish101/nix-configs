@@ -28,23 +28,21 @@
   # Or disable the firewall altogether.
   networking.firewall.enable = false;
 
+  networking.nat = {
+    enable = true;
+    internalInterfaces = [ "ve-+" ];
+  };
+
   # Set up a wireguard tunnel to Shalquoir.
-  networking.wg-quick.interfaces.wg0 = {
-    address = [ "10.100.0.2/24" ];
-    dns = [ "10.0.0.1" ];
+  modules.caddy-wg-client.enable = true;
+  modules.caddy-wg-client.wireguard = {
     privateKeyFile = config.sops.secrets."wireguard/raime".path;
-    peers = [
-      {
-        publicKey = "XbJDoKyhl3dHS002Oa/Fm3rkWZ+NP/LipiYAoMILahU=";
-        presharedKeyFile = config.sops.secrets."wireguard/psk".path;
-        allowedIPs = [
-          "0.0.0.0/0"
-          "::/0"
-        ];
-        endpoint = "rharish.dev:34104";
-        persistentKeepalive = 25; # in seconds
-      }
-    ];
+    server = {
+      publicKey = "XbJDoKyhl3dHS002Oa/Fm3rkWZ+NP/LipiYAoMILahU=";
+      presharedKeyFile = config.sops.secrets."wireguard/psk".path;
+      address = "91.99.59.38";
+      port = 34104;
+    };
   };
 
   # Set your time zone.
@@ -67,8 +65,8 @@
   sops.secrets."crypttab/cache" = { };
   sops.secrets."crypttab/data1" = { };
   sops.secrets."crypttab/data2" = { };
-  sops.secrets."wireguard/psk" = { };
-  sops.secrets."wireguard/raime" = { };
+  sops.secrets."wireguard/psk".owner = "caddywg";
+  sops.secrets."wireguard/raime".owner = "caddywg";
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
