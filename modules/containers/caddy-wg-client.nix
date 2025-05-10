@@ -47,15 +47,15 @@
       cpu_limit = 1;
       memory_limit = 1; # in GiB
       caddy_data_dir = "/var/lib/containers/caddy";
-      priv_uid = 65536 * 10; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing.
+      priv_uid_gid = 65536 * 10; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing.
     in
     lib.mkIf (config.modules.caddy-wg-client.enable) {
       users.users.caddywg = {
-        uid = priv_uid;
+        uid = priv_uid_gid;
         group = "caddywg";
         isSystemUser = true;
       };
-      users.groups.caddywg.gid = priv_uid;
+      users.groups.caddywg.gid = priv_uid_gid;
 
       systemd.services."container@caddy-wg-client" = {
         serviceConfig = {

@@ -21,6 +21,7 @@
       cpu_limit = 4;
       memory_limit = 6; # in GiB
       server_name = "EBG6 Minecraft server";
+      priv_uid_gid = 65536 * 9; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing.
       mc_key_config = {
         owner = "vu-minecraft-999"; # UID is of the "minecraft" user in nix-minecraft
         group = "vg-minecraft-999"; # GID is of the "minecraft" user in nix-minecraft
@@ -30,11 +31,11 @@
     lib.mkIf config.modules.minecraft.enable {
       # User for the Minecraft server.
       users.users.minecraft = {
-        uid = 65536 * 9; # Randomly-chosen UID a/c to how systemd-nspawn chooses one for the user namespacing.
+        uid = priv_uid_gid;
         group = "minecraft";
         isSystemUser = true;
       };
-      users.groups.minecraft = { };
+      users.groups.minecraft.gid = priv_uid_gid;
 
       # Secrets for the server config
       sops.secrets."minecraft/whitelist" = mc_key_config;
