@@ -23,8 +23,8 @@
       server_name = "EBG6 Minecraft server";
       priv_uid_gid = 65536 * 9; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing.
       mc_key_config = {
-        owner = "vu-minecraft-999"; # UID is of the "minecraft" user in nix-minecraft
-        group = "vg-minecraft-999"; # GID is of the "minecraft" user in nix-minecraft
+        owner = "minecraft";
+        group = "minecraft";
         restartUnits = [ "container@minecraft.service" ];
       };
     in
@@ -96,6 +96,11 @@
               enable = true;
               eula = true;
               openFirewall = true;
+
+              # Use the root user of the container, i.e. the "minecraft" user.
+              # This is needed to read the secrets files.
+              user = "root";
+              group = "root";
 
               servers.original = {
                 enable = true;
