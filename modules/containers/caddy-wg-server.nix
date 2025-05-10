@@ -53,7 +53,7 @@
     in
     lib.mkIf config.modules.caddy-wg-server.enable {
       users.users.caddywg = {
-        uid = 65536 * 10;
+        uid = 65536 * 10; # Randomly-chosen UID a/c to how systemd-nspawn chooses one for the user namespacing.
         group = "caddywg";
         isSystemUser = true;
       };
@@ -121,12 +121,12 @@
           { pkgs, ... }:
           {
             networking.firewall.allowedTCPPorts = [
-              443
-              25565
+              443 # HTTPS
+              25565 # Minecraft Java
             ];
             networking.firewall.allowedUDPPorts = [
-              25565
-              51820
+              25565 # Minecraft Bedrock
+              51820 # WireGuard
             ];
 
             networking.wg-quick.interfaces.wg0 = with config.modules.caddy-wg-server.wireguard; {

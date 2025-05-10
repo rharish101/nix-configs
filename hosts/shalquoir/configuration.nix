@@ -6,7 +6,7 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, pkgs, ... }:
+{ config, ... }:
 let
   mc_port = 26460;
   ssh_port = 8398;
@@ -42,7 +42,6 @@ in
 
   networking.nat = {
     enable = true;
-    externalInterface = "enp1s0";
     internalInterfaces = [ "ve-+" ];
   };
 
@@ -53,7 +52,7 @@ in
       port = wg_port;
       privateKeyFile = config.sops.secrets."wireguard/shalquoir".path;
       client = {
-        address = "10.100.0.2";
+        address = wg_ip_client;
         publicKey = "+lFv4mihO8w3eho26ebsrwU+NA5DlqgJPHTvYxINnS4=";
         presharedKeyFile = config.sops.secrets."wireguard/psk".path;
       };

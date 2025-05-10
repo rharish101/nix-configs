@@ -103,5 +103,8 @@
   networking.useDHCP = lib.mkDefault true;
   # networking.interfaces.enp1s0.useDHCP = lib.mkDefault true;
 
+  # Set the default interface for NAT.
+  networking.nat.externalInterface = "enp1s0";
+
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }
