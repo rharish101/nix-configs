@@ -103,6 +103,12 @@
             networking.firewall.interfaces.wg0.allowedUDPPorts = [
               25565 # Minecraft Bedrock
             ];
+            # Allow internet access through the WireGuard tunnel for containers connected to this one.
+            networking.nat = {
+              enable = true;
+              internalInterfaces = [ "br-+" ];
+              externalInterface = "wg0";
+            };
 
             # Set up a WireGuard tunnel to the server.
             networking.wg-quick.interfaces.wg0 = with config.modules.caddy-wg-client.wireguard; {

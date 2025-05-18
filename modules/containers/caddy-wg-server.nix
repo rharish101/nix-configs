@@ -130,6 +130,13 @@
               51820 # WireGuard
             ];
 
+            # Allow internet access for clients through the WireGuard tunnel.
+            networking.nat = {
+              enable = true;
+              internalInterfaces = [ "wg0" ];
+              externalInterface = "eth0";
+            };
+
             networking.wg-quick.interfaces.wg0 = with config.modules.caddy-wg-server.wireguard; {
               address = [ "10.100.0.1/24" ];
               listenPort = 51820;
