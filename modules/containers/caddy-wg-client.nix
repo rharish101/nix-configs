@@ -103,6 +103,10 @@
             networking.firewall.interfaces.wg0.allowedUDPPorts = [
               25565 # Minecraft Bedrock
             ];
+            # Adjust MSS to fit the actual path MTU.
+            # XXX: Fix for accessing Minecraft services over network bridge from other containers.
+            networking.firewall.extraCommands = "iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu";
+
             # Allow internet access through the WireGuard tunnel for containers connected to this one.
             networking.nat = {
               enable = true;
