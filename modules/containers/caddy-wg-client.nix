@@ -96,28 +96,6 @@
         config =
           { pkgs, ... }:
           {
-            # Add nftables rules for a WireGuard kill switch.
-            networking.nftables.enable = true;
-            networking.nftables.ruleset = ''
-              table inet killswitch {
-                chain input {
-                  type filter hook input priority 0;
-                  policy drop;
-                  iif lo accept
-                  iifname "wg0" accept
-                  ct state established,related accept
-                }
-                chain output {
-                  type filter hook output priority 0;
-                  policy drop;
-                  oif lo accept
-                  ip daddr ${config.modules.caddy-wg-client.wireguard.server.address} udp dport ${toString config.modules.caddy-wg-client.wireguard.server.port} accept
-                  oifname "wg0" accept
-                  ct state established,related accept
-                }
-              }
-            '';
-
             networking.firewall.interfaces.wg0.allowedTCPPorts = [
               80 # HTTP
               25565 # Minecraft Java
