@@ -137,7 +137,7 @@
               enable = true;
               package = pkgs.caddy.withPlugins {
                 plugins = [ "github.com/mholt/caddy-l4@v0.0.0-20250124234235-87e3e5e2c7f9" ];
-                hash = "sha256-HgB/xiMsROogUgVvy0Zvvc0GsKZWZ/ROdt9L+ubUcnw=";
+                hash = "sha256-q0CJjGRpDZCsdSf2E2hij11N0pDJALI6Aop7ImWLuow=";
               };
               globalConfig = ''
                 layer4 {
