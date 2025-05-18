@@ -68,6 +68,7 @@
         privateNetwork = true;
         hostAddress = "10.1.0.1";
         localAddress = "10.1.0.2";
+        localAddress6 = "fc00::1/112";
 
         privateUsers = config.users.users.caddywg.uid;
         extraFlags = [ "--private-users-ownership=auto" ];
