@@ -48,6 +48,7 @@
       memory_limit = 1; # in GiB
       caddy_data_dir = "/var/lib/containers/caddy";
       priv_uid_gid = 65536 * 10; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing.
+      mc_container_addr = "10.2.0.2";
     in
     lib.mkIf (config.modules.caddy-wg-client.enable) {
       users.users.caddywg = {
@@ -144,7 +145,7 @@
                 layer4 {
                   :25565 {
                     route {
-                      echo
+                      proxy ${mc_container_addr}:25565
                     }
                   }
                 }

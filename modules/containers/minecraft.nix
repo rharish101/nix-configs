@@ -27,6 +27,9 @@
         group = "minecraft";
         restartUnits = [ "container@minecraft.service" ];
       };
+      caddy_br_name = "br-mc";
+      caddy_br_addr = "10.2.0.1";
+      caddy_br_addr6 = "fc00::11";
     in
     lib.mkIf config.modules.minecraft.enable {
       # User for the Minecraft server.
@@ -48,22 +51,18 @@
         };
       };
 
+      networking.bridges."${caddy_br_name}".interfaces = [ ];
+      containers.caddy-wg-client.extraVeths.br-minecraft = {
+        hostBridge = caddy_br_name;
+        localAddress = "${caddy_br_addr}/24";
+        localAddress6 = "${caddy_br_addr6}/112";
+      };
+
       containers.minecraft = {
         privateNetwork = true;
-        hostAddress = "10.2.0.1";
-        localAddress = "10.2.0.2";
-        forwardPorts = [
-          {
-            hostPort = 25565;
-            containerPort = 25565;
-            protocol = "tcp";
-          }
-          {
-            hostPort = 25565;
-            containerPort = 19132;
-            protocol = "udp";
-          }
-        ];
+        hostBridge = caddy_br_name;
+        localAddress = "10.2.0.2/24";
+        localAddress6 = "fc00::12/112";
 
         privateUsers = config.users.users.minecraft.uid;
         extraFlags = [ "--private-users-ownership=auto" ];
@@ -92,10 +91,24 @@
           {
             imports = [ inputs.nix-minecraft.nixosModules.minecraft-servers ];
             nixpkgs.overlays = [ inputs.nix-minecraft.overlay ];
+
+            networking.firewall.allowedTCPPorts = [ 25565 ];
+            networking.firewall.allowedUDPPorts = [ 19132 ];
+
+            # To allow this container to access the internet through the bridge.
+            networking.defaultGateway = {
+              address = caddy_br_addr;
+              interface = "eth0";
+            };
+            networking.defaultGateway6 = {
+              address = caddy_br_addr6;
+              interface = "eth0";
+            };
+            networking.nameservers = [ "1.1.1.1" ];
+
             services.minecraft-servers = {
               enable = true;
               eula = true;
-              openFirewall = true;
 
               # Use the root user of the container, i.e. the "minecraft" user.
               # This is needed to read the secrets files.
