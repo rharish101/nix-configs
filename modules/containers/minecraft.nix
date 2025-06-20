@@ -91,6 +91,11 @@
           {
             imports = [ inputs.nix-minecraft.nixosModules.minecraft-servers ];
             nixpkgs.overlays = [ inputs.nix-minecraft.overlay ];
+            nixpkgs.config.allowUnfreePredicate =
+              pkg:
+              builtins.elem (lib.getName pkg) [
+                "minecraft-server"
+              ];
 
             networking.firewall.allowedTCPPorts = [ 25565 ];
             networking.firewall.allowedUDPPorts = [ 19132 ];
@@ -117,7 +122,7 @@
 
               servers.original = {
                 enable = true;
-                package = pkgs.minecraftServers.paper-1_21_5;
+                package = pkgs.minecraftServers.vanilla-1_21_5;
                 # Aikar's flags.
                 jvmOpts = ''
                   -Xms${toString memory_limit}G \
@@ -151,20 +156,6 @@
                   max-world-size = 29999984;
                   spawn-protection = 0;
                   white-list = true;
-                };
-                symlinks = {
-                  mods = pkgs.linkFarmFromDrvs "mods" (
-                    builtins.attrValues {
-                      Geyser = pkgs.fetchurl {
-                        url = "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot";
-                        sha512 = "sha512-ZwMLaoLTRnOfyemsa6S4LUppnfj5PMdA92a4RtSkGCwg+2LhfqaPNuKYvD7+hTH1GsT0Vb7M2K7QRu0dudT8+A==";
-                      };
-                      Floodgate = pkgs.fetchurl {
-                        url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot";
-                        sha512 = "sha512-B2jTZOGEgQfJDaes+6LTl6IRC5CR/dvU8gPglX7vjn6h0yDmTfHhNyVgOQcSp6Yg5NL98GWKdjpm35EJdfPjuQ==";
-                      };
-                    }
-                  );
                 };
                 files = {
                   "whitelist.json" = config.sops.secrets."minecraft/whitelist".path;
