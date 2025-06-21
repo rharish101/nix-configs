@@ -159,10 +159,10 @@
                 enable = true;
                 package = pkgs.caddy.withPlugins {
                   plugins = [
-                    "github.com/caddy-dns/cloudflare@v0.1.0"
+                    "github.com/caddy-dns/cloudflare@v0.2.1"
                     "github.com/mholt/caddy-l4@v0.0.0-20250124234235-87e3e5e2c7f9"
                   ];
-                  hash = "sha256-Qdk5c2ysBdwKEyrbqT1Hl3jdnZhnviSZq+pkmy9jfIk=";
+                  hash = "sha256-PfCTGGH1be7TI95wvS95K4BoK3myc0TrRcaaN6ejfkI=";
                 };
                 environmentFile = config.modules.caddy-wg-server.caddy.environmentFile;
                 email = "harish.rajagopals@gmail.com";
