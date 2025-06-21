@@ -113,6 +113,12 @@ in
   modules.impermanence.path = "/persist";
   modules.snapshots.enable = false;
 
+  # Needed for remote deployment.
+  nix.settings.trusted-users = [
+    "root"
+    "rharish"
+  ];
+
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.
   #
