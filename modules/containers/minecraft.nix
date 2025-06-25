@@ -122,7 +122,7 @@
 
               servers.original = {
                 enable = true;
-                package = pkgs.minecraftServers.vanilla-1_21_5;
+                package = pkgs.minecraftServers.vanilla-1_21_6;
                 # Aikar's flags.
                 jvmOpts = ''
                   -Xms${toString memory_limit}G \
