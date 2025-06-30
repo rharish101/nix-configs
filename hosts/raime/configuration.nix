@@ -8,6 +8,11 @@
 
 { config, pkgs, ... }:
 let
+  authelia_key_config = {
+    owner = "authelia";
+    group = "authelia";
+    restartUnits = [ "container@authelia.service" ];
+  };
   caddywg_key_config = {
     owner = "caddywg";
     group = "caddywg";
@@ -74,6 +79,9 @@ in
   sops.secrets."crypttab/data2" = { };
   sops.secrets."wireguard/psk" = caddywg_key_config;
   sops.secrets."wireguard/raime" = caddywg_key_config;
+  sops.secrets."authelia/jwt" = authelia_key_config;
+  sops.secrets."authelia/session" = authelia_key_config;
+  sops.secrets."authelia/storage" = authelia_key_config;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -86,6 +94,17 @@ in
 
   # Enable firmware updates.
   services.fwupd.enable = true;
+
+  # Enable identity provider.
+  modules.authelia = {
+    enable = true;
+    dataDir = "/data/authelia";
+    secrets = {
+      jwt = config.sops.secrets."authelia/jwt".path;
+      session = config.sops.secrets."authelia/session".path;
+      storage = config.sops.secrets."authelia/storage".path;
+    };
+  };
 
   # Custom module configuration
   modules.git.dev = true;

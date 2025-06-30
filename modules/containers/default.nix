@@ -5,6 +5,7 @@
 { ... }:
 {
   imports = [
+    ./authelia.nix
     ./caddy-wg-client.nix
     ./caddy-wg-server.nix
     ./minecraft.nix

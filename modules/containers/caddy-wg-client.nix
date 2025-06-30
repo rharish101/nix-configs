@@ -153,6 +153,9 @@
               virtualHosts.":80".extraConfig = ''
                 respond "hello world"
               '';
+              virtualHosts."http://auth.rharish.dev".extraConfig = ''
+                reverse_proxy 10.4.0.2:9091
+              '';
             };
 
             system.stateVersion = "24.11";
