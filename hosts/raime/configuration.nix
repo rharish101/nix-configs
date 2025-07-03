@@ -80,6 +80,7 @@ in
   sops.secrets."wireguard/psk" = caddywg_key_config;
   sops.secrets."wireguard/raime" = caddywg_key_config;
   sops.secrets."authelia/jwt" = authelia_key_config;
+  sops.secrets."authelia/postgres" = authelia_key_config;
   sops.secrets."authelia/redis" = authelia_key_config // {
     restartUnits = [
       "container@authelia.service"
@@ -107,6 +108,7 @@ in
     dataDir = "/data/authelia";
     secrets = {
       jwt = config.sops.secrets."authelia/jwt".path;
+      postgres = config.sops.secrets."authelia/postgres".path;
       redis = config.sops.secrets."authelia/redis".path;
       session = config.sops.secrets."authelia/session".path;
       storage = config.sops.secrets."authelia/storage".path;
@@ -118,6 +120,7 @@ in
   modules.impermanence.path = "/persist";
   modules.minecraft.enable = true;
   modules.minecraft.dataDir = "/data/minecraft";
+  modules.postgres.enable = true;
   modules.secureBoot.enable = true;
 
   # This option defines the first version of NixOS you have installed on this particular machine,

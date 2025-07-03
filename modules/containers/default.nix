@@ -9,5 +9,6 @@
     ./caddy-wg-client.nix
     ./caddy-wg-server.nix
     ./minecraft.nix
+    ./postgres.nix
   ];
 }

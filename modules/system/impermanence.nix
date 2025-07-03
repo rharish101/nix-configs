@@ -25,6 +25,7 @@
         "/etc/NetworkManager/system-connections"
         "/var/lib/containers"
         "/var/lib/nixos"
+        "/var/lib/postgresql"
         "/var/lib/sbctl"
         "/var/lib/systemd/coredump"
         "/var/log"

@@ -20,6 +20,10 @@
         description = "Path to the JWT secret file";
         type = lib.types.path;
       };
+      postgres = lib.mkOption {
+        description = "Path to the PostgreSQL password file";
+        type = lib.types.path;
+      };
       redis = lib.mkOption {
         description = "Path to the Redis password file";
         type = lib.types.path;
@@ -44,6 +48,8 @@
       caddy_br_addr6 = "fc00::31";
       redis_br_name = "br-auth-redis";
       redis_br_addr_redis = "10.4.1.2";
+      postgres_br_name = "br-auth-pg";
+      postgres_br_addr_postgres = "10.4.2.2";
       data_dir = "/var/lib/authelia-main/configs"; # MUST be a (sub)directory of "/var/lib/authelia-{instanceName}"
     in
     lib.mkIf config.modules.authelia.enable {
@@ -60,15 +66,25 @@
           MemoryHigh = "${toString memory_limit}G";
           CPUQuota = "${toString (cpu_limit * 100)}%";
         };
-        requires = [ "container@authelia-redis.service" ];
+        requires = [
+          "container@postgres.service"
+          "container@authelia-redis.service"
+        ];
       };
 
       networking.bridges."${caddy_br_name}".interfaces = [ ];
+      networking.bridges."${postgres_br_name}".interfaces = [ ];
       networking.bridges."${redis_br_name}".interfaces = [ ];
+
       containers.caddy-wg-client.extraVeths.caddy-auth = {
         hostBridge = caddy_br_name;
         localAddress = "${caddy_br_addr}/24";
         localAddress6 = "${caddy_br_addr6}/112";
+      };
+      containers.postgres.extraVeths.pg-auth = {
+        hostBridge = postgres_br_name;
+        localAddress = "${postgres_br_addr_postgres}/24";
+        localAddress6 = "fc00::36/112";
       };
 
       containers.authelia = {
@@ -77,10 +93,17 @@
         localAddress = "10.4.0.2/24";
         localAddress6 = "fc00::32/112";
 
-        extraVeths.auth-redis = {
-          hostBridge = redis_br_name;
-          localAddress = "10.4.1.1/24";
-          localAddress6 = "fc00::33/112";
+        extraVeths = {
+          auth-pg = {
+            hostBridge = postgres_br_name;
+            localAddress = "10.4.2.1/24";
+            localAddress6 = "fc00::35/112";
+          };
+          auth-redis = {
+            hostBridge = redis_br_name;
+            localAddress = "10.4.1.1/24";
+            localAddress6 = "fc00::33/112";
+          };
         };
 
         privateUsers = config.users.users.authelia.uid;
@@ -98,6 +121,10 @@
           jwt = {
             hostPath = secrets.jwt;
             mountPoint = secrets.jwt;
+          };
+          postgres = {
+            hostPath = secrets.postgres;
+            mountPoint = secrets.postgres;
           };
           redis = {
             hostPath = secrets.redis;
@@ -145,7 +172,10 @@
               environmentVariables = {
                 AUTHELIA_AUTHENTICATION_BACKEND_FILE_PATH = "${data_dir}/users.yml";
                 AUTHELIA_NOTIFIER_FILESYSTEM_FILENAME = "${data_dir}/notification.txt";
-                AUTHELIA_STORAGE_LOCAL_PATH = "${data_dir}/db.sqlite3";
+                AUTHELIA_STORAGE_POSTGRES_ADDRESS = "tcp://${postgres_br_addr_postgres}:5432";
+                AUTHELIA_STORAGE_POSTGRES_DATABASE = "authelia";
+                AUTHELIA_STORAGE_POSTGRES_USERNAME = "authelia";
+                AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE = secrets.postgres;
                 AUTHELIA_SESSION_REDIS_HOST = redis_br_addr_redis;
                 AUTHELIA_SESSION_REDIS_PASSWORD_FILE = secrets.redis;
               };
