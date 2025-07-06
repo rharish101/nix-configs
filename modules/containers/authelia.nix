@@ -16,6 +16,10 @@
       type = lib.types.str;
     };
     secrets = {
+      ldap = lib.mkOption {
+        description = "Path to the lldap password file";
+        type = lib.types.path;
+      };
       jwt = lib.mkOption {
         description = "Path to the JWT secret file";
         type = lib.types.path;
@@ -46,6 +50,9 @@
       caddy_br_name = "br-auth-caddy";
       caddy_br_addr = "10.4.0.1";
       caddy_br_addr6 = "fc00::31";
+      ldap_base_dn = "dc=rharish,dc=dev";
+      ldap_br_name = "br-auth-ldap";
+      ldap_br_addr_ldap = "10.4.3.2";
       redis_br_name = "br-auth-redis";
       redis_br_addr_redis = "10.4.1.2";
       postgres_br_name = "br-auth-pg";
@@ -67,12 +74,14 @@
           CPUQuota = "${toString (cpu_limit * 100)}%";
         };
         requires = [
+          "container@lldap.service"
           "container@postgres.service"
           "container@authelia-redis.service"
         ];
       };
 
       networking.bridges."${caddy_br_name}".interfaces = [ ];
+      networking.bridges."${ldap_br_name}".interfaces = [ ];
       networking.bridges."${postgres_br_name}".interfaces = [ ];
       networking.bridges."${redis_br_name}".interfaces = [ ];
 
@@ -80,6 +89,11 @@
         hostBridge = caddy_br_name;
         localAddress = "${caddy_br_addr}/24";
         localAddress6 = "${caddy_br_addr6}/112";
+      };
+      containers.lldap = {
+        hostBridge = ldap_br_name;
+        localAddress = "${ldap_br_addr_ldap}/24";
+        localAddress6 = "fc00::38/112";
       };
       containers.postgres.extraVeths.pg-auth = {
         hostBridge = postgres_br_name;
@@ -94,6 +108,11 @@
         localAddress6 = "fc00::32/112";
 
         extraVeths = {
+          auth-ldap = {
+            hostBridge = ldap_br_name;
+            localAddress = "10.4.3.1/24";
+            localAddress6 = "fc00::37/112";
+          };
           auth-pg = {
             hostBridge = postgres_br_name;
             localAddress = "10.4.2.1/24";
@@ -117,6 +136,10 @@
             hostPath = dataDir;
             mountPoint = data_dir;
             isReadOnly = false;
+          };
+          ldap = {
+            hostPath = secrets.ldap;
+            mountPoint = secrets.ldap;
           };
           jwt = {
             hostPath = secrets.jwt;
@@ -170,7 +193,12 @@
               };
               settingsFiles = [ ../../configs/authelia.yml ];
               environmentVariables = {
-                AUTHELIA_AUTHENTICATION_BACKEND_FILE_PATH = "${data_dir}/users.yml";
+                AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDRESS = "ldap://${ldap_br_addr_ldap}:3890";
+                AUTHELIA_AUTHENTICATION_BACKEND_LDAP_IMPLEMENTATION = "lldap";
+                AUTHELIA_AUTHENTICATION_BACKEND_LDAP_BASE_DN = ldap_base_dn;
+                AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_USERS_DN = "ou=people";
+                AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER = "uid=authelia,ou=people,${ldap_base_dn}";
+                AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = secrets.ldap;
                 AUTHELIA_NOTIFIER_FILESYSTEM_FILENAME = "${data_dir}/notification.txt";
                 AUTHELIA_STORAGE_POSTGRES_ADDRESS = "tcp://${postgres_br_addr_postgres}:5432";
                 AUTHELIA_STORAGE_POSTGRES_DATABASE = "authelia";

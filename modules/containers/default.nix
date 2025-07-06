@@ -8,6 +8,7 @@
     ./authelia.nix
     ./caddy-wg-client.nix
     ./caddy-wg-server.nix
+    ./lldap.nix
     ./minecraft.nix
     ./postgres.nix
   ];

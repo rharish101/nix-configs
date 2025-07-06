@@ -18,6 +18,11 @@ let
     group = "caddywg";
     restartUnits = [ "container@caddy-wg-client.service" ];
   };
+  lldap_key_config = {
+    owner = "lldap";
+    group = "lldap";
+    restartUnits = [ "container@lldap.service" ];
+  };
 in
 {
   imports = [
@@ -79,6 +84,7 @@ in
   sops.secrets."crypttab/data2" = { };
   sops.secrets."wireguard/psk" = caddywg_key_config;
   sops.secrets."wireguard/raime" = caddywg_key_config;
+  sops.secrets."authelia/ldap" = authelia_key_config;
   sops.secrets."authelia/jwt" = authelia_key_config;
   sops.secrets."authelia/postgres" = authelia_key_config;
   sops.secrets."authelia/redis" = authelia_key_config // {
@@ -89,6 +95,10 @@ in
   };
   sops.secrets."authelia/session" = authelia_key_config;
   sops.secrets."authelia/storage" = authelia_key_config;
+  sops.secrets."lldap/db" = lldap_key_config;
+  sops.secrets."lldap/jwt" = lldap_key_config;
+  sops.secrets."lldap/key" = lldap_key_config;
+  sops.secrets."lldap/pass" = lldap_key_config;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -107,11 +117,21 @@ in
     enable = true;
     dataDir = "/data/authelia";
     secrets = {
+      ldap = config.sops.secrets."authelia/ldap".path;
       jwt = config.sops.secrets."authelia/jwt".path;
       postgres = config.sops.secrets."authelia/postgres".path;
       redis = config.sops.secrets."authelia/redis".path;
       session = config.sops.secrets."authelia/session".path;
       storage = config.sops.secrets."authelia/storage".path;
+    };
+  };
+  modules.lldap = {
+    enable = true;
+    secrets = {
+      dbUrl = config.sops.secrets."lldap/db".path;
+      jwt = config.sops.secrets."lldap/jwt".path;
+      keySeed = config.sops.secrets."lldap/key".path;
+      userPass = config.sops.secrets."lldap/pass".path;
     };
   };
 

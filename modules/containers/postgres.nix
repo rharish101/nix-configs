@@ -52,14 +52,22 @@
               enableTCPIP = true;
               authentication = ''
                 host sameuser authelia 10.4.2.1/32 scram-sha-256
+                host sameuser lldap    10.5.0.1/32 scram-sha-256
               '';
               ensureUsers = [
                 (lib.mkIf config.modules.authelia.enable {
                   name = "authelia";
                   ensureDBOwnership = true;
                 })
+                (lib.mkIf config.modules.lldap.enable {
+                  name = "lldap";
+                  ensureDBOwnership = true;
+                })
               ];
-              ensureDatabases = [ (lib.mkIf config.modules.authelia.enable "authelia") ];
+              ensureDatabases = [
+                (lib.mkIf config.modules.authelia.enable "authelia")
+                (lib.mkIf config.modules.lldap.enable "lldap")
+              ];
             };
 
             system.stateVersion = "25.05";
