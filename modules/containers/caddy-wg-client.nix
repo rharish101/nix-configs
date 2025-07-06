@@ -154,6 +154,9 @@
                     }
                   }
                 }
+                servers {
+                  trusted_proxies static 10.100.0.1/24 ${config.modules.caddy-wg-client.wireguard.server.address}
+                }
               '';
               virtualHosts.":80".extraConfig = ''
                 respond "hello world"

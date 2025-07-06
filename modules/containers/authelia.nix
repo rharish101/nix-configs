@@ -58,6 +58,7 @@
       postgres_br_name = "br-auth-pg";
       postgres_br_addr_postgres = "10.4.2.2";
       data_dir = "/var/lib/authelia-main/configs"; # MUST be a (sub)directory of "/var/lib/authelia-{instanceName}"
+      log_path = "/var/lib/authelia-main/log"; # MUST be in a (sub)directory of "/var/lib/authelia-{instanceName}"
     in
     lib.mkIf
       (
@@ -197,6 +198,8 @@
                 settings = {
                   default_2fa_method = "totp";
                   theme = "auto";
+                  log.file_path = log_path;
+                  log.keep_stdout = true;
                 };
                 settingsFiles = [ ../../configs/authelia.yml ];
                 environmentVariables = {
@@ -215,6 +218,27 @@
                   AUTHELIA_SESSION_REDIS_PASSWORD_FILE = secrets.redis;
                 };
               };
+
+              services.fail2ban = {
+                enable = true;
+                bantime = "1h";
+                jails.authelia.settings = {
+                  enabled = true;
+                  port = "http,9091";
+                  filter = "authelia";
+                  logpath = log_path;
+                  findtime = "1h";
+                };
+              };
+              environment.etc."fail2ban/filter.d/authelia.local".text = ''
+                [Definition]
+                failregex = ^.*Unsuccessful (1FA|TOTP|Duo|U2F) authentication attempt by user .*remote_ip"?(:|=)"?<HOST>"?.*$
+                            ^.*user not found.*path=/api/reset-password/identity/start remote_ip"?(:|=)"?<HOST>"?.*$
+                            ^.*Sending an email to user.*path=/api/.*/start remote_ip"?(:|=)"?<HOST>"?.*$
+
+                ignoreregex = ^.*level"?(:|=)"?info.*
+                              ^.*level"?(:|=)"?warning.*
+              '';
 
               system.stateVersion = "25.05";
             };
