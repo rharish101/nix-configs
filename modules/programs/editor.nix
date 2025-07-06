@@ -14,10 +14,12 @@
 
   config = {
     # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    environment.systemPackages = [ pkgs.vim ];
-
-    # Set the default editor.
-    environment.variables.EDITOR = "vim";
+    programs.neovim = {
+      enable = true;
+      defaultEditor = true;
+      viAlias = true;
+      vimAlias = true;
+    };
 
     # Add LSP servers.
     users.users.rharish.packages =
