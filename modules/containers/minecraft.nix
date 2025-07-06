@@ -27,7 +27,7 @@
         group = "minecraft";
         restartUnits = [ "container@minecraft.service" ];
       };
-      caddy_br_name = "br-mc";
+      caddy_br_name = "br-caddy-mc";
       caddy_br_addr = "10.2.0.1";
       caddy_br_addr6 = "fc00::11";
     in
@@ -52,7 +52,7 @@
       };
 
       networking.bridges."${caddy_br_name}".interfaces = [ ];
-      containers.caddy-wg-client.extraVeths.br-minecraft = {
+      containers.caddy-wg-client.extraVeths.caddy-mc = {
         hostBridge = caddy_br_name;
         localAddress = "${caddy_br_addr}/24";
         localAddress6 = "${caddy_br_addr6}/112";
