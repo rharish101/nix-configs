@@ -112,7 +112,7 @@
             # Allow internet access through the WireGuard tunnel for containers connected to this one.
             networking.nat = {
               enable = true;
-              internalInterfaces = [ "br-+" ];
+              internalInterfaces = [ "caddy-+" ];
               externalInterface = "wg0";
             };
 
