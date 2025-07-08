@@ -143,9 +143,14 @@
               };
               globalConfig = ''
                 layer4 {
-                  :25565 {
+                  tcp/:25565 {
                     route {
                       proxy ${mc_container_addr}:25565
+                    }
+                  }
+                  udp/:25565 {
+                    route {
+                      proxy udp/${mc_container_addr}:19132
                     }
                   }
                 }

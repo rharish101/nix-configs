@@ -18,8 +18,8 @@
   };
   config =
     let
-      cpu_limit = 4;
-      memory_limit = 6; # in GiB
+      cpu_limit = 6;
+      memory_limit = 12; # in GiB
       server_name = "EBG6 Minecraft server";
       priv_uid_gid = 65536 * 9; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing.
       mc_key_config = {
@@ -122,7 +122,7 @@
 
               servers.original = {
                 enable = true;
-                package = pkgs.minecraftServers.vanilla-1_21_6;
+                package = pkgs.minecraftServers.paper-1_21_7-build_17;
                 # Aikar's flags.
                 jvmOpts = ''
                   -Xms${toString memory_limit}G \
@@ -156,6 +156,18 @@
                   max-world-size = 29999984;
                   spawn-protection = 0;
                   white-list = true;
+                };
+                symlinks = {
+                  "plugins/Geyser.jar" = pkgs.fetchurl {
+                    url = "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot";
+                    name = "Geyser";
+                    hash = "sha256-vRNYzLMA28eZkTAulzQc0El6jK4w/gWBFV8OGIrsKtc=";
+                  };
+                  "plugins/Floodgate.jar" = pkgs.fetchurl {
+                    url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot";
+                    name = "Floodgate";
+                    hash = "sha256-lnLGEWtBGuQSFU7fLZMVxLZ9sbNtGJhUedPMl8S0WrU=";
+                  };
                 };
                 files = {
                   "whitelist.json" = config.sops.secrets."minecraft/whitelist".path;

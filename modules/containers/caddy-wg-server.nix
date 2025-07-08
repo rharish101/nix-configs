@@ -172,9 +172,14 @@
                     api_token {env.DNS_TOKEN}
                   }
                   layer4 {
-                    0.0.0.0:25565 {
+                    tcp/:25565 {
                       route {
                         proxy ${client_ip}:25565
+                      }
+                    }
+                    udp/:25565 {
+                      route {
+                        proxy udp/${client_ip}:25565
                       }
                     }
                   }
