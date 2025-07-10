@@ -36,7 +36,7 @@
       ldap_base_dn = "dc=rharish,dc=dev";
       postgres_br_name = "br-ldap-pg";
     in
-    lib.mkIf config.modules.lldap.enable {
+    lib.mkIf (config.modules.lldap.enable && config.modules.postgres.enable) {
       # User for the lldap container.
       users.users.lldap = {
         uid = priv_uid_gid;

@@ -31,7 +31,7 @@
       caddy_br_addr = "10.2.0.1";
       caddy_br_addr6 = "fc00::11";
     in
-    lib.mkIf config.modules.minecraft.enable {
+    lib.mkIf (config.modules.minecraft.enable && config.modules.caddy-wg-client.enable) {
       # User for the Minecraft server.
       users.users.minecraft = {
         uid = priv_uid_gid;
@@ -49,6 +49,7 @@
           MemoryHigh = "${toString memory_limit}G";
           CPUQuota = "${toString (cpu_limit * 100)}%";
         };
+        requires = [ "container@caddy-wg-client.service" ];
       };
 
       networking.bridges."${caddy_br_name}".interfaces = [ ];
