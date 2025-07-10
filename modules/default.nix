@@ -9,6 +9,7 @@
     ./programs
     ./services
     ./system
+    ./vendored
   ];
 
   # Enable flakes, since they're experimental now.

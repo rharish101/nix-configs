@@ -16,6 +16,10 @@
       type = lib.types.str;
     };
     secrets = {
+      crowdsec = lib.mkOption {
+        description = "Path to the CrowdSec Local API credentials file";
+        type = lib.types.path;
+      };
       ldap = lib.mkOption {
         description = "Path to the lldap password file";
         type = lib.types.path;
@@ -50,6 +54,9 @@
       caddy_br_name = "br-auth-caddy";
       caddy_br_addr = "10.4.0.1";
       caddy_br_addr6 = "fc00::31";
+      csec = config.modules.crowdsec-lapi.enable;
+      csec_br_name = "br-auth-csec";
+      csec_br_addr_csec = "10.4.4.2";
       ldap_base_dn = "dc=rharish,dc=dev";
       ldap_br_name = "br-auth-ldap";
       ldap_br_addr_ldap = "10.4.3.2";
@@ -82,21 +89,30 @@
             CPUQuota = "${toString (cpu_limit * 100)}%";
           };
           requires = [
+            (lib.mkIf csec "container@crowdsec-lapi.service")
             "container@lldap.service"
             "container@postgres.service"
             "container@authelia-redis.service"
           ];
         };
 
-        networking.bridges."${caddy_br_name}".interfaces = [ ];
-        networking.bridges."${ldap_br_name}".interfaces = [ ];
-        networking.bridges."${postgres_br_name}".interfaces = [ ];
-        networking.bridges."${redis_br_name}".interfaces = [ ];
+        networking.bridges = {
+          "${caddy_br_name}".interfaces = [ ];
+          "${csec_br_name}" = lib.mkIf csec { interfaces = [ ]; };
+          "${ldap_br_name}".interfaces = [ ];
+          "${postgres_br_name}".interfaces = [ ];
+          "${redis_br_name}".interfaces = [ ];
+        };
 
         containers.caddy-wg-client.extraVeths.caddy-auth = {
           hostBridge = caddy_br_name;
           localAddress = "${caddy_br_addr}/24";
           localAddress6 = "${caddy_br_addr6}/112";
+        };
+        containers.crowdsec-lapi.extraVeths.csec-auth = lib.mkIf csec {
+          hostBridge = csec_br_name;
+          localAddress = "${csec_br_addr_csec}/24";
+          localAddress6 = "fc00::3a/112";
         };
         containers.lldap = {
           hostBridge = ldap_br_name;
@@ -116,6 +132,11 @@
           localAddress6 = "fc00::32/112";
 
           extraVeths = {
+            auth-csec = lib.mkIf csec {
+              hostBridge = csec_br_name;
+              localAddress = "10.4.4.1/24";
+              localAddress6 = "fc00::39/112";
+            };
             auth-ldap = {
               hostBridge = ldap_br_name;
               localAddress = "10.4.3.1/24";
@@ -144,6 +165,10 @@
               hostPath = dataDir;
               mountPoint = data_dir;
               isReadOnly = false;
+            };
+            crowdsec = lib.mkIf csec {
+              hostPath = secrets.crowdsec;
+              mountPoint = secrets.crowdsec;
             };
             ldap = {
               hostPath = secrets.ldap;
@@ -174,6 +199,8 @@
           config =
             { ... }:
             {
+              imports = [ ../vendored/crowdsec.nix ];
+
               # To allow this container to access the internet through the bridge.
               networking.defaultGateway = {
                 address = caddy_br_addr;
@@ -219,26 +246,28 @@
                 };
               };
 
-              services.fail2ban = {
+              services.crowdsec = lib.mkIf csec {
                 enable = true;
-                bantime = "1h";
-                jails.authelia.settings = {
-                  enabled = true;
-                  port = "http,9091";
-                  filter = "authelia";
-                  logpath = log_path;
-                  findtime = "1h";
-                };
-              };
-              environment.etc."fail2ban/filter.d/authelia.local".text = ''
-                [Definition]
-                failregex = ^.*Unsuccessful (1FA|TOTP|Duo|U2F) authentication attempt by user .*remote_ip"?(:|=)"?<HOST>"?.*$
-                            ^.*user not found.*path=/api/reset-password/identity/start remote_ip"?(:|=)"?<HOST>"?.*$
-                            ^.*Sending an email to user.*path=/api/.*/start remote_ip"?(:|=)"?<HOST>"?.*$
+                autoUpdateService = true;
+                name = "${config.networking.hostName}-authelia";
 
-                ignoreregex = ^.*level"?(:|=)"?info.*
-                              ^.*level"?(:|=)"?warning.*
-              '';
+                user = "root";
+                group = "root";
+
+                localConfig.acquisitions = [
+                  {
+                    source = "file";
+                    filename = log_path;
+                    labels.type = "authelia";
+                    use_time_machine = true;
+                  }
+                ];
+                hub.collections = [
+                  "crowdsecurity/linux"
+                  "LePresidente/authelia"
+                ];
+                settings.lapi.credentialsFile = config.modules.authelia.secrets.crowdsec;
+              };
 
               system.stateVersion = "25.05";
             };

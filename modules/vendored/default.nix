@@ -5,12 +5,6 @@
 { ... }:
 {
   imports = [
-    ./authelia.nix
-    ./caddy-wg-client.nix
-    ./caddy-wg-server.nix
-    ./crowdsec-lapi.nix
-    ./lldap.nix
-    ./minecraft.nix
-    ./postgres.nix
+    ./crowdsec.nix
   ];
 }

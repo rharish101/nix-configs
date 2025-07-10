@@ -84,6 +84,7 @@ in
   sops.secrets."crypttab/data2" = { };
   sops.secrets."wireguard/psk" = caddywg_key_config;
   sops.secrets."wireguard/raime" = caddywg_key_config;
+  sops.secrets."authelia/crowdsec" = authelia_key_config;
   sops.secrets."authelia/ldap" = authelia_key_config;
   sops.secrets."authelia/jwt" = authelia_key_config;
   sops.secrets."authelia/postgres" = authelia_key_config;
@@ -99,6 +100,11 @@ in
   sops.secrets."lldap/jwt" = lldap_key_config;
   sops.secrets."lldap/key" = lldap_key_config;
   sops.secrets."lldap/pass" = lldap_key_config;
+  sops.secrets."crowdsec/lapi-env" = {
+    owner = "crowdsec";
+    group = "crowdsec";
+    restartUnits = [ "container@crowdsec-lapi.service" ];
+  };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -117,6 +123,7 @@ in
     enable = true;
     dataDir = "/data/authelia";
     secrets = {
+      crowdsec = config.sops.secrets."authelia/crowdsec".path;
       ldap = config.sops.secrets."authelia/ldap".path;
       jwt = config.sops.secrets."authelia/jwt".path;
       postgres = config.sops.secrets."authelia/postgres".path;
@@ -133,6 +140,13 @@ in
       keySeed = config.sops.secrets."lldap/key".path;
       userPass = config.sops.secrets."lldap/pass".path;
     };
+  };
+
+  # Enable CrowdSec Local API server.
+  modules.crowdsec-lapi = {
+    enable = true;
+    dataDir = "/data/crowdsec";
+    secrets.envFile = config.sops.secrets."crowdsec/lapi-env".path;
   };
 
   # Custom module configuration
