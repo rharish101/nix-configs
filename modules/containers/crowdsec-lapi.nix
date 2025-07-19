@@ -140,7 +140,7 @@
                   api.server = {
                     enable = true;
                     listen_uri = "0.0.0.0:8080";
-                    online_client.sharing = false;
+                    online_client.credentials_path = "/var/lib/crowdsec/credentials/capi.yaml";
                   };
                 };
                 settings.lapi.credentialsFile = "/var/lib/crowdsec/credentials/lapi.yaml";
