@@ -89,6 +89,7 @@ in
   sops.secrets."cloudflare" = caddywg_key_config;
   sops.secrets."wireguard/psk" = caddywg_key_config;
   sops.secrets."wireguard/shalquoir" = caddywg_key_config;
+  sops.secrets."crowdsec/bouncer-env".restartUnits = [ "crowdsec-firewall-bouncer.service" ];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -107,6 +108,12 @@ in
 
   # Enable fail2ban.
   services.fail2ban.enable = true;
+
+  # Enable CrowdSec firewall bouncer.
+  modules.crowdsec-bouncer = {
+    enable = true;
+    secrets.envFile = config.sops.secrets."crowdsec/bouncer-env".path;
+  };
 
   # Custom module configuration
   modules.editor.nixLsp.enable = false;

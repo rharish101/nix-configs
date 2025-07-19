@@ -5,6 +5,7 @@
 { lib, ... }:
 {
   imports = [
+    ./crowdsec-bouncer.nix
     ./locate.nix
     ./maintenance.nix
     ./podman.nix
