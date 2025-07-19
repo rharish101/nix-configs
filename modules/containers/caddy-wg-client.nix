@@ -10,7 +10,7 @@
       address = lib.mkOption {
         description = "IP address for the client";
         type = lib.types.str;
-        default = "10.100.0.2/24";
+        default = "10.100.0.2";
       };
       privateKeyFile = lib.mkOption {
         description = "The file for the client's private key";
@@ -49,6 +49,7 @@
       caddy_data_dir = "/var/lib/containers/caddy";
       priv_uid_gid = 65536 * 10; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing.
       mc_container_addr = "10.2.0.2";
+      csec_port = 20546;
     in
     lib.mkIf (config.modules.caddy-wg-client.enable) {
       users.users.caddywg = {
@@ -101,6 +102,7 @@
             networking.firewall.interfaces.wg0.allowedTCPPorts = [
               80 # HTTP
               25565 # Minecraft Java
+              csec_port # CrowdSec LAPI
             ];
             networking.firewall.interfaces.wg0.allowedUDPPorts = [
               25565 # Minecraft Bedrock
@@ -118,7 +120,7 @@
 
             # Set up a WireGuard tunnel to the server.
             networking.wg-quick.interfaces.wg0 = with config.modules.caddy-wg-client.wireguard; {
-              address = [ address ];
+              address = [ "${address}/24" ];
               privateKeyFile = privateKeyFile;
               dns = [ dns ]; # Use external DNS, since traffic is routed through the tunnel.
               peers = [
@@ -135,7 +137,7 @@
               ];
             };
 
-            services.caddy = {
+            services.caddy = with config.modules.caddy-wg-client.wireguard; {
               enable = true;
               package = pkgs.caddy.withPlugins {
                 plugins = [ "github.com/mholt/caddy-l4@v0.0.0-20250124234235-87e3e5e2c7f9" ];
@@ -155,11 +157,14 @@
                   }
                 }
                 servers {
-                  trusted_proxies static 10.100.0.1/24 ${config.modules.caddy-wg-client.wireguard.server.address}
+                  trusted_proxies static 10.100.0.1/24 ${server.address}
                 }
               '';
               virtualHosts.":80".extraConfig = ''
                 respond "hello world"
+              '';
+              virtualHosts.":${toString csec_port}".extraConfig = ''
+                reverse_proxy 10.6.0.2:8080
               '';
               virtualHosts."http://auth.rharish.dev".extraConfig = ''
                 reverse_proxy 10.4.0.2:9091

@@ -51,6 +51,7 @@
       memory_limit = 1; # in GiB
       caddy_data_dir = "/var/lib/containers/caddy";
       priv_uid_gid = 65536 * 10; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing.
+      csec_port = 20546;
     in
     lib.mkIf config.modules.caddy-wg-server.enable {
       users.users.caddywg = {
@@ -124,6 +125,7 @@
             networking.firewall.allowedTCPPorts = [
               443 # HTTPS
               25565 # Minecraft Java
+              csec_port # CrowdSec LAPI
             ];
             networking.firewall.allowedUDPPorts = [
               25565 # Minecraft Bedrock
@@ -184,6 +186,8 @@
                     }
                   }
                 '';
+                virtualHosts.":${toString csec_port}".extraConfig =
+                  "reverse_proxy ${client_ip}:${toString csec_port}";
                 virtualHosts."rharish.dev".extraConfig = reverse_proxy_config;
                 virtualHosts."www.rharish.dev".extraConfig = "redir https://rharish.dev 301";
                 virtualHosts."auth.rharish.dev".extraConfig = reverse_proxy_config;
