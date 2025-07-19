@@ -6,6 +6,7 @@
 {
   imports = [
     ./crowdsec-bouncer.nix
+    ./crowdsec-sshd.nix
     ./locate.nix
     ./maintenance.nix
     ./podman.nix

@@ -90,6 +90,11 @@ in
   sops.secrets."wireguard/psk" = caddywg_key_config;
   sops.secrets."wireguard/shalquoir" = caddywg_key_config;
   sops.secrets."crowdsec/bouncer-env".restartUnits = [ "crowdsec-firewall-bouncer.service" ];
+  sops.secrets."crowdsec/sshd-creds" = {
+    owner = "crowdsec";
+    group = "crowdsec";
+    restartUnits = [ "crowdsec.service" ];
+  };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -106,8 +111,11 @@ in
     };
   };
 
-  # Enable fail2ban.
-  services.fail2ban.enable = true;
+  # Enable CrowdSec log processor for SSH.
+  modules.crowdsec-sshd = {
+    enable = true;
+    secrets.credFile = config.sops.secrets."crowdsec/sshd-creds".path;
+  };
 
   # Enable CrowdSec firewall bouncer.
   modules.crowdsec-bouncer = {
