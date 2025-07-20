@@ -216,25 +216,47 @@
                   sessionSecretFile = session;
                   storageEncryptionKeyFile = storage;
                 };
-                settings = {
-                  default_2fa_method = "totp";
-                  theme = "auto";
-                  server.address = "tcp://:${toString constants.ports.authelia}/";
-                };
-                settingsFiles = [ ../../configs/authelia.yml ];
-                environmentVariables = with constants.bridges; {
-                  AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDRESS = "ldap://${auth-ldap.ldap.ip4}:${toString constants.ports.postgres}";
-                  AUTHELIA_AUTHENTICATION_BACKEND_LDAP_IMPLEMENTATION = "lldap";
-                  AUTHELIA_AUTHENTICATION_BACKEND_LDAP_BASE_DN = ldap_base_dn;
-                  AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_USERS_DN = "ou=people";
-                  AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER = "uid=authelia,ou=people,${ldap_base_dn}";
+                settings =
+                  with constants.bridges;
+                  with constants.ports;
+                  {
+                    default_2fa_method = "totp";
+                    theme = "auto";
+                    server.address = "tcp://:${toString authelia}/";
+                    authentication_backend.ldap = {
+                      address = "ldap://${auth-ldap.ldap.ip4}:${toString lldap}";
+                      implementation = "lldap";
+                      base_dn = ldap_base_dn;
+                      additional_users_dn = "ou=people";
+                      user = "uid=authelia,ou=people,${ldap_base_dn}";
+                    };
+                    storage.postgres = {
+                      address = "tcp://${auth-pg.pg.ip4}:${toString postgres}";
+                      database = "authelia";
+                      username = "authelia";
+                    };
+                    session = {
+                      redis = {
+                        host = auth-redis.redis.ip4;
+                      };
+                      cookies = [
+                        {
+                          domain = "rharish.dev";
+                          authelia_url = "https://auth.rharish.dev";
+                        }
+                      ];
+                    };
+                    notifier.filesystem.filename = "${data_dir}/notification.txt";
+                    access_control.rules = [
+                      {
+                        domain = "*.rharish.dev";
+                        policy = "two_factor";
+                      }
+                    ];
+                  };
+                environmentVariables = {
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = secrets.ldap;
-                  AUTHELIA_NOTIFIER_FILESYSTEM_FILENAME = "${data_dir}/notification.txt";
-                  AUTHELIA_STORAGE_POSTGRES_ADDRESS = "tcp://${auth-pg.pg.ip4}:${toString constants.ports.postgres}";
-                  AUTHELIA_STORAGE_POSTGRES_DATABASE = "authelia";
-                  AUTHELIA_STORAGE_POSTGRES_USERNAME = "authelia";
                   AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE = secrets.postgres;
-                  AUTHELIA_SESSION_REDIS_HOST = auth-redis.redis.ip4;
                   AUTHELIA_SESSION_REDIS_PASSWORD_FILE = secrets.redis;
                 };
               };
