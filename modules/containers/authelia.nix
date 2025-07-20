@@ -65,7 +65,6 @@
       postgres_br_name = "br-auth-pg";
       postgres_br_addr_postgres = "10.4.2.2";
       data_dir = "/var/lib/authelia-main/configs"; # MUST be a (sub)directory of "/var/lib/authelia-{instanceName}"
-      log_path = "/var/lib/authelia-main/log"; # MUST be in a (sub)directory of "/var/lib/authelia-{instanceName}"
     in
     lib.mkIf
       (
@@ -225,8 +224,6 @@
                 settings = {
                   default_2fa_method = "totp";
                   theme = "auto";
-                  log.file_path = log_path;
-                  log.keep_stdout = true;
                 };
                 settingsFiles = [ ../../configs/authelia.yml ];
                 environmentVariables = {
@@ -256,9 +253,9 @@
 
                 localConfig.acquisitions = [
                   {
-                    source = "file";
-                    filename = log_path;
-                    labels.type = "authelia";
+                    source = "journalctl";
+                    journalctl_filter = [ "_SYSTEMD_UNIT=authelia-main.service" ];
+                    labels.type = "syslog";
                     use_time_machine = true;
                   }
                 ];
