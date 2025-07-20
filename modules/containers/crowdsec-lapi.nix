@@ -140,6 +140,7 @@
                   api.server = {
                     enable = true;
                     listen_uri = "0.0.0.0:8080";
+                    console_path = "/var/lib/crowdsec/credentials/console.yaml";
                     online_client.credentials_path = "/var/lib/crowdsec/credentials/capi.yaml";
                   };
                 };
