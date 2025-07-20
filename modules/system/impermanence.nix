@@ -19,7 +19,7 @@
     # Define user accounts declaratively, as `/etc/passwd` is on tmpfs.
     users.mutableUsers = false;
 
-    environment.persistence."${config.modules.impermanence.path}" = {
+    environment.persistence.${config.modules.impermanence.path} = {
       hideMounts = true;
       directories = [
         "/etc/NetworkManager/system-connections"

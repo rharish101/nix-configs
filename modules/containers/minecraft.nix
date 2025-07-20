@@ -47,8 +47,8 @@
         requires = [ "container@caddy-wg-client.service" ];
       };
 
-      networking.bridges."${constants.bridges.caddy-mc.name}".interfaces = [ ];
-      containers.caddy-wg-client.extraVeths."${constants.bridges.caddy-mc.caddy.interface}" =
+      networking.bridges.${constants.bridges.caddy-mc.name}.interfaces = [ ];
+      containers.caddy-wg-client.extraVeths.${constants.bridges.caddy-mc.caddy.interface} =
         with constants.bridges.caddy-mc; {
           hostBridge = name;
           localAddress = "${caddy.ip4}/24";

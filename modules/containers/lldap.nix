@@ -35,8 +35,8 @@
 
       systemd.services."container@lldap".requires = [ "container@postgres.service" ];
 
-      networking.bridges."${constants.bridges.ldap-pg.name}".interfaces = [ ];
-      containers.postgres.extraVeths."${constants.bridges.ldap-pg.pg.interface}" =
+      networking.bridges.${constants.bridges.ldap-pg.name}.interfaces = [ ];
+      containers.postgres.extraVeths.${constants.bridges.ldap-pg.pg.interface} =
         with constants.bridges.ldap-pg; {
           hostBridge = name;
           localAddress = "${pg.ip4}/24";
@@ -52,7 +52,7 @@
         in
         {
           privateNetwork = true;
-          extraVeths."${constants.bridges.ldap-pg.ldap.interface}" = with constants.bridges.ldap-pg; {
+          extraVeths.${constants.bridges.ldap-pg.ldap.interface} = with constants.bridges.ldap-pg; {
             hostBridge = name;
             localAddress = "${ldap.ip4}/24";
             localAddress6 = "${ldap.ip6}/112";

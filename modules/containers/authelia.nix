@@ -78,13 +78,13 @@
           "${auth-redis.name}".interfaces = [ ];
         };
 
-        containers.caddy-wg-client.extraVeths."${constants.bridges.auth-caddy.caddy.interface}" =
+        containers.caddy-wg-client.extraVeths.${constants.bridges.auth-caddy.caddy.interface} =
           with constants.bridges.auth-caddy; {
             hostBridge = name;
             localAddress = "${caddy.ip4}/24";
             localAddress6 = "${caddy.ip6}/112";
           };
-        containers.crowdsec-lapi.extraVeths."${constants.bridges.auth-csec.csec.interface}" =
+        containers.crowdsec-lapi.extraVeths.${constants.bridges.auth-csec.csec.interface} =
           with constants.bridges.auth-csec;
           lib.mkIf csecEnabled {
             hostBridge = name;
@@ -96,7 +96,7 @@
           localAddress = "${ldap.ip4}/24";
           localAddress6 = "${ldap.ip6}/112";
         };
-        containers.postgres.extraVeths."${constants.bridges.auth-pg.pg.interface}" =
+        containers.postgres.extraVeths.${constants.bridges.auth-pg.pg.interface} =
           with constants.bridges.auth-pg; {
             hostBridge = name;
             localAddress = "${pg.ip4}/24";

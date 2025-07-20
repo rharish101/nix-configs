@@ -198,7 +198,7 @@
                   '';
                   virtualHosts.":${toString constants.ports.crowdsec}".extraConfig =
                     "reverse_proxy ${clientIp}:${toString constants.ports.crowdsec}";
-                  virtualHosts."${domain}".extraConfig = proxyConfig;
+                  virtualHosts.${domain}.extraConfig = proxyConfig;
                   virtualHosts."www.${domain}".extraConfig = "redir https://${domain} 301";
                   virtualHosts."${subdomains.auth}.${domain}".extraConfig = proxyConfig;
                 };

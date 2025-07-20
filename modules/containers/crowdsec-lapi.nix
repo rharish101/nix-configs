@@ -43,16 +43,16 @@
           ];
         };
 
-        networking.bridges."${constants.bridges.caddy-csec.name}".interfaces = [ ];
-        networking.bridges."${constants.bridges.csec-pg.name}".interfaces = [ ];
+        networking.bridges.${constants.bridges.caddy-csec.name}.interfaces = [ ];
+        networking.bridges.${constants.bridges.csec-pg.name}.interfaces = [ ];
 
-        containers.caddy-wg-client.extraVeths."${constants.bridges.caddy-csec.caddy.interface}" =
+        containers.caddy-wg-client.extraVeths.${constants.bridges.caddy-csec.caddy.interface} =
           with constants.bridges.caddy-csec; {
             hostBridge = name;
             localAddress = "${caddy.ip4}/24";
             localAddress6 = "${caddy.ip6}/112";
           };
-        containers.postgres.extraVeths."${constants.bridges.csec-pg.pg.interface}" =
+        containers.postgres.extraVeths.${constants.bridges.csec-pg.pg.interface} =
           with constants.bridges.csec-pg; {
             hostBridge = name;
             localAddress = "${pg.ip4}/24";
@@ -69,7 +69,7 @@
             localAddress = "${constants.bridges.caddy-csec.csec.ip4}/24";
             localAddress6 = "${constants.bridges.caddy-csec.csec.ip6}/112";
 
-            extraVeths."${constants.bridges.csec-pg.csec.interface}" = with constants.bridges.csec-pg; {
+            extraVeths.${constants.bridges.csec-pg.csec.interface} = with constants.bridges.csec-pg; {
               hostBridge = name;
               localAddress = "${csec.ip4}/24";
               localAddress6 = "${csec.ip6}/112";
