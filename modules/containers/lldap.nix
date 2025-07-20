@@ -13,7 +13,7 @@
   config =
     let
       constants = import ../constants.nix;
-      lldap_key_config = {
+      secretsConfig = {
         owner = "lldap";
         group = "lldap";
         restartUnits = [ "container@lldap.service" ];
@@ -28,10 +28,10 @@
       };
       users.groups.lldap.gid = constants.uids.lldap;
 
-      sops.secrets."lldap/db" = lldap_key_config;
-      sops.secrets."lldap/jwt" = lldap_key_config;
-      sops.secrets."lldap/key" = lldap_key_config;
-      sops.secrets."lldap/pass" = lldap_key_config;
+      sops.secrets."lldap/db" = secretsConfig;
+      sops.secrets."lldap/jwt" = secretsConfig;
+      sops.secrets."lldap/key" = secretsConfig;
+      sops.secrets."lldap/pass" = secretsConfig;
 
       systemd.services."container@lldap".requires = [ "container@postgres.service" ];
 
@@ -45,10 +45,10 @@
 
       containers.lldap =
         let
-          db_file = config.sops.secrets."lldap/db".path;
-          jwt_file = config.sops.secrets."lldap/jwt".path;
-          key_seed_file = config.sops.secrets."lldap/key".path;
-          user_pass_file = config.sops.secrets."lldap/pass".path;
+          dbUrlFile = config.sops.secrets."lldap/db".path;
+          jwtFile = config.sops.secrets."lldap/jwt".path;
+          keySeedFile = config.sops.secrets."lldap/key".path;
+          userPassFile = config.sops.secrets."lldap/pass".path;
         in
         {
           privateNetwork = true;
@@ -66,20 +66,20 @@
 
           bindMounts = {
             dbUrl = {
-              hostPath = db_file;
-              mountPoint = db_file;
+              hostPath = dbUrlFile;
+              mountPoint = dbUrlFile;
             };
             jwt = {
-              hostPath = jwt_file;
-              mountPoint = jwt_file;
+              hostPath = jwtFile;
+              mountPoint = jwtFile;
             };
             keySeed = {
-              hostPath = key_seed_file;
-              mountPoint = key_seed_file;
+              hostPath = keySeedFile;
+              mountPoint = keySeedFile;
             };
             userPass = {
-              hostPath = user_pass_file;
-              mountPoint = user_pass_file;
+              hostPath = userPassFile;
+              mountPoint = userPassFile;
             };
           };
 
@@ -93,14 +93,14 @@
               services.lldap = {
                 enable = true;
                 settings = {
-                  ldap_base_dn = constants.domain.ldap_base_dn;
+                  ldap_base_dn = constants.domain.ldapBaseDn;
                   ldap_port = constants.ports.lldap;
                 };
                 environment = {
-                  LLDAP_DATABASE_URL_FILE = db_file;
-                  LLDAP_JWT_SECRET_FILE = jwt_file;
-                  LLDAP_KEY_SEED_FILE = key_seed_file;
-                  LLDAP_LDAP_USER_PASS_FILE = user_pass_file;
+                  LLDAP_DATABASE_URL_FILE = dbUrlFile;
+                  LLDAP_JWT_SECRET_FILE = jwtFile;
+                  LLDAP_KEY_SEED_FILE = keySeedFile;
+                  LLDAP_LDAP_USER_PASS_FILE = userPassFile;
                 };
               };
               systemd.services.lldap.serviceConfig = {

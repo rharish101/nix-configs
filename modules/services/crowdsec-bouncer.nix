@@ -16,25 +16,25 @@
   config =
     let
       package = pkgs.crowdsec-firewall-bouncer;
-      config_fmt = pkgs.formats.yaml { };
-      config_file = config_fmt.generate "crowdsec-firewall-bouncer.yaml" {
+      configFmt = pkgs.formats.yaml { };
+      configFile = configFmt.generate "crowdsec-firewall-bouncer.yaml" {
         mode = "ipset";
         log_mode = "stdout";
         api_url = "\${API_URL}";
         api_key = "\${API_KEY}";
       };
-      ip4_list = "crowdsec-blacklists";
-      ip6_list = "crowdsec6-blacklists";
+      ip4List = "crowdsec-blacklists";
+      ip6List = "crowdsec6-blacklists";
     in
     lib.mkIf config.modules.crowdsec-bouncer.enable {
       networking.firewall.extraPackages = [ pkgs.ipset ];
       networking.firewall.extraCommands = ''
-        ipset -exist create ${ip4_list} hash:net timeout 3600
-        ipset -exist create ${ip6_list} hash:net family inet6 timeout 3600
-        iptables -A INPUT -m set --match-set ${ip4_list} src -j DROP
-        iptables -A FORWARD -m set --match-set ${ip4_list} src -j DROP
-        ip6tables -A INPUT -m set --match-set ${ip6_list} src -j DROP
-        ip6tables -A FORWARD -m set --match-set ${ip6_list} src -j DROP
+        ipset -exist create ${ip4List} hash:net timeout 3600
+        ipset -exist create ${ip6List} hash:net family inet6 timeout 3600
+        iptables -A INPUT -m set --match-set ${ip4List} src -j DROP
+        iptables -A FORWARD -m set --match-set ${ip4List} src -j DROP
+        ip6tables -A INPUT -m set --match-set ${ip6List} src -j DROP
+        ip6tables -A FORWARD -m set --match-set ${ip6List} src -j DROP
       '';
 
       environment.systemPackages = [
@@ -61,8 +61,8 @@
         ];
         serviceConfig = {
           Type = "notify";
-          ExecStart = [ "${lib.getExe package} -c ${config_file}" ];
-          ExecStartPre = [ "${lib.getExe package} -c ${config_file} -t" ];
+          ExecStart = [ "${lib.getExe package} -c ${configFile}" ];
+          ExecStartPre = [ "${lib.getExe package} -c ${configFile} -t" ];
           ExecStartPost = [ "${lib.getExe' pkgs.coreutils-full "sleep"} 0.1" ];
           Restart = "always";
           RestartSec = 10;

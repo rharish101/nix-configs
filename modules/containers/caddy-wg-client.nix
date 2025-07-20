@@ -32,8 +32,8 @@
   config =
     let
       constants = import ../constants.nix;
-      caddy_data_dir = "/var/lib/containers/caddy";
-      caddywg_key_config = {
+      caddyDataDir = "/var/lib/containers/caddy";
+      secretsConfig = {
         owner = "caddywg";
         group = "caddywg";
         restartUnits = [ "container@caddy-wg-client.service" ];
@@ -47,8 +47,8 @@
       };
       users.groups.caddywg.gid = constants.uids.caddywg;
 
-      sops.secrets."wireguard/client" = caddywg_key_config;
-      sops.secrets."wireguard/psk" = caddywg_key_config;
+      sops.secrets."wireguard/client" = secretsConfig;
+      sops.secrets."wireguard/psk" = secretsConfig;
 
       systemd.services."container@caddy-wg-client" = {
         serviceConfig = with constants.limits.caddy-wg-client; {
@@ -59,8 +59,8 @@
 
       containers.caddy-wg-client =
         let
-          priv_key_file = config.sops.secrets."wireguard/client".path;
-          psk_file = config.sops.secrets."wireguard/psk".path;
+          privKeyFile = config.sops.secrets."wireguard/client".path;
+          pskFile = config.sops.secrets."wireguard/psk".path;
         in
         {
           privateNetwork = true;
@@ -79,15 +79,15 @@
           # NOTE: Key files should be readable by the "caddywg" user.
           bindMounts = {
             privateKeyFile = {
-              hostPath = priv_key_file;
-              mountPoint = priv_key_file;
+              hostPath = privKeyFile;
+              mountPoint = privKeyFile;
             };
             presharedKeyFile = {
-              hostPath = psk_file;
-              mountPoint = psk_file;
+              hostPath = pskFile;
+              mountPoint = pskFile;
             };
             dataDir = {
-              hostPath = caddy_data_dir;
+              hostPath = caddyDataDir;
               mountPoint = "/var/lib/caddy";
               isReadOnly = false;
             };
@@ -121,12 +121,12 @@
                   "${constants.veths.tunnel.client.ip4}/24"
                   "${constants.veths.tunnel.client.ip6}/112"
                 ];
-                privateKeyFile = priv_key_file;
+                privateKeyFile = privKeyFile;
                 dns = [ dns ]; # Use external DNS, since traffic is routed through the tunnel.
                 peers = [
                   {
                     publicKey = server.publicKey;
-                    presharedKeyFile = psk_file;
+                    presharedKeyFile = pskFile;
                     allowedIPs = [
                       "0.0.0.0/0"
                       "::/0"

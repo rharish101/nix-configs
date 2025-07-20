@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 let
-  artorias_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIETY0BUwxJxpgVCRR6BXXqihGGXKy5e2h67XTDcDhcP4 artorias";
+  artoriasKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIETY0BUwxJxpgVCRR6BXXqihGGXKy5e2h67XTDcDhcP4 artorias";
 in
 { config, inputs, ... }:
 {
@@ -17,10 +17,10 @@ in
 
   users.users.root = {
     hashedPasswordFile = config.sops.secrets."users/root".path;
-    openssh.authorizedKeys.keys = [ artorias_key ];
+    openssh.authorizedKeys.keys = [ artoriasKey ];
   };
   users.users.rharish = {
     hashedPasswordFile = config.sops.secrets."users/rharish".path;
-    openssh.authorizedKeys.keys = [ artorias_key ];
+    openssh.authorizedKeys.keys = [ artoriasKey ];
   };
 }

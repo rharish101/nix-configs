@@ -167,7 +167,7 @@
     subdomains = {
       auth = "auth";
     };
-    ldap_base_dn = "dc=rharish,dc=dev";
+    ldapBaseDn = "dc=rharish,dc=dev";
   };
 
   # Resource limits

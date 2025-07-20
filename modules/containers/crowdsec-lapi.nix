@@ -61,7 +61,7 @@
 
         containers.crowdsec-lapi =
           let
-            env_file = config.sops.secrets."crowdsec/lapi-env".path;
+            envFile = config.sops.secrets."crowdsec/lapi-env".path;
           in
           {
             privateNetwork = true;
@@ -88,8 +88,8 @@
                 isReadOnly = false;
               };
               envFile = {
-                hostPath = env_file;
-                mountPoint = env_file;
+                hostPath = envFile;
+                mountPoint = envFile;
               };
             };
 
@@ -110,7 +110,7 @@
                 networking.nameservers = [ "1.1.1.1" ];
 
                 # Add secrets using an environment file.
-                systemd.services.crowdsec.serviceConfig.EnvironmentFile = env_file;
+                systemd.services.crowdsec.serviceConfig.EnvironmentFile = envFile;
 
                 services.crowdsec = {
                   enable = true;

@@ -19,8 +19,8 @@
   config =
     let
       constants = import ../constants.nix;
-      server_name = "EBG6 Minecraft server";
-      mc_key_config = {
+      serverName = "EBG6 Minecraft server";
+      secretsConfig = {
         owner = "minecraft";
         group = "minecraft";
         restartUnits = [ "container@minecraft.service" ];
@@ -36,8 +36,8 @@
       users.groups.minecraft.gid = constants.uids.minecraft;
 
       # Secrets for the server config
-      sops.secrets."minecraft/whitelist" = mc_key_config;
-      sops.secrets."minecraft/ops" = mc_key_config;
+      sops.secrets."minecraft/whitelist" = secretsConfig;
+      sops.secrets."minecraft/ops" = secretsConfig;
 
       systemd.services."container@minecraft" = {
         serviceConfig = with constants.limits.minecraft; {
@@ -154,8 +154,8 @@
                     -DgeyserUdpPort=server
                   '';
                   serverProperties = {
-                    server-name = server_name;
-                    motd = server_name;
+                    server-name = serverName;
+                    motd = serverName;
                     difficulty = "easy";
                     view-distance = 50;
                     max-world-size = 29999984;

@@ -20,9 +20,9 @@
   config =
     let
       constants = import ../constants.nix;
-      csec_enabled = config.modules.crowdsec-lapi.enable;
-      data_dir = "/var/lib/authelia-main/configs"; # MUST be a (sub)directory of "/var/lib/authelia-{instanceName}"
-      authelia_key_config = {
+      csecEnabled = config.modules.crowdsec-lapi.enable;
+      configDir = "/var/lib/authelia-main/configs"; # MUST be a (sub)directory of "/var/lib/authelia-{instanceName}"
+      secretsConfig = {
         owner = "authelia";
         group = "authelia";
         restartUnits = [ "container@authelia.service" ];
@@ -44,18 +44,18 @@
         };
         users.groups.authelia.gid = constants.uids.authelia;
 
-        sops.secrets."authelia/crowdsec" = authelia_key_config;
-        sops.secrets."authelia/ldap" = authelia_key_config;
-        sops.secrets."authelia/jwt" = authelia_key_config;
-        sops.secrets."authelia/postgres" = authelia_key_config;
-        sops.secrets."authelia/redis" = authelia_key_config // {
+        sops.secrets."authelia/crowdsec" = secretsConfig;
+        sops.secrets."authelia/ldap" = secretsConfig;
+        sops.secrets."authelia/jwt" = secretsConfig;
+        sops.secrets."authelia/postgres" = secretsConfig;
+        sops.secrets."authelia/redis" = secretsConfig // {
           restartUnits = [
             "container@authelia.service"
             "container@authelia-redis.service"
           ];
         };
-        sops.secrets."authelia/session" = authelia_key_config;
-        sops.secrets."authelia/storage" = authelia_key_config;
+        sops.secrets."authelia/session" = secretsConfig;
+        sops.secrets."authelia/storage" = secretsConfig;
 
         systemd.services."container@authelia" = {
           serviceConfig = with constants.limits.authelia; {
@@ -63,7 +63,7 @@
             CPUQuota = "${toString (cpu * 100)}%";
           };
           requires = [
-            (lib.mkIf csec_enabled "container@crowdsec-lapi.service")
+            (lib.mkIf csecEnabled "container@crowdsec-lapi.service")
             "container@lldap.service"
             "container@postgres.service"
             "container@authelia-redis.service"
@@ -72,7 +72,7 @@
 
         networking.bridges = with constants.bridges; {
           "${auth-caddy.name}".interfaces = [ ];
-          "${auth-csec.name}" = lib.mkIf csec_enabled { interfaces = [ ]; };
+          "${auth-csec.name}" = lib.mkIf csecEnabled { interfaces = [ ]; };
           "${auth-ldap.name}".interfaces = [ ];
           "${auth-pg.name}".interfaces = [ ];
           "${auth-redis.name}".interfaces = [ ];
@@ -86,7 +86,7 @@
           };
         containers.crowdsec-lapi.extraVeths."${constants.bridges.auth-csec.csec.interface}" =
           with constants.bridges.auth-csec;
-          lib.mkIf csec_enabled {
+          lib.mkIf csecEnabled {
             hostBridge = name;
             localAddress = "${csec.ip4}/24";
             localAddress6 = "${csec.ip6}/112";
@@ -105,13 +105,13 @@
 
         containers.authelia =
           let
-            csec_file = config.sops.secrets."authelia/crowdsec".path;
-            ldap_file = config.sops.secrets."authelia/ldap".path;
-            jwt_file = config.sops.secrets."authelia/jwt".path;
-            pg_file = config.sops.secrets."authelia/postgres".path;
-            redis_file = config.sops.secrets."authelia/redis".path;
-            sess_file = config.sops.secrets."authelia/session".path;
-            storage_file = config.sops.secrets."authelia/storage".path;
+            csecCreds = config.sops.secrets."authelia/crowdsec".path;
+            ldapPassFile = config.sops.secrets."authelia/ldap".path;
+            jwtFile = config.sops.secrets."authelia/jwt".path;
+            pgPassFile = config.sops.secrets."authelia/postgres".path;
+            redisPassFile = config.sops.secrets."authelia/redis".path;
+            sessSecretFile = config.sops.secrets."authelia/session".path;
+            storageEncSecretFile = config.sops.secrets."authelia/storage".path;
           in
           {
             privateNetwork = true;
@@ -122,7 +122,7 @@
             extraVeths = with constants.bridges; {
               "${auth-csec.auth.interface}" =
                 with auth-csec;
-                lib.mkIf csec_enabled {
+                lib.mkIf csecEnabled {
                   hostBridge = name;
                   localAddress = "${auth.ip4}/24";
                   localAddress6 = "${auth.ip6}/112";
@@ -150,39 +150,39 @@
             autoStart = true;
             ephemeral = true;
 
-            bindMounts = with config.modules.authelia; {
+            bindMounts = {
               data = {
-                hostPath = dataDir;
-                mountPoint = data_dir;
+                hostPath = config.modules.authelia.dataDir;
+                mountPoint = configDir;
                 isReadOnly = false;
               };
-              crowdsec = lib.mkIf csec_enabled {
-                hostPath = csec_file;
-                mountPoint = csec_file;
+              crowdsec = lib.mkIf csecEnabled {
+                hostPath = csecCreds;
+                mountPoint = csecCreds;
               };
               ldap = {
-                hostPath = ldap_file;
-                mountPoint = ldap_file;
+                hostPath = ldapPassFile;
+                mountPoint = ldapPassFile;
               };
               jwt = {
-                hostPath = jwt_file;
-                mountPoint = jwt_file;
+                hostPath = jwtFile;
+                mountPoint = jwtFile;
               };
               postgres = {
-                hostPath = pg_file;
-                mountPoint = pg_file;
+                hostPath = pgPassFile;
+                mountPoint = pgPassFile;
               };
               redis = {
-                hostPath = redis_file;
-                mountPoint = redis_file;
+                hostPath = redisPassFile;
+                mountPoint = redisPassFile;
               };
               session = {
-                hostPath = sess_file;
-                mountPoint = sess_file;
+                hostPath = sessSecretFile;
+                mountPoint = sessSecretFile;
               };
               storage = {
-                hostPath = storage_file;
-                mountPoint = storage_file;
+                hostPath = storageEncSecretFile;
+                mountPoint = storageEncSecretFile;
               };
             };
 
@@ -208,9 +208,9 @@
                   user = "root";
                   group = "root";
                   secrets = {
-                    jwtSecretFile = jwt_file;
-                    sessionSecretFile = sess_file;
-                    storageEncryptionKeyFile = storage_file;
+                    jwtSecretFile = jwtFile;
+                    sessionSecretFile = sessSecretFile;
+                    storageEncryptionKeyFile = storageEncSecretFile;
                   };
                   settings =
                     with constants.bridges;
@@ -223,9 +223,9 @@
                       authentication_backend.ldap = {
                         address = "ldap://${auth-ldap.ldap.ip4}:${toString lldap}";
                         implementation = "lldap";
-                        base_dn = ldap_base_dn;
+                        base_dn = ldapBaseDn;
                         additional_users_dn = "ou=people";
-                        user = "uid=authelia,ou=people,${ldap_base_dn}";
+                        user = "uid=authelia,ou=people,${ldapBaseDn}";
                       };
                       storage.postgres = {
                         address = "tcp://${auth-pg.pg.ip4}:${toString postgres}";
@@ -243,7 +243,7 @@
                           }
                         ];
                       };
-                      notifier.filesystem.filename = "${data_dir}/notification.txt";
+                      notifier.filesystem.filename = "${configDir}/notification.txt";
                       access_control.rules = [
                         {
                           domain = "*.${domain}";
@@ -252,13 +252,13 @@
                       ];
                     };
                   environmentVariables = {
-                    AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = ldap_file;
-                    AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE = pg_file;
-                    AUTHELIA_SESSION_REDIS_PASSWORD_FILE = redis_file;
+                    AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = ldapPassFile;
+                    AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE = pgPassFile;
+                    AUTHELIA_SESSION_REDIS_PASSWORD_FILE = redisPassFile;
                   };
                 };
 
-                services.crowdsec = lib.mkIf csec_enabled {
+                services.crowdsec = lib.mkIf csecEnabled {
                   enable = true;
                   autoUpdateService = true;
                   name = "${config.networking.hostName}-authelia";
@@ -278,7 +278,7 @@
                     "crowdsecurity/linux"
                     "LePresidente/authelia"
                   ];
-                  settings.lapi.credentialsFile = csec_file;
+                  settings.lapi.credentialsFile = csecCreds;
                 };
 
                 system.stateVersion = "25.05";
@@ -287,7 +287,7 @@
 
         containers.authelia-redis =
           let
-            pass_file = config.sops.secrets."authelia/redis".path;
+            passFile = config.sops.secrets."authelia/redis".path;
           in
           {
             privateNetwork = true;
@@ -302,8 +302,8 @@
             ephemeral = true;
 
             bindMounts.redis = {
-              hostPath = pass_file;
-              mountPoint = pass_file;
+              hostPath = passFile;
+              mountPoint = passFile;
             };
 
             config =
@@ -314,7 +314,7 @@
                   enable = true;
                   bind = null;
                   openFirewall = true;
-                  requirePassFile = pass_file;
+                  requirePassFile = passFile;
                   save = [ ];
                 };
 

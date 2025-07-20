@@ -8,10 +8,10 @@
   # Enable snapper for automatic Btrfs snapshots.
   config.services.snapper.configs =
     let
-      root_config_name = if (config.modules.impermanence.path == "/") then "root" else "persist";
+      rootConfigName = if (config.modules.impermanence.path == "/") then "root" else "persist";
     in
     lib.mkIf config.modules.snapshots.enable {
-      "${root_config_name}" = {
+      "${rootConfigName}" = {
         SUBVOLUME = config.modules.impermanence.path;
         TIMELINE_CREATE = true;
         TIMELINE_CLEANUP = true;
