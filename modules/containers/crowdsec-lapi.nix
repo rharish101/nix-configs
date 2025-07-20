@@ -132,11 +132,11 @@
                     password = "\${DB_PASSWORD}";
                     db_name = "crowdsec";
                     host = constants.bridges.csec-pg.pg.ip4;
-                    port = 5432;
+                    port = constants.ports.postgres;
                   };
                   api.server = {
                     enable = true;
-                    listen_uri = "0.0.0.0:8080";
+                    listen_uri = "0.0.0.0:${toString constants.ports.crowdsec}";
                     console_path = "/var/lib/crowdsec/credentials/console.yaml";
                     online_client.credentials_path = "/var/lib/crowdsec/credentials/capi.yaml";
                   };

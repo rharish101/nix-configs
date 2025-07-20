@@ -205,7 +205,7 @@
                 interface = "eth0";
               };
               networking.nameservers = [ "1.1.1.1" ];
-              networking.firewall.allowedTCPPorts = [ 9091 ];
+              networking.firewall.allowedTCPPorts = [ constants.ports.authelia ];
 
               services.authelia.instances.main = with config.modules.authelia; {
                 enable = true;
@@ -219,17 +219,18 @@
                 settings = {
                   default_2fa_method = "totp";
                   theme = "auto";
+                  server.address = "tcp://:${toString constants.ports.authelia}/";
                 };
                 settingsFiles = [ ../../configs/authelia.yml ];
                 environmentVariables = with constants.bridges; {
-                  AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDRESS = "ldap://${auth-ldap.ldap.ip4}:3890";
+                  AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDRESS = "ldap://${auth-ldap.ldap.ip4}:${toString constants.ports.postgres}";
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_IMPLEMENTATION = "lldap";
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_BASE_DN = ldap_base_dn;
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_USERS_DN = "ou=people";
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER = "uid=authelia,ou=people,${ldap_base_dn}";
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = secrets.ldap;
                   AUTHELIA_NOTIFIER_FILESYSTEM_FILENAME = "${data_dir}/notification.txt";
-                  AUTHELIA_STORAGE_POSTGRES_ADDRESS = "tcp://${auth-pg.pg.ip4}:5432";
+                  AUTHELIA_STORAGE_POSTGRES_ADDRESS = "tcp://${auth-pg.pg.ip4}:${toString constants.ports.postgres}";
                   AUTHELIA_STORAGE_POSTGRES_DATABASE = "authelia";
                   AUTHELIA_STORAGE_POSTGRES_USERNAME = "authelia";
                   AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE = secrets.postgres;

@@ -45,11 +45,12 @@
         config =
           { ... }:
           {
-            networking.firewall.allowedTCPPorts = [ 5432 ];
+            networking.firewall.allowedTCPPorts = [ constants.ports.postgres ];
 
             services.postgresql = {
               enable = true;
               enableTCPIP = true;
+              settings.port = constants.ports.postgres;
               authentication = with constants.bridges; ''
                 host sameuser authelia ${auth-pg.auth.ip4}/32 scram-sha-256
                 host sameuser crowdsec ${csec-pg.csec.ip4}/32 scram-sha-256

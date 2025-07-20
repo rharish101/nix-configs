@@ -96,8 +96,8 @@
                 "minecraft-server"
               ];
 
-            networking.firewall.allowedTCPPorts = [ 25565 ];
-            networking.firewall.allowedUDPPorts = [ 19132 ];
+            networking.firewall.allowedTCPPorts = [ constants.ports.minecraft ];
+            networking.firewall.allowedUDPPorts = [ constants.ports.minecraft ];
 
             # To allow this container to access the internet through the bridge.
             networking.defaultGateway = {
@@ -145,7 +145,8 @@
                   -XX:+PerfDisableSharedMem \
                   -XX:MaxTenuringThreshold=1 \
                   -Dusing.aikars.flags=https://mcflags.emc.gs \
-                  -Daikars.new.flags=true
+                  -Daikars.new.flags=true \
+                  -DgeyserUdpPort=server
                 '';
                 serverProperties = {
                   server-name = server_name;
@@ -155,6 +156,7 @@
                   max-world-size = 29999984;
                   spawn-protection = 0;
                   white-list = true;
+                  server-port = constants.ports.minecraft;
                 };
                 symlinks = {
                   "plugins/Geyser.jar" = pkgs.fetchurl {

@@ -151,4 +151,13 @@
     lldap = 65536 * 14;
     crowdsec = 65536 * 15;
   };
+
+  ports = {
+    authelia = 9091;
+    crowdsec = 20546; # Don't use defaut of 8080, since it's not unique.
+    lldap = 3890;
+    minecraft = 25565; # Used for both Java (TCP) & Bedrock (UDP) editions
+    postgres = 5432;
+    wireguard = 51820;
+  };
 }

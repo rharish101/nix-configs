@@ -43,7 +43,6 @@
       cpu_limit = 1;
       memory_limit = 1; # in GiB
       caddy_data_dir = "/var/lib/containers/caddy";
-      csec_port = 20546;
     in
     lib.mkIf (config.modules.caddy-wg-client.enable) {
       users.users.caddywg = {
@@ -94,13 +93,13 @@
         config =
           { pkgs, ... }:
           {
-            networking.firewall.interfaces.wg0.allowedTCPPorts = [
+            networking.firewall.interfaces.wg0.allowedTCPPorts = with constants.ports; [
               80 # HTTP
-              25565 # Minecraft Java
-              csec_port # CrowdSec LAPI
+              minecraft # Minecraft Java
+              crowdsec # CrowdSec LAPI
             ];
-            networking.firewall.interfaces.wg0.allowedUDPPorts = [
-              25565 # Minecraft Bedrock
+            networking.firewall.interfaces.wg0.allowedUDPPorts = with constants.ports; [
+              minecraft # Minecraft Bedrock
             ];
             # Adjust MSS to fit the actual path MTU.
             # XXX: Fix for accessing Minecraft services over network bridge from other containers.
@@ -141,31 +140,34 @@
                 plugins = [ "github.com/mholt/caddy-l4@v0.0.0-20250124234235-87e3e5e2c7f9" ];
                 hash = "sha256-GDTZEHtfY3jVt4//6714BiFzBbXS3V+Gi0yDAA/T7hg=";
               };
-              globalConfig = with constants.bridges.caddy-mc.mc; ''
-                layer4 {
-                  tcp/:25565 {
-                    route {
-                      proxy ${ip4}:25565
+              globalConfig =
+                with constants.bridges.caddy-mc.mc;
+                with constants.ports;
+                ''
+                  layer4 {
+                    tcp/:${toString minecraft} {
+                      route {
+                        proxy ${ip4}:${toString minecraft}
+                      }
+                    }
+                    udp/:${toString minecraft} {
+                      route {
+                        proxy udp/${ip4}:${toString minecraft}
+                      }
                     }
                   }
-                  udp/:25565 {
-                    route {
-                      proxy udp/${ip4}:19132
-                    }
+                  servers {
+                    trusted_proxies static ${constants.veths.tunnel.server.ip4}/24 ${constants.veths.tunnel.server.ip6}/112 ${server.address}
                   }
-                }
-                servers {
-                  trusted_proxies static ${constants.veths.tunnel.server.ip4}/24 ${constants.veths.tunnel.server.ip6}/112 ${server.address}
-                }
-              '';
+                '';
               virtualHosts.":80".extraConfig = ''
                 respond "hello world"
               '';
-              virtualHosts.":${toString csec_port}".extraConfig = ''
-                reverse_proxy ${constants.bridges.caddy-csec.csec.ip4}:8080
+              virtualHosts.":${toString constants.ports.crowdsec}".extraConfig = ''
+                reverse_proxy ${constants.bridges.caddy-csec.csec.ip4}:${toString constants.ports.crowdsec}
               '';
               virtualHosts."http://auth.rharish.dev".extraConfig = ''
-                reverse_proxy ${constants.bridges.auth-caddy.auth.ip4}:9091
+                reverse_proxy ${constants.bridges.auth-caddy.auth.ip4}:${toString constants.ports.authelia}
               '';
             };
 

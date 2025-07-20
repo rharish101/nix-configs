@@ -53,7 +53,6 @@
       cpu_limit = 1;
       memory_limit = 1; # in GiB
       caddy_data_dir = "/var/lib/containers/caddy";
-      csec_port = 20546;
     in
     lib.mkIf config.modules.caddy-wg-server.enable {
       users.users.caddywg = {
@@ -79,19 +78,19 @@
 
         forwardPorts = with config.modules.caddy-wg-server; [
           {
-            containerPort = 51820;
+            containerPort = constants.ports.wireguard;
             hostPort = wireguard.port;
             protocol = "udp";
           }
           { hostPort = 443; }
           {
             hostPort = caddy.minecraftPort;
-            containerPort = 25565;
+            containerPort = constants.ports.minecraft;
             protocol = "tcp";
           }
           {
             hostPort = caddy.minecraftPort;
-            containerPort = 25565;
+            containerPort = constants.ports.minecraft;
             protocol = "udp";
           }
         ];
@@ -133,14 +132,14 @@
           {
             imports = [ ../vendored/crowdsec.nix ];
 
-            networking.firewall.allowedTCPPorts = [
+            networking.firewall.allowedTCPPorts = with constants.ports; [
               443 # HTTPS
-              25565 # Minecraft Java
-              csec_port # CrowdSec LAPI
+              minecraft # Minecraft Java
+              crowdsec # CrowdSec LAPI
             ];
-            networking.firewall.allowedUDPPorts = [
-              25565 # Minecraft Bedrock
-              51820 # WireGuard
+            networking.firewall.allowedUDPPorts = with constants.ports; [
+              minecraft # Minecraft Bedrock
+              wireguard # WireGuard tunnel
             ];
 
             # Allow internet access for clients through the WireGuard tunnel.
@@ -155,7 +154,7 @@
                 "${constants.veths.tunnel.server.ip4}/24"
                 "${constants.veths.tunnel.server.ip6}/112"
               ];
-              listenPort = 51820;
+              listenPort = constants.ports.wireguard;
               privateKeyFile = privateKeyFile;
               peers = [
                 {
@@ -185,26 +184,26 @@
                 };
                 environmentFile = config.modules.caddy-wg-server.caddy.environmentFile;
                 email = "harish.rajagopals@gmail.com";
-                globalConfig = ''
+                globalConfig = with constants.ports; ''
                   acme_dns cloudflare {
                     zone_token {env.ZONE_TOKEN}
                     api_token {env.DNS_TOKEN}
                   }
                   layer4 {
-                    tcp/:25565 {
+                    tcp/:${toString minecraft} {
                       route {
-                        proxy ${client_ip}:25565
+                        proxy ${client_ip}:${toString minecraft}
                       }
                     }
-                    udp/:25565 {
+                    udp/:${toString minecraft} {
                       route {
-                        proxy udp/${client_ip}:25565
+                        proxy udp/${client_ip}:${toString minecraft}
                       }
                     }
                   }
                 '';
-                virtualHosts.":${toString csec_port}".extraConfig =
-                  "reverse_proxy ${client_ip}:${toString csec_port}";
+                virtualHosts.":${toString constants.ports.crowdsec}".extraConfig =
+                  "reverse_proxy ${client_ip}:${toString constants.ports.crowdsec}";
                 virtualHosts."rharish.dev".extraConfig = reverse_proxy_config;
                 virtualHosts."www.rharish.dev".extraConfig = "redir https://rharish.dev 301";
                 virtualHosts."auth.rharish.dev".extraConfig = reverse_proxy_config;

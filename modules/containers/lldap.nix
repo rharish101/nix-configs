@@ -90,7 +90,7 @@
         config =
           { ... }:
           {
-            networking.firewall.allowedTCPPorts = [ 3890 ];
+            networking.firewall.allowedTCPPorts = [ constants.ports.lldap ];
 
             environment.defaultPackages = with pkgs; [ lldap-cli ];
 
@@ -98,6 +98,7 @@
               enable = true;
               settings = {
                 ldap_base_dn = ldap_base_dn;
+                ldap_port = constants.ports.lldap;
               };
               environment = with config.modules.lldap.secrets; {
                 LLDAP_DATABASE_URL_FILE = dbUrl;
