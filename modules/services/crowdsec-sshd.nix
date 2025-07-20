@@ -13,6 +13,12 @@
   };
   imports = [ ../vendored/crowdsec.nix ];
   config = lib.mkIf config.modules.crowdsec-sshd.enable {
+    sops.secrets."crowdsec/sshd-creds" = {
+      owner = "crowdsec";
+      group = "crowdsec";
+      restartUnits = [ "crowdsec.service" ];
+    };
+
     services.crowdsec = {
       enable = true;
       autoUpdateService = true;
@@ -27,7 +33,7 @@
         }
       ];
       hub.collections = [ "crowdsecurity/linux" ];
-      settings.lapi.credentialsFile = config.modules.crowdsec-sshd.secrets.credFile;
+      settings.lapi.credentialsFile = config.sops.secrets."crowdsec/sshd-creds".path;
     };
   };
 }

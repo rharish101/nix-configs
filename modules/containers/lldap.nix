@@ -9,30 +9,15 @@
   ...
 }:
 {
-  options.modules.lldap = {
-    enable = lib.mkEnableOption "Enable lldap";
-    secrets = {
-      dbUrl = lib.mkOption {
-        description = "Path to the file with the database URL";
-        type = lib.types.path;
-      };
-      jwt = lib.mkOption {
-        description = "Path to the JWT secret file";
-        type = lib.types.path;
-      };
-      keySeed = lib.mkOption {
-        description = "Path to the key seed secret file";
-        type = lib.types.path;
-      };
-      userPass = lib.mkOption {
-        description = "Path to the admin user password file";
-        type = lib.types.path;
-      };
-    };
-  };
+  options.modules.lldap.enable = lib.mkEnableOption "Enable lldap";
   config =
     let
       constants = import ../constants.nix;
+      lldap_key_config = {
+        owner = "lldap";
+        group = "lldap";
+        restartUnits = [ "container@lldap.service" ];
+      };
     in
     lib.mkIf (config.modules.lldap.enable && config.modules.postgres.enable) {
       # User for the lldap container.
@@ -42,6 +27,11 @@
         isSystemUser = true;
       };
       users.groups.lldap.gid = constants.uids.lldap;
+
+      sops.secrets."lldap/db" = lldap_key_config;
+      sops.secrets."lldap/jwt" = lldap_key_config;
+      sops.secrets."lldap/key" = lldap_key_config;
+      sops.secrets."lldap/pass" = lldap_key_config;
 
       systemd.services."container@lldap".requires = [ "container@postgres.service" ];
 
@@ -53,66 +43,73 @@
           localAddress6 = "${pg.ip6}/112";
         };
 
-      containers.lldap = {
-        privateNetwork = true;
-        extraVeths."${constants.bridges.ldap-pg.ldap.interface}" = with constants.bridges.ldap-pg; {
-          hostBridge = name;
-          localAddress = "${ldap.ip4}/24";
-          localAddress6 = "${ldap.ip6}/112";
-        };
-
-        privateUsers = config.users.users.lldap.uid;
-        extraFlags = [ "--private-users-ownership=auto" ];
-
-        autoStart = true;
-        ephemeral = true;
-
-        bindMounts = with config.modules.lldap.secrets; {
-          dbUrl = {
-            hostPath = dbUrl;
-            mountPoint = dbUrl;
+      containers.lldap =
+        let
+          db_file = config.sops.secrets."lldap/db".path;
+          jwt_file = config.sops.secrets."lldap/jwt".path;
+          key_seed_file = config.sops.secrets."lldap/key".path;
+          user_pass_file = config.sops.secrets."lldap/pass".path;
+        in
+        {
+          privateNetwork = true;
+          extraVeths."${constants.bridges.ldap-pg.ldap.interface}" = with constants.bridges.ldap-pg; {
+            hostBridge = name;
+            localAddress = "${ldap.ip4}/24";
+            localAddress6 = "${ldap.ip6}/112";
           };
-          jwt = {
-            hostPath = jwt;
-            mountPoint = jwt;
-          };
-          keySeed = {
-            hostPath = keySeed;
-            mountPoint = keySeed;
-          };
-          userPass = {
-            hostPath = userPass;
-            mountPoint = userPass;
-          };
-        };
 
-        config =
-          { ... }:
-          {
-            networking.firewall.allowedTCPPorts = [ constants.ports.lldap ];
+          privateUsers = config.users.users.lldap.uid;
+          extraFlags = [ "--private-users-ownership=auto" ];
 
-            environment.defaultPackages = with pkgs; [ lldap-cli ];
+          autoStart = true;
+          ephemeral = true;
 
-            services.lldap = {
-              enable = true;
-              settings = {
-                ldap_base_dn = constants.domain.ldap_base_dn;
-                ldap_port = constants.ports.lldap;
-              };
-              environment = with config.modules.lldap.secrets; {
-                LLDAP_DATABASE_URL_FILE = dbUrl;
-                LLDAP_JWT_SECRET_FILE = jwt;
-                LLDAP_KEY_SEED_FILE = keySeed;
-                LLDAP_LDAP_USER_PASS_FILE = userPass;
-              };
+          bindMounts = {
+            dbUrl = {
+              hostPath = db_file;
+              mountPoint = db_file;
             };
-            systemd.services.lldap.serviceConfig = {
-              User = lib.mkForce "root";
-              Group = lib.mkForce "root";
+            jwt = {
+              hostPath = jwt_file;
+              mountPoint = jwt_file;
             };
-
-            system.stateVersion = "25.05";
+            keySeed = {
+              hostPath = key_seed_file;
+              mountPoint = key_seed_file;
+            };
+            userPass = {
+              hostPath = user_pass_file;
+              mountPoint = user_pass_file;
+            };
           };
-      };
+
+          config =
+            { ... }:
+            {
+              networking.firewall.allowedTCPPorts = [ constants.ports.lldap ];
+
+              environment.defaultPackages = with pkgs; [ lldap-cli ];
+
+              services.lldap = {
+                enable = true;
+                settings = {
+                  ldap_base_dn = constants.domain.ldap_base_dn;
+                  ldap_port = constants.ports.lldap;
+                };
+                environment = {
+                  LLDAP_DATABASE_URL_FILE = db_file;
+                  LLDAP_JWT_SECRET_FILE = jwt_file;
+                  LLDAP_KEY_SEED_FILE = key_seed_file;
+                  LLDAP_LDAP_USER_PASS_FILE = user_pass_file;
+                };
+              };
+              systemd.services.lldap.serviceConfig = {
+                User = lib.mkForce "root";
+                Group = lib.mkForce "root";
+              };
+
+              system.stateVersion = "25.05";
+            };
+        };
     };
 }

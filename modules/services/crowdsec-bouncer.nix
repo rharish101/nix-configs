@@ -11,10 +11,6 @@
 {
   options.modules.crowdsec-bouncer = {
     enable = lib.mkEnableOption "Enable CrowdSec firewall bouncer";
-    secrets.envFile = lib.mkOption {
-      description = "Path to the environment file containing secrets.";
-      type = lib.types.str;
-    };
   };
 
   config =
@@ -46,6 +42,8 @@
         pkgs.ipset
       ];
 
+      sops.secrets."crowdsec/bouncer-env".restartUnits = [ "crowdsec-firewall-bouncer.service" ];
+
       # Reference: https://github.com/crowdsecurity/cs-firewall-bouncer/blob/main/config/crowdsec-firewall-bouncer.service
       systemd.services.crowdsec-firewall-bouncer = {
         description = "The firewall bouncer for CrowdSec";
@@ -70,7 +68,7 @@
           RestartSec = 10;
           LimitNOFILE = 65536;
           KillMode = "mixed";
-          EnvironmentFile = config.modules.crowdsec-bouncer.secrets.envFile;
+          EnvironmentFile = config.sops.secrets."crowdsec/bouncer-env".path;
         };
       };
     };

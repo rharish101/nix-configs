@@ -10,10 +10,6 @@
       description = "Path to the directory to store CrowdSec info & credentials.";
       type = lib.types.str;
     };
-    secrets.envFile = lib.mkOption {
-      description = "Path to the environment file containing secrets.";
-      type = lib.types.str;
-    };
   };
   config =
     let
@@ -33,6 +29,12 @@
           isSystemUser = true;
         };
         users.groups.crowdsec.gid = constants.uids.crowdsec;
+
+        sops.secrets."crowdsec/lapi-env" = {
+          owner = "crowdsec";
+          group = "crowdsec";
+          restartUnits = [ "container@crowdsec-lapi.service" ];
+        };
 
         systemd.services."container@crowdsec-lapi" = {
           requires = [
@@ -57,95 +59,98 @@
             localAddress6 = "${pg.ip6}/112";
           };
 
-        containers.crowdsec-lapi = {
-          privateNetwork = true;
-          hostBridge = constants.bridges.caddy-csec.name;
-          localAddress = "${constants.bridges.caddy-csec.csec.ip4}/24";
-          localAddress6 = "${constants.bridges.caddy-csec.csec.ip6}/112";
+        containers.crowdsec-lapi =
+          let
+            env_file = config.sops.secrets."crowdsec/lapi-env".path;
+          in
+          {
+            privateNetwork = true;
+            hostBridge = constants.bridges.caddy-csec.name;
+            localAddress = "${constants.bridges.caddy-csec.csec.ip4}/24";
+            localAddress6 = "${constants.bridges.caddy-csec.csec.ip6}/112";
 
-          extraVeths."${constants.bridges.csec-pg.csec.interface}" = with constants.bridges.csec-pg; {
-            hostBridge = name;
-            localAddress = "${csec.ip4}/24";
-            localAddress6 = "${csec.ip6}/112";
-          };
-
-          privateUsers = config.users.users.crowdsec.uid;
-          extraFlags = [ "--private-users-ownership=auto" ];
-
-          autoStart = true;
-          ephemeral = true;
-
-          bindMounts = with config.modules.crowdsec-lapi; {
-            dataDir = {
-              hostPath = dataDir;
-              mountPoint = "/var/lib/crowdsec";
-              isReadOnly = false;
+            extraVeths."${constants.bridges.csec-pg.csec.interface}" = with constants.bridges.csec-pg; {
+              hostBridge = name;
+              localAddress = "${csec.ip4}/24";
+              localAddress6 = "${csec.ip6}/112";
             };
-            envFile = {
-              hostPath = secrets.envFile;
-              mountPoint = secrets.envFile;
+
+            privateUsers = config.users.users.crowdsec.uid;
+            extraFlags = [ "--private-users-ownership=auto" ];
+
+            autoStart = true;
+            ephemeral = true;
+
+            bindMounts = with config.modules.crowdsec-lapi; {
+              dataDir = {
+                hostPath = dataDir;
+                mountPoint = "/var/lib/crowdsec";
+                isReadOnly = false;
+              };
+              envFile = {
+                hostPath = env_file;
+                mountPoint = env_file;
+              };
             };
-          };
 
-          config =
-            { ... }:
-            {
-              imports = [ ../vendored/crowdsec.nix ];
+            config =
+              { ... }:
+              {
+                imports = [ ../vendored/crowdsec.nix ];
 
-              # To allow this container to access the internet through the bridge.
-              networking.defaultGateway = {
-                address = constants.bridges.caddy-csec.caddy.ip4;
-                interface = "eth0";
-              };
-              networking.defaultGateway6 = {
-                address = constants.bridges.caddy-csec.caddy.ip6;
-                interface = "eth0";
-              };
-              networking.nameservers = [ "1.1.1.1" ];
-
-              # Add secrets using an environment file.
-              systemd.services.crowdsec.serviceConfig.EnvironmentFile =
-                config.modules.crowdsec-lapi.secrets.envFile;
-
-              services.crowdsec = {
-                enable = true;
-                autoUpdateService = true;
-                openFirewall = true;
-                name = "${config.networking.hostName}-lapi";
-
-                user = "root";
-                group = "root";
-
-                # XXX: CrowdSec refuses to start unless some acquisitions are specified.
-                localConfig.acquisitions = [
-                  {
-                    source = "journalctl";
-                    journalctl_filter = [ "_SYSTEMD_UNIT=ssh.service" ];
-                    labels.type = "syslog";
-                  }
-                ];
-
-                settings.general = {
-                  db_config = {
-                    type = "postgres";
-                    user = "crowdsec";
-                    password = "\${DB_PASSWORD}";
-                    db_name = "crowdsec";
-                    host = constants.bridges.csec-pg.pg.ip4;
-                    port = constants.ports.postgres;
-                  };
-                  api.server = {
-                    enable = true;
-                    listen_uri = "0.0.0.0:${toString constants.ports.crowdsec}";
-                    console_path = "/var/lib/crowdsec/credentials/console.yaml";
-                    online_client.credentials_path = "/var/lib/crowdsec/credentials/capi.yaml";
-                  };
+                # To allow this container to access the internet through the bridge.
+                networking.defaultGateway = {
+                  address = constants.bridges.caddy-csec.caddy.ip4;
+                  interface = "eth0";
                 };
-                settings.lapi.credentialsFile = "/var/lib/crowdsec/credentials/lapi.yaml";
-              };
+                networking.defaultGateway6 = {
+                  address = constants.bridges.caddy-csec.caddy.ip6;
+                  interface = "eth0";
+                };
+                networking.nameservers = [ "1.1.1.1" ];
 
-              system.stateVersion = "25.05";
-            };
-        };
+                # Add secrets using an environment file.
+                systemd.services.crowdsec.serviceConfig.EnvironmentFile = env_file;
+
+                services.crowdsec = {
+                  enable = true;
+                  autoUpdateService = true;
+                  openFirewall = true;
+                  name = "${config.networking.hostName}-lapi";
+
+                  user = "root";
+                  group = "root";
+
+                  # XXX: CrowdSec refuses to start unless some acquisitions are specified.
+                  localConfig.acquisitions = [
+                    {
+                      source = "journalctl";
+                      journalctl_filter = [ "_SYSTEMD_UNIT=ssh.service" ];
+                      labels.type = "syslog";
+                    }
+                  ];
+
+                  settings.general = {
+                    db_config = {
+                      type = "postgres";
+                      user = "crowdsec";
+                      password = "\${DB_PASSWORD}";
+                      db_name = "crowdsec";
+                      host = constants.bridges.csec-pg.pg.ip4;
+                      port = constants.ports.postgres;
+                    };
+                    api.server = {
+                      enable = true;
+                      listen_uri = "0.0.0.0:${toString constants.ports.crowdsec}";
+                      console_path = "/var/lib/crowdsec/credentials/console.yaml";
+                      online_client.credentials_path = "/var/lib/crowdsec/credentials/capi.yaml";
+                    };
+                  };
+                  settings.lapi.credentialsFile = "/var/lib/crowdsec/credentials/lapi.yaml";
+                };
+
+                system.stateVersion = "25.05";
+              };
+          };
       };
 }

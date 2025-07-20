@@ -6,17 +6,11 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, ... }:
+{ ... }:
 let
   mc_port = 26460;
   ssh_port = 8398;
   wg_port = 34104;
-  wg_ip_client = "10.100.0.2";
-  caddywg_key_config = {
-    owner = "caddywg";
-    group = "caddywg";
-    restartUnits = [ "container@caddy-wg-server.service" ];
-  };
 in
 {
   imports = [
@@ -55,21 +49,10 @@ in
     enable = true;
     wireguard = {
       port = wg_port;
-      privateKeyFile = config.sops.secrets."wireguard/shalquoir".path;
-      client = {
-        address = wg_ip_client;
-        publicKey = "+lFv4mihO8w3eho26ebsrwU+NA5DlqgJPHTvYxINnS4=";
-        presharedKeyFile = config.sops.secrets."wireguard/psk".path;
-      };
+      client.publicKey = "+lFv4mihO8w3eho26ebsrwU+NA5DlqgJPHTvYxINnS4=";
     };
-    caddy = {
-      minecraftPort = mc_port;
-      environmentFile = config.sops.secrets."cloudflare".path;
-    };
-    crowdsec = {
-      enable = true;
-      secrets.credFile = config.sops.secrets."crowdsec/caddy-creds".path;
-    };
+    caddy.minecraftPort = mc_port;
+    crowdsec.enable = true;
   };
 
   # Set your time zone.
@@ -89,18 +72,6 @@ in
     ];
   };
 
-  # Enable the following secrets.
-  sops.secrets."cloudflare" = caddywg_key_config;
-  sops.secrets."wireguard/psk" = caddywg_key_config;
-  sops.secrets."wireguard/shalquoir" = caddywg_key_config;
-  sops.secrets."crowdsec/caddy-creds" = caddywg_key_config;
-  sops.secrets."crowdsec/bouncer-env".restartUnits = [ "crowdsec-firewall-bouncer.service" ];
-  sops.secrets."crowdsec/sshd-creds" = {
-    owner = "crowdsec";
-    group = "crowdsec";
-    restartUnits = [ "crowdsec.service" ];
-  };
-
   # List packages installed in system profile. To search, run:
   # $ nix search wget
 
@@ -116,19 +87,9 @@ in
     };
   };
 
-  # Enable CrowdSec log processor for SSH.
-  modules.crowdsec-sshd = {
-    enable = true;
-    secrets.credFile = config.sops.secrets."crowdsec/sshd-creds".path;
-  };
-
-  # Enable CrowdSec firewall bouncer.
-  modules.crowdsec-bouncer = {
-    enable = true;
-    secrets.envFile = config.sops.secrets."crowdsec/bouncer-env".path;
-  };
-
   # Custom module configuration
+  modules.crowdsec-bouncer.enable = true;
+  modules.crowdsec-sshd.enable = true;
   modules.editor.nixLsp.enable = false;
   modules.impermanence.path = "/persist";
   modules.snapshots.enable = false;

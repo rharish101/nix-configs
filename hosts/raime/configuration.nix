@@ -6,24 +6,7 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, pkgs, ... }:
-let
-  authelia_key_config = {
-    owner = "authelia";
-    group = "authelia";
-    restartUnits = [ "container@authelia.service" ];
-  };
-  caddywg_key_config = {
-    owner = "caddywg";
-    group = "caddywg";
-    restartUnits = [ "container@caddy-wg-client.service" ];
-  };
-  lldap_key_config = {
-    owner = "lldap";
-    group = "lldap";
-    restartUnits = [ "container@lldap.service" ];
-  };
-in
+{ pkgs, ... }:
 {
   imports = [
     ./hardware-configuration.nix # Include the results of the hardware scan.
@@ -52,14 +35,10 @@ in
 
   # Set up a wireguard tunnel to Shalquoir.
   modules.caddy-wg-client.enable = true;
-  modules.caddy-wg-client.wireguard = {
-    privateKeyFile = config.sops.secrets."wireguard/raime".path;
-    server = {
-      publicKey = "XbJDoKyhl3dHS002Oa/Fm3rkWZ+NP/LipiYAoMILahU=";
-      presharedKeyFile = config.sops.secrets."wireguard/psk".path;
-      address = "91.99.59.38";
-      port = 34104;
-    };
+  modules.caddy-wg-client.wireguard.server = {
+    publicKey = "XbJDoKyhl3dHS002Oa/Fm3rkWZ+NP/LipiYAoMILahU=";
+    address = "91.99.59.38";
+    port = 34104;
   };
 
   # Set your time zone.
@@ -82,29 +61,6 @@ in
   sops.secrets."crypttab/cache" = { };
   sops.secrets."crypttab/data1" = { };
   sops.secrets."crypttab/data2" = { };
-  sops.secrets."wireguard/psk" = caddywg_key_config;
-  sops.secrets."wireguard/raime" = caddywg_key_config;
-  sops.secrets."authelia/crowdsec" = authelia_key_config;
-  sops.secrets."authelia/ldap" = authelia_key_config;
-  sops.secrets."authelia/jwt" = authelia_key_config;
-  sops.secrets."authelia/postgres" = authelia_key_config;
-  sops.secrets."authelia/redis" = authelia_key_config // {
-    restartUnits = [
-      "container@authelia.service"
-      "container@authelia-redis.service"
-    ];
-  };
-  sops.secrets."authelia/session" = authelia_key_config;
-  sops.secrets."authelia/storage" = authelia_key_config;
-  sops.secrets."lldap/db" = lldap_key_config;
-  sops.secrets."lldap/jwt" = lldap_key_config;
-  sops.secrets."lldap/key" = lldap_key_config;
-  sops.secrets."lldap/pass" = lldap_key_config;
-  sops.secrets."crowdsec/lapi-env" = {
-    owner = "crowdsec";
-    group = "crowdsec";
-    restartUnits = [ "container@crowdsec-lapi.service" ];
-  };
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -122,36 +78,18 @@ in
   modules.authelia = {
     enable = true;
     dataDir = "/data/authelia";
-    secrets = {
-      crowdsec = config.sops.secrets."authelia/crowdsec".path;
-      ldap = config.sops.secrets."authelia/ldap".path;
-      jwt = config.sops.secrets."authelia/jwt".path;
-      postgres = config.sops.secrets."authelia/postgres".path;
-      redis = config.sops.secrets."authelia/redis".path;
-      session = config.sops.secrets."authelia/session".path;
-      storage = config.sops.secrets."authelia/storage".path;
-    };
-  };
-  modules.lldap = {
-    enable = true;
-    secrets = {
-      dbUrl = config.sops.secrets."lldap/db".path;
-      jwt = config.sops.secrets."lldap/jwt".path;
-      keySeed = config.sops.secrets."lldap/key".path;
-      userPass = config.sops.secrets."lldap/pass".path;
-    };
   };
 
   # Enable CrowdSec Local API server.
   modules.crowdsec-lapi = {
     enable = true;
     dataDir = "/data/crowdsec";
-    secrets.envFile = config.sops.secrets."crowdsec/lapi-env".path;
   };
 
   # Custom module configuration
   modules.git.dev = true;
   modules.impermanence.path = "/persist";
+  modules.lldap.enable = true;
   modules.minecraft.enable = true;
   modules.minecraft.dataDir = "/data/minecraft";
   modules.postgres.enable = true;
