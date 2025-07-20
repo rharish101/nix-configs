@@ -141,4 +141,14 @@
       };
     };
   };
+
+  # UIDs/GIDs that are multiples of 65536 are chosen a/c to how systemd-nspawn chooses one for user namespacing.
+  uids = {
+    minecraft = 65536 * 9;
+    caddywg = 65536 * 10;
+    authelia = 65536 * 12;
+    postgres = 65536 * 13;
+    lldap = 65536 * 14;
+    crowdsec = 65536 * 15;
+  };
 }

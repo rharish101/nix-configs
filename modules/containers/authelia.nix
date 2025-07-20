@@ -51,7 +51,6 @@
       constants = import ../constants.nix;
       cpu_limit = 2;
       memory_limit = 2; # in GiB
-      priv_uid_gid = 65536 * 12; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing
       csec_enabled = config.modules.crowdsec-lapi.enable;
       ldap_base_dn = "dc=rharish,dc=dev";
       data_dir = "/var/lib/authelia-main/configs"; # MUST be a (sub)directory of "/var/lib/authelia-{instanceName}"
@@ -66,11 +65,11 @@
       {
         # User for the Authelia container.
         users.users.authelia = {
-          uid = priv_uid_gid;
+          uid = constants.uids.authelia;
           group = "authelia";
           isSystemUser = true;
         };
-        users.groups.authelia.gid = priv_uid_gid;
+        users.groups.authelia.gid = constants.uids.authelia;
 
         systemd.services."container@authelia" = {
           serviceConfig = {

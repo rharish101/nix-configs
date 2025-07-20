@@ -18,7 +18,6 @@
   config =
     let
       constants = import ../constants.nix;
-      priv_uid_gid = 65536 * 15; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing
     in
     lib.mkIf
       (
@@ -29,11 +28,11 @@
       {
         # User for the CrowdSec container.
         users.users.crowdsec = {
-          uid = priv_uid_gid;
+          uid = constants.uids.crowdsec;
           group = "crowdsec";
           isSystemUser = true;
         };
-        users.groups.crowdsec.gid = priv_uid_gid;
+        users.groups.crowdsec.gid = constants.uids.crowdsec;
 
         systemd.services."container@crowdsec-lapi" = {
           requires = [

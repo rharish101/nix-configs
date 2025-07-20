@@ -15,16 +15,15 @@
   config =
     let
       constants = import ../constants.nix;
-      priv_uid_gid = 65536 * 13; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing.
     in
     lib.mkIf config.modules.postgres.enable {
       # User for the PostgreSQL container.
       users.users.postgres = {
-        uid = priv_uid_gid;
+        uid = constants.uids.postgres;
         group = "postgres";
         isSystemUser = true;
       };
-      users.groups.postgres.gid = priv_uid_gid;
+      users.groups.postgres.gid = constants.uids.postgres;
 
       containers.postgres = {
         privateNetwork = true;

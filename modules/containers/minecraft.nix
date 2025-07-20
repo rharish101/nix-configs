@@ -22,7 +22,6 @@
       cpu_limit = 6;
       memory_limit = 12; # in GiB
       server_name = "EBG6 Minecraft server";
-      priv_uid_gid = 65536 * 9; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing.
       mc_key_config = {
         owner = "minecraft";
         group = "minecraft";
@@ -32,11 +31,11 @@
     lib.mkIf (config.modules.minecraft.enable && config.modules.caddy-wg-client.enable) {
       # User for the Minecraft server.
       users.users.minecraft = {
-        uid = priv_uid_gid;
+        uid = constants.uids.minecraft;
         group = "minecraft";
         isSystemUser = true;
       };
-      users.groups.minecraft.gid = priv_uid_gid;
+      users.groups.minecraft.gid = constants.uids.minecraft;
 
       # Secrets for the server config
       sops.secrets."minecraft/whitelist" = mc_key_config;

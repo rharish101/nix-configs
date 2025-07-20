@@ -33,17 +33,16 @@
   config =
     let
       constants = import ../constants.nix;
-      priv_uid_gid = 65536 * 14; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing
       ldap_base_dn = "dc=rharish,dc=dev";
     in
     lib.mkIf (config.modules.lldap.enable && config.modules.postgres.enable) {
       # User for the lldap container.
       users.users.lldap = {
-        uid = priv_uid_gid;
+        uid = constants.uids.lldap;
         group = "lldap";
         isSystemUser = true;
       };
-      users.groups.lldap.gid = priv_uid_gid;
+      users.groups.lldap.gid = constants.uids.lldap;
 
       systemd.services."container@lldap".requires = [ "container@postgres.service" ];
 
