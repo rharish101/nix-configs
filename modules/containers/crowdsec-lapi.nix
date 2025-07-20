@@ -108,6 +108,7 @@
                   interface = "eth0";
                 };
                 networking.nameservers = [ "1.1.1.1" ];
+                networking.firewall.allowedTCPPorts = [ constants.ports.crowdsec ];
 
                 # Add secrets using an environment file.
                 systemd.services.crowdsec.serviceConfig.EnvironmentFile = envFile;
@@ -115,7 +116,6 @@
                 services.crowdsec = {
                   enable = true;
                   autoUpdateService = true;
-                  openFirewall = true;
                   name = "${config.networking.hostName}-lapi";
 
                   # XXX: CrowdSec refuses to start unless some acquisitions are specified.
