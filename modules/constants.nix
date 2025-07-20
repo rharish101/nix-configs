@@ -160,4 +160,13 @@
     postgres = 5432;
     wireguard = 51820;
   };
+
+  # Constants related to my personal domain.
+  domain = {
+    domain = "rharish.dev";
+    subdomains = {
+      auth = "auth";
+    };
+    ldap_base_dn = "dc=rharish,dc=dev";
+  };
 }

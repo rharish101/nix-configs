@@ -52,7 +52,6 @@
       cpu_limit = 2;
       memory_limit = 2; # in GiB
       csec_enabled = config.modules.crowdsec-lapi.enable;
-      ldap_base_dn = "dc=rharish,dc=dev";
       data_dir = "/var/lib/authelia-main/configs"; # MUST be a (sub)directory of "/var/lib/authelia-{instanceName}"
     in
     lib.mkIf
@@ -219,6 +218,7 @@
                 settings =
                   with constants.bridges;
                   with constants.ports;
+                  with constants.domain;
                   {
                     default_2fa_method = "totp";
                     theme = "auto";
@@ -241,15 +241,15 @@
                       };
                       cookies = [
                         {
-                          domain = "rharish.dev";
-                          authelia_url = "https://auth.rharish.dev";
+                          domain = domain;
+                          authelia_url = "https://${subdomains.auth}.${domain}";
                         }
                       ];
                     };
                     notifier.filesystem.filename = "${data_dir}/notification.txt";
                     access_control.rules = [
                       {
-                        domain = "*.rharish.dev";
+                        domain = "*.${domain}";
                         policy = "two_factor";
                       }
                     ];

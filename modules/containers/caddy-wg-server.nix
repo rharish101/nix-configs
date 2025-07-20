@@ -173,6 +173,7 @@
                 client_ip = constants.veths.tunnel.client.ip4;
                 reverse_proxy_config = "reverse_proxy ${client_ip}:80";
               in
+              with constants.domain;
               {
                 enable = true;
                 package = pkgs.caddy.withPlugins {
@@ -204,9 +205,9 @@
                 '';
                 virtualHosts.":${toString constants.ports.crowdsec}".extraConfig =
                   "reverse_proxy ${client_ip}:${toString constants.ports.crowdsec}";
-                virtualHosts."rharish.dev".extraConfig = reverse_proxy_config;
-                virtualHosts."www.rharish.dev".extraConfig = "redir https://rharish.dev 301";
-                virtualHosts."auth.rharish.dev".extraConfig = reverse_proxy_config;
+                virtualHosts."${domain}".extraConfig = reverse_proxy_config;
+                virtualHosts."www.${domain}".extraConfig = "redir https://${domain} 301";
+                virtualHosts."${subdomains.auth}.${domain}".extraConfig = reverse_proxy_config;
               };
 
             services.crowdsec = lib.mkIf config.modules.caddy-wg-server.crowdsec.enable {

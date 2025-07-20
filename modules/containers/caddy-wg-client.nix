@@ -134,42 +134,45 @@
               ];
             };
 
-            services.caddy = with config.modules.caddy-wg-client.wireguard; {
-              enable = true;
-              package = pkgs.caddy.withPlugins {
-                plugins = [ "github.com/mholt/caddy-l4@v0.0.0-20250124234235-87e3e5e2c7f9" ];
-                hash = "sha256-GDTZEHtfY3jVt4//6714BiFzBbXS3V+Gi0yDAA/T7hg=";
-              };
-              globalConfig =
-                with constants.bridges.caddy-mc.mc;
-                with constants.ports;
-                ''
-                  layer4 {
-                    tcp/:${toString minecraft} {
-                      route {
-                        proxy ${ip4}:${toString minecraft}
+            services.caddy =
+              with config.modules.caddy-wg-client.wireguard;
+              with constants.domain;
+              {
+                enable = true;
+                package = pkgs.caddy.withPlugins {
+                  plugins = [ "github.com/mholt/caddy-l4@v0.0.0-20250124234235-87e3e5e2c7f9" ];
+                  hash = "sha256-GDTZEHtfY3jVt4//6714BiFzBbXS3V+Gi0yDAA/T7hg=";
+                };
+                globalConfig =
+                  with constants.bridges.caddy-mc.mc;
+                  with constants.ports;
+                  ''
+                    layer4 {
+                      tcp/:${toString minecraft} {
+                        route {
+                          proxy ${ip4}:${toString minecraft}
+                        }
+                      }
+                      udp/:${toString minecraft} {
+                        route {
+                          proxy udp/${ip4}:${toString minecraft}
+                        }
                       }
                     }
-                    udp/:${toString minecraft} {
-                      route {
-                        proxy udp/${ip4}:${toString minecraft}
-                      }
+                    servers {
+                      trusted_proxies static ${constants.veths.tunnel.server.ip4}/24 ${constants.veths.tunnel.server.ip6}/112 ${server.address}
                     }
-                  }
-                  servers {
-                    trusted_proxies static ${constants.veths.tunnel.server.ip4}/24 ${constants.veths.tunnel.server.ip6}/112 ${server.address}
-                  }
+                  '';
+                virtualHosts.":80".extraConfig = ''
+                  respond "hello world"
                 '';
-              virtualHosts.":80".extraConfig = ''
-                respond "hello world"
-              '';
-              virtualHosts.":${toString constants.ports.crowdsec}".extraConfig = ''
-                reverse_proxy ${constants.bridges.caddy-csec.csec.ip4}:${toString constants.ports.crowdsec}
-              '';
-              virtualHosts."http://auth.rharish.dev".extraConfig = ''
-                reverse_proxy ${constants.bridges.auth-caddy.auth.ip4}:${toString constants.ports.authelia}
-              '';
-            };
+                virtualHosts.":${toString constants.ports.crowdsec}".extraConfig = ''
+                  reverse_proxy ${constants.bridges.caddy-csec.csec.ip4}:${toString constants.ports.crowdsec}
+                '';
+                virtualHosts."http://${subdomains.auth}.${domain}".extraConfig = ''
+                  reverse_proxy ${constants.bridges.auth-caddy.auth.ip4}:${toString constants.ports.authelia}
+                '';
+              };
 
             system.stateVersion = "24.11";
           };

@@ -33,7 +33,6 @@
   config =
     let
       constants = import ../constants.nix;
-      ldap_base_dn = "dc=rharish,dc=dev";
     in
     lib.mkIf (config.modules.lldap.enable && config.modules.postgres.enable) {
       # User for the lldap container.
@@ -97,7 +96,7 @@
             services.lldap = {
               enable = true;
               settings = {
-                ldap_base_dn = ldap_base_dn;
+                ldap_base_dn = constants.domain.ldap_base_dn;
                 ldap_port = constants.ports.lldap;
               };
               environment = with config.modules.lldap.secrets; {
