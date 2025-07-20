@@ -169,4 +169,25 @@
     };
     ldap_base_dn = "dc=rharish,dc=dev";
   };
+
+  # Resource limits
+  # CPU: #(virtual) threads, memory: GiB
+  limits = {
+    authelia = {
+      cpu = 2;
+      memory = 2;
+    };
+    caddy-wg-client = {
+      cpu = 1;
+      memory = 1;
+    };
+    caddy-wg-server = {
+      cpu = 1;
+      memory = 1;
+    };
+    minecraft = {
+      cpu = 6;
+      memory = 12;
+    };
+  };
 }

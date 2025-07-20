@@ -49,8 +49,6 @@
   config =
     let
       constants = import ../constants.nix;
-      cpu_limit = 2;
-      memory_limit = 2; # in GiB
       csec_enabled = config.modules.crowdsec-lapi.enable;
       data_dir = "/var/lib/authelia-main/configs"; # MUST be a (sub)directory of "/var/lib/authelia-{instanceName}"
     in
@@ -71,9 +69,9 @@
         users.groups.authelia.gid = constants.uids.authelia;
 
         systemd.services."container@authelia" = {
-          serviceConfig = {
-            MemoryHigh = "${toString memory_limit}G";
-            CPUQuota = "${toString (cpu_limit * 100)}%";
+          serviceConfig = with constants.limits.authelia; {
+            MemoryHigh = "${toString memory}G";
+            CPUQuota = "${toString (cpu * 100)}%";
           };
           requires = [
             (lib.mkIf csec_enabled "container@crowdsec-lapi.service")

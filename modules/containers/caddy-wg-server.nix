@@ -50,8 +50,6 @@
   config =
     let
       constants = import ../constants.nix;
-      cpu_limit = 1;
-      memory_limit = 1; # in GiB
       caddy_data_dir = "/var/lib/containers/caddy";
     in
     lib.mkIf config.modules.caddy-wg-server.enable {
@@ -63,9 +61,9 @@
       users.groups.caddywg.gid = constants.uids.caddywg;
 
       systemd.services."container@caddy-wg-server" = {
-        serviceConfig = {
-          MemoryHigh = "${toString memory_limit}G";
-          CPUQuota = "${toString (cpu_limit * 100)}%";
+        serviceConfig = with constants.limits.caddy-wg-server; {
+          MemoryHigh = "${toString memory}G";
+          CPUQuota = "${toString (cpu * 100)}%";
         };
       };
 

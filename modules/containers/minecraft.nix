@@ -19,8 +19,6 @@
   config =
     let
       constants = import ../constants.nix;
-      cpu_limit = 6;
-      memory_limit = 12; # in GiB
       server_name = "EBG6 Minecraft server";
       mc_key_config = {
         owner = "minecraft";
@@ -42,9 +40,9 @@
       sops.secrets."minecraft/ops" = mc_key_config;
 
       systemd.services."container@minecraft" = {
-        serviceConfig = {
-          MemoryHigh = "${toString memory_limit}G";
-          CPUQuota = "${toString (cpu_limit * 100)}%";
+        serviceConfig = with constants.limits.minecraft; {
+          MemoryHigh = "${toString memory}G";
+          CPUQuota = "${toString (cpu * 100)}%";
         };
         requires = [ "container@caddy-wg-client.service" ];
       };
@@ -123,9 +121,9 @@
                 enable = true;
                 package = pkgs.minecraftServers.paper-1_21_7-build_17;
                 # Aikar's flags.
-                jvmOpts = ''
-                  -Xms${toString memory_limit}G \
-                  -Xmx${toString memory_limit}G \
+                jvmOpts = with constants.limits.minecraft; ''
+                  -Xms${toString memory}G \
+                  -Xmx${toString memory}G \
                   -XX:+UseG1GC \
                   -XX:+ParallelRefProcEnabled \
                   -XX:MaxGCPauseMillis=200 \
