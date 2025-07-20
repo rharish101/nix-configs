@@ -7,11 +7,6 @@
   options.modules.caddy-wg-client = {
     enable = lib.mkEnableOption "Enable Caddy reverse proxy with a WireGuard client";
     wireguard = {
-      address = lib.mkOption {
-        description = "IP address for the client";
-        type = lib.types.str;
-        default = "10.100.0.2";
-      };
       privateKeyFile = lib.mkOption {
         description = "The file for the client's private key";
         type = lib.types.str;
@@ -68,9 +63,10 @@
 
       containers.caddy-wg-client = {
         privateNetwork = true;
-        hostAddress = "10.1.0.1";
-        localAddress = "10.1.0.2";
-        localAddress6 = "fc00::1/112";
+        hostAddress = constants.veths.caddy.host.ip4;
+        hostAddress6 = constants.veths.caddy.host.ip6;
+        localAddress = constants.veths.caddy.local.ip4;
+        localAddress6 = constants.veths.caddy.local.ip6;
 
         privateUsers = config.users.users.caddywg.uid;
         extraFlags = [ "--private-users-ownership=auto" ];
@@ -120,7 +116,10 @@
 
             # Set up a WireGuard tunnel to the server.
             networking.wg-quick.interfaces.wg0 = with config.modules.caddy-wg-client.wireguard; {
-              address = [ "${address}/24" ];
+              address = [
+                "${constants.veths.tunnel.client.ip4}/24"
+                "${constants.veths.tunnel.client.ip6}/112"
+              ];
               privateKeyFile = privateKeyFile;
               dns = [ dns ]; # Use external DNS, since traffic is routed through the tunnel.
               peers = [
@@ -157,7 +156,7 @@
                   }
                 }
                 servers {
-                  trusted_proxies static 10.100.0.1/24 ${server.address}
+                  trusted_proxies static ${constants.veths.tunnel.server.ip4}/24 ${constants.veths.tunnel.server.ip6}/112 ${server.address}
                 }
               '';
               virtualHosts.":80".extraConfig = ''

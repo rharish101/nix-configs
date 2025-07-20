@@ -25,11 +25,6 @@
           description = "The file for the preshared key with the clients";
           type = lib.types.str;
         };
-        address = lib.mkOption {
-          description = "The Wireguard IP address of the client";
-          type = lib.types.str;
-          default = "10.100.0.2";
-        };
       };
     };
     caddy = {
@@ -54,6 +49,7 @@
 
   config =
     let
+      constants = import ../constants.nix;
       cpu_limit = 1;
       memory_limit = 1; # in GiB
       caddy_data_dir = "/var/lib/containers/caddy";
@@ -77,8 +73,11 @@
 
       containers.caddy-wg-server = {
         privateNetwork = true;
-        hostAddress = "10.1.0.1";
-        localAddress = "10.1.0.2";
+        hostAddress = constants.veths.caddy.host.ip4;
+        hostAddress6 = constants.veths.caddy.host.ip6;
+        localAddress = constants.veths.caddy.local.ip4;
+        localAddress6 = constants.veths.caddy.local.ip6;
+
         forwardPorts = with config.modules.caddy-wg-server; [
           {
             containerPort = 51820;
@@ -153,21 +152,27 @@
             };
 
             networking.wg-quick.interfaces.wg0 = with config.modules.caddy-wg-server.wireguard; {
-              address = [ "10.100.0.1/24" ];
+              address = [
+                "${constants.veths.tunnel.server.ip4}/24"
+                "${constants.veths.tunnel.server.ip6}/112"
+              ];
               listenPort = 51820;
               privateKeyFile = privateKeyFile;
               peers = [
                 {
                   publicKey = client.publicKey;
                   presharedKeyFile = client.presharedKeyFile;
-                  allowedIPs = [ "${client.address}/24" ];
+                  allowedIPs = [
+                    "${constants.veths.tunnel.client.ip4}/24"
+                    "${constants.veths.tunnel.client.ip6}/112"
+                  ];
                 }
               ];
             };
 
             services.caddy =
               let
-                client_ip = config.modules.caddy-wg-server.wireguard.client.address;
+                client_ip = constants.veths.tunnel.client.ip4;
                 reverse_proxy_config = "reverse_proxy ${client_ip}:80";
               in
               {
