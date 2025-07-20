@@ -14,6 +14,7 @@
   };
   config =
     let
+      constants = import ../constants.nix;
       priv_uid_gid = 65536 * 13; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing.
     in
     lib.mkIf config.modules.postgres.enable {
@@ -50,10 +51,10 @@
             services.postgresql = {
               enable = true;
               enableTCPIP = true;
-              authentication = ''
-                host sameuser authelia 10.4.2.1/32 scram-sha-256
-                host sameuser crowdsec 10.6.1.1/32 scram-sha-256
-                host sameuser lldap    10.5.0.1/32 scram-sha-256
+              authentication = with constants.bridges; ''
+                host sameuser authelia ${auth-pg.auth.ip4}/32 scram-sha-256
+                host sameuser crowdsec ${csec-pg.csec.ip4}/32 scram-sha-256
+                host sameuser lldap    ${ldap-pg.ldap.ip4}/32 scram-sha-256
               '';
               ensureUsers = [
                 (lib.mkIf config.modules.authelia.enable {

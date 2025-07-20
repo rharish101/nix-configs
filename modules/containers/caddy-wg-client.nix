@@ -44,11 +44,11 @@
 
   config =
     let
+      constants = import ../constants.nix;
       cpu_limit = 1;
       memory_limit = 1; # in GiB
       caddy_data_dir = "/var/lib/containers/caddy";
       priv_uid_gid = 65536 * 10; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing.
-      mc_container_addr = "10.2.0.2";
       csec_port = 20546;
     in
     lib.mkIf (config.modules.caddy-wg-client.enable) {
@@ -143,16 +143,16 @@
                 plugins = [ "github.com/mholt/caddy-l4@v0.0.0-20250124234235-87e3e5e2c7f9" ];
                 hash = "sha256-GDTZEHtfY3jVt4//6714BiFzBbXS3V+Gi0yDAA/T7hg=";
               };
-              globalConfig = ''
+              globalConfig = with constants.bridges.caddy-mc.mc; ''
                 layer4 {
                   tcp/:25565 {
                     route {
-                      proxy ${mc_container_addr}:25565
+                      proxy ${ip4}:25565
                     }
                   }
                   udp/:25565 {
                     route {
-                      proxy udp/${mc_container_addr}:19132
+                      proxy udp/${ip4}:19132
                     }
                   }
                 }
@@ -164,10 +164,10 @@
                 respond "hello world"
               '';
               virtualHosts.":${toString csec_port}".extraConfig = ''
-                reverse_proxy 10.6.0.2:8080
+                reverse_proxy ${constants.bridges.caddy-csec.csec.ip4}:8080
               '';
               virtualHosts."http://auth.rharish.dev".extraConfig = ''
-                reverse_proxy 10.4.0.2:9091
+                reverse_proxy ${constants.bridges.auth-caddy.auth.ip4}:9091
               '';
             };
 

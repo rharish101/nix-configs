@@ -18,6 +18,7 @@
   };
   config =
     let
+      constants = import ../constants.nix;
       cpu_limit = 6;
       memory_limit = 12; # in GiB
       server_name = "EBG6 Minecraft server";
@@ -27,9 +28,6 @@
         group = "minecraft";
         restartUnits = [ "container@minecraft.service" ];
       };
-      caddy_br_name = "br-caddy-mc";
-      caddy_br_addr = "10.2.0.1";
-      caddy_br_addr6 = "fc00::11";
     in
     lib.mkIf (config.modules.minecraft.enable && config.modules.caddy-wg-client.enable) {
       # User for the Minecraft server.
@@ -52,18 +50,19 @@
         requires = [ "container@caddy-wg-client.service" ];
       };
 
-      networking.bridges."${caddy_br_name}".interfaces = [ ];
-      containers.caddy-wg-client.extraVeths.caddy-mc = {
-        hostBridge = caddy_br_name;
-        localAddress = "${caddy_br_addr}/24";
-        localAddress6 = "${caddy_br_addr6}/112";
-      };
+      networking.bridges."${constants.bridges.caddy-mc.name}".interfaces = [ ];
+      containers.caddy-wg-client.extraVeths."${constants.bridges.caddy-mc.caddy.interface}" =
+        with constants.bridges.caddy-mc; {
+          hostBridge = name;
+          localAddress = "${caddy.ip4}/24";
+          localAddress6 = "${caddy.ip6}/112";
+        };
 
       containers.minecraft = {
         privateNetwork = true;
-        hostBridge = caddy_br_name;
-        localAddress = "10.2.0.2/24";
-        localAddress6 = "fc00::12/112";
+        hostBridge = constants.bridges.caddy-mc.name;
+        localAddress = "${constants.bridges.caddy-mc.mc.ip4}/24";
+        localAddress6 = "${constants.bridges.caddy-mc.mc.ip6}/112";
 
         privateUsers = config.users.users.minecraft.uid;
         extraFlags = [ "--private-users-ownership=auto" ];
@@ -103,11 +102,11 @@
 
             # To allow this container to access the internet through the bridge.
             networking.defaultGateway = {
-              address = caddy_br_addr;
+              address = constants.bridges.caddy-mc.caddy.ip4;
               interface = "eth0";
             };
             networking.defaultGateway6 = {
-              address = caddy_br_addr6;
+              address = constants.bridges.caddy-mc.caddy.ip6;
               interface = "eth0";
             };
             networking.nameservers = [ "1.1.1.1" ];

@@ -48,22 +48,12 @@
   };
   config =
     let
+      constants = import ../constants.nix;
       cpu_limit = 2;
       memory_limit = 2; # in GiB
       priv_uid_gid = 65536 * 12; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing
-      caddy_br_name = "br-auth-caddy";
-      caddy_br_addr = "10.4.0.1";
-      caddy_br_addr6 = "fc00::31";
-      csec = config.modules.crowdsec-lapi.enable;
-      csec_br_name = "br-auth-csec";
-      csec_br_addr_csec = "10.4.4.2";
+      csec_enabled = config.modules.crowdsec-lapi.enable;
       ldap_base_dn = "dc=rharish,dc=dev";
-      ldap_br_name = "br-auth-ldap";
-      ldap_br_addr_ldap = "10.4.3.2";
-      redis_br_name = "br-auth-redis";
-      redis_br_addr_redis = "10.4.1.2";
-      postgres_br_name = "br-auth-pg";
-      postgres_br_addr_postgres = "10.4.2.2";
       data_dir = "/var/lib/authelia-main/configs"; # MUST be a (sub)directory of "/var/lib/authelia-{instanceName}"
     in
     lib.mkIf
@@ -88,68 +78,74 @@
             CPUQuota = "${toString (cpu_limit * 100)}%";
           };
           requires = [
-            (lib.mkIf csec "container@crowdsec-lapi.service")
+            (lib.mkIf csec_enabled "container@crowdsec-lapi.service")
             "container@lldap.service"
             "container@postgres.service"
             "container@authelia-redis.service"
           ];
         };
 
-        networking.bridges = {
-          "${caddy_br_name}".interfaces = [ ];
-          "${csec_br_name}" = lib.mkIf csec { interfaces = [ ]; };
-          "${ldap_br_name}".interfaces = [ ];
-          "${postgres_br_name}".interfaces = [ ];
-          "${redis_br_name}".interfaces = [ ];
+        networking.bridges = with constants.bridges; {
+          "${auth-caddy.name}".interfaces = [ ];
+          "${auth-csec.name}" = lib.mkIf csec_enabled { interfaces = [ ]; };
+          "${auth-ldap.name}".interfaces = [ ];
+          "${auth-pg.name}".interfaces = [ ];
+          "${auth-redis.name}".interfaces = [ ];
         };
 
-        containers.caddy-wg-client.extraVeths.caddy-auth = {
-          hostBridge = caddy_br_name;
-          localAddress = "${caddy_br_addr}/24";
-          localAddress6 = "${caddy_br_addr6}/112";
+        containers.caddy-wg-client.extraVeths."${constants.bridges.auth-caddy.caddy.interface}" =
+          with constants.bridges.auth-caddy; {
+            hostBridge = name;
+            localAddress = "${caddy.ip4}/24";
+            localAddress6 = "${caddy.ip6}/112";
+          };
+        containers.crowdsec-lapi.extraVeths."${constants.bridges.auth-csec.csec.interface}" =
+          with constants.bridges.auth-csec;
+          lib.mkIf csec_enabled {
+            hostBridge = name;
+            localAddress = "${csec.ip4}/24";
+            localAddress6 = "${csec.ip6}/112";
+          };
+        containers.lldap = with constants.bridges.auth-ldap; {
+          hostBridge = name;
+          localAddress = "${ldap.ip4}/24";
+          localAddress6 = "${ldap.ip6}/112";
         };
-        containers.crowdsec-lapi.extraVeths.csec-auth = lib.mkIf csec {
-          hostBridge = csec_br_name;
-          localAddress = "${csec_br_addr_csec}/24";
-          localAddress6 = "fc00::3a/112";
-        };
-        containers.lldap = {
-          hostBridge = ldap_br_name;
-          localAddress = "${ldap_br_addr_ldap}/24";
-          localAddress6 = "fc00::38/112";
-        };
-        containers.postgres.extraVeths.pg-auth = {
-          hostBridge = postgres_br_name;
-          localAddress = "${postgres_br_addr_postgres}/24";
-          localAddress6 = "fc00::36/112";
-        };
+        containers.postgres.extraVeths."${constants.bridges.auth-pg.pg.interface}" =
+          with constants.bridges.auth-pg; {
+            hostBridge = name;
+            localAddress = "${pg.ip4}/24";
+            localAddress6 = "${pg.ip6}/112";
+          };
 
         containers.authelia = {
           privateNetwork = true;
-          hostBridge = caddy_br_name;
-          localAddress = "10.4.0.2/24";
-          localAddress6 = "fc00::32/112";
+          hostBridge = constants.bridges.auth-caddy.name;
+          localAddress = "${constants.bridges.auth-caddy.auth.ip4}/24";
+          localAddress6 = "${constants.bridges.auth-caddy.auth.ip6}/112";
 
-          extraVeths = {
-            auth-csec = lib.mkIf csec {
-              hostBridge = csec_br_name;
-              localAddress = "10.4.4.1/24";
-              localAddress6 = "fc00::39/112";
+          extraVeths = with constants.bridges; {
+            "${auth-csec.auth.interface}" =
+              with auth-csec;
+              lib.mkIf csec_enabled {
+                hostBridge = name;
+                localAddress = "${auth.ip4}/24";
+                localAddress6 = "${auth.ip6}/112";
+              };
+            "${auth-ldap.auth.interface}" = with auth-ldap; {
+              hostBridge = name;
+              localAddress = "${auth.ip4}/24";
+              localAddress6 = "${auth.ip6}/112";
             };
-            auth-ldap = {
-              hostBridge = ldap_br_name;
-              localAddress = "10.4.3.1/24";
-              localAddress6 = "fc00::37/112";
+            "${auth-pg.auth.interface}" = with auth-pg; {
+              hostBridge = name;
+              localAddress = "${auth.ip4}/24";
+              localAddress6 = "${auth.ip6}/112";
             };
-            auth-pg = {
-              hostBridge = postgres_br_name;
-              localAddress = "10.4.2.1/24";
-              localAddress6 = "fc00::35/112";
-            };
-            auth-redis = {
-              hostBridge = redis_br_name;
-              localAddress = "10.4.1.1/24";
-              localAddress6 = "fc00::33/112";
+            "${auth-redis.auth.interface}" = with auth-redis; {
+              hostBridge = name;
+              localAddress = "${auth.ip4}/24";
+              localAddress6 = "${auth.ip6}/112";
             };
           };
 
@@ -165,7 +161,7 @@
               mountPoint = data_dir;
               isReadOnly = false;
             };
-            crowdsec = lib.mkIf csec {
+            crowdsec = lib.mkIf csec_enabled {
               hostPath = secrets.crowdsec;
               mountPoint = secrets.crowdsec;
             };
@@ -202,11 +198,11 @@
 
               # To allow this container to access the internet through the bridge.
               networking.defaultGateway = {
-                address = caddy_br_addr;
+                address = constants.bridges.auth-caddy.caddy.ip4;
                 interface = "eth0";
               };
               networking.defaultGateway6 = {
-                address = caddy_br_addr6;
+                address = constants.bridges.auth-caddy.caddy.ip6;
                 interface = "eth0";
               };
               networking.nameservers = [ "1.1.1.1" ];
@@ -226,24 +222,24 @@
                   theme = "auto";
                 };
                 settingsFiles = [ ../../configs/authelia.yml ];
-                environmentVariables = {
-                  AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDRESS = "ldap://${ldap_br_addr_ldap}:3890";
+                environmentVariables = with constants.bridges; {
+                  AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDRESS = "ldap://${auth-ldap.ldap.ip4}:3890";
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_IMPLEMENTATION = "lldap";
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_BASE_DN = ldap_base_dn;
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_ADDITIONAL_USERS_DN = "ou=people";
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_USER = "uid=authelia,ou=people,${ldap_base_dn}";
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = secrets.ldap;
                   AUTHELIA_NOTIFIER_FILESYSTEM_FILENAME = "${data_dir}/notification.txt";
-                  AUTHELIA_STORAGE_POSTGRES_ADDRESS = "tcp://${postgres_br_addr_postgres}:5432";
+                  AUTHELIA_STORAGE_POSTGRES_ADDRESS = "tcp://${auth-pg.pg.ip4}:5432";
                   AUTHELIA_STORAGE_POSTGRES_DATABASE = "authelia";
                   AUTHELIA_STORAGE_POSTGRES_USERNAME = "authelia";
                   AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE = secrets.postgres;
-                  AUTHELIA_SESSION_REDIS_HOST = redis_br_addr_redis;
+                  AUTHELIA_SESSION_REDIS_HOST = auth-redis.redis.ip4;
                   AUTHELIA_SESSION_REDIS_PASSWORD_FILE = secrets.redis;
                 };
               };
 
-              services.crowdsec = lib.mkIf csec {
+              services.crowdsec = lib.mkIf csec_enabled {
                 enable = true;
                 autoUpdateService = true;
                 name = "${config.networking.hostName}-authelia";
@@ -272,9 +268,9 @@
 
         containers.authelia-redis = {
           privateNetwork = true;
-          hostBridge = redis_br_name;
-          localAddress = "${redis_br_addr_redis}/24";
-          localAddress6 = "fc00::34/112";
+          hostBridge = constants.bridges.auth-redis.name;
+          localAddress = "${constants.bridges.auth-redis.redis.ip4}/24";
+          localAddress6 = "${constants.bridges.auth-redis.redis.ip6}/112";
 
           privateUsers = config.users.users.authelia.uid;
           extraFlags = [ "--private-users-ownership=auto" ];

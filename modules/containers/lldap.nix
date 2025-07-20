@@ -32,9 +32,9 @@
   };
   config =
     let
+      constants = import ../constants.nix;
       priv_uid_gid = 65536 * 14; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing
       ldap_base_dn = "dc=rharish,dc=dev";
-      postgres_br_name = "br-ldap-pg";
     in
     lib.mkIf (config.modules.lldap.enable && config.modules.postgres.enable) {
       # User for the lldap container.
@@ -47,19 +47,20 @@
 
       systemd.services."container@lldap".requires = [ "container@postgres.service" ];
 
-      networking.bridges."${postgres_br_name}".interfaces = [ ];
-      containers.postgres.extraVeths.pg-ldap = {
-        hostBridge = postgres_br_name;
-        localAddress = "10.5.0.2/24";
-        localAddress6 = "fc00::42/112";
-      };
+      networking.bridges."${constants.bridges.ldap-pg.name}".interfaces = [ ];
+      containers.postgres.extraVeths."${constants.bridges.ldap-pg.pg.interface}" =
+        with constants.bridges.ldap-pg; {
+          hostBridge = name;
+          localAddress = "${pg.ip4}/24";
+          localAddress6 = "${pg.ip6}/112";
+        };
 
       containers.lldap = {
         privateNetwork = true;
-        extraVeths.ldap-pg = {
-          hostBridge = postgres_br_name;
-          localAddress = "10.5.0.1/24";
-          localAddress6 = "fc00::41/112";
+        extraVeths."${constants.bridges.ldap-pg.ldap.interface}" = with constants.bridges.ldap-pg; {
+          hostBridge = name;
+          localAddress = "${ldap.ip4}/24";
+          localAddress6 = "${ldap.ip6}/112";
         };
 
         privateUsers = config.users.users.lldap.uid;

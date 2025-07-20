@@ -17,12 +17,8 @@
   };
   config =
     let
+      constants = import ../constants.nix;
       priv_uid_gid = 65536 * 15; # Randomly-chosen UID/GID a/c to how systemd-nspawn chooses one for the user namespacing
-      caddy_br_name = "br-caddy-csec";
-      caddy_br_addr = "10.6.0.1";
-      caddy_br_addr6 = "fc00::51";
-      postgres_br_name = "br-csec-pg";
-      postgres_br_addr_postgres = "10.6.1.2";
     in
     lib.mkIf
       (
@@ -46,30 +42,32 @@
           ];
         };
 
-        networking.bridges."${caddy_br_name}".interfaces = [ ];
-        networking.bridges."${postgres_br_name}".interfaces = [ ];
+        networking.bridges."${constants.bridges.caddy-csec.name}".interfaces = [ ];
+        networking.bridges."${constants.bridges.csec-pg.name}".interfaces = [ ];
 
-        containers.caddy-wg-client.extraVeths.caddy-csec = {
-          hostBridge = caddy_br_name;
-          localAddress = "${caddy_br_addr}/24";
-          localAddress6 = "${caddy_br_addr6}/112";
-        };
-        containers.postgres.extraVeths.pg-csec = {
-          hostBridge = postgres_br_name;
-          localAddress = "${postgres_br_addr_postgres}/24";
-          localAddress6 = "fc00::54/112";
-        };
+        containers.caddy-wg-client.extraVeths."${constants.bridges.caddy-csec.caddy.interface}" =
+          with constants.bridges.caddy-csec; {
+            hostBridge = name;
+            localAddress = "${caddy.ip4}/24";
+            localAddress6 = "${caddy.ip6}/112";
+          };
+        containers.postgres.extraVeths."${constants.bridges.csec-pg.pg.interface}" =
+          with constants.bridges.csec-pg; {
+            hostBridge = name;
+            localAddress = "${pg.ip4}/24";
+            localAddress6 = "${pg.ip6}/112";
+          };
 
         containers.crowdsec-lapi = {
           privateNetwork = true;
-          hostBridge = caddy_br_name;
-          localAddress = "10.6.0.2/24";
-          localAddress6 = "fc00::52/112";
+          hostBridge = constants.bridges.caddy-csec.name;
+          localAddress = "${constants.bridges.caddy-csec.csec.ip4}/24";
+          localAddress6 = "${constants.bridges.caddy-csec.csec.ip6}/112";
 
-          extraVeths.csec-pg = {
-            hostBridge = postgres_br_name;
-            localAddress = "10.6.1.1/24";
-            localAddress6 = "fc00::53/112";
+          extraVeths."${constants.bridges.csec-pg.csec.interface}" = with constants.bridges.csec-pg; {
+            hostBridge = name;
+            localAddress = "${csec.ip4}/24";
+            localAddress6 = "${csec.ip6}/112";
           };
 
           privateUsers = config.users.users.crowdsec.uid;
@@ -97,11 +95,11 @@
 
               # To allow this container to access the internet through the bridge.
               networking.defaultGateway = {
-                address = caddy_br_addr;
+                address = constants.bridges.caddy-csec.caddy.ip4;
                 interface = "eth0";
               };
               networking.defaultGateway6 = {
-                address = caddy_br_addr6;
+                address = constants.bridges.caddy-csec.caddy.ip6;
                 interface = "eth0";
               };
               networking.nameservers = [ "1.1.1.1" ];
@@ -134,7 +132,7 @@
                     user = "crowdsec";
                     password = "\${DB_PASSWORD}";
                     db_name = "crowdsec";
-                    host = postgres_br_addr_postgres;
+                    host = constants.bridges.csec-pg.pg.ip4;
                     port = 5432;
                   };
                   api.server = {
