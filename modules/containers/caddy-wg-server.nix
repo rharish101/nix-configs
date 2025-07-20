@@ -43,6 +43,13 @@
         type = with lib.types; nullOr str;
       };
     };
+    crowdsec = {
+      enable = lib.mkEnableOption "Enable CrowdSec Caddy log processor";
+      secrets.credFile = lib.mkOption {
+        description = "Path to the CrowdSec Local API credentials file";
+        type = lib.types.str;
+      };
+    };
   };
 
   config =
@@ -117,11 +124,17 @@
             mountPoint = "/var/lib/caddy";
             isReadOnly = false;
           };
+          crowdsec = with crowdsec.secrets; {
+            hostPath = credFile;
+            mountPoint = credFile;
+          };
         };
 
         config =
           { pkgs, ... }:
           {
+            imports = [ ../vendored/crowdsec.nix ];
+
             networking.firewall.allowedTCPPorts = [
               443 # HTTPS
               25565 # Minecraft Java
@@ -192,6 +205,29 @@
                 virtualHosts."www.rharish.dev".extraConfig = "redir https://rharish.dev 301";
                 virtualHosts."auth.rharish.dev".extraConfig = reverse_proxy_config;
               };
+
+            services.crowdsec = lib.mkIf config.modules.caddy-wg-server.crowdsec.enable {
+              enable = true;
+              autoUpdateService = true;
+              name = "${config.networking.hostName}-caddy";
+
+              user = "root";
+              group = "root";
+
+              localConfig.acquisitions = [
+                {
+                  source = "journalctl";
+                  journalctl_filter = [ "_SYSTEMD_UNIT=caddy.service" ];
+                  labels.type = "syslog";
+                  use_time_machine = true;
+                }
+              ];
+              hub.collections = [
+                "crowdsecurity/linux"
+                "crowdsecurity/caddy"
+              ];
+              settings.lapi.credentialsFile = config.modules.caddy-wg-server.crowdsec.secrets.credFile;
+            };
 
             system.stateVersion = "25.05";
           };

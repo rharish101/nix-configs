@@ -66,6 +66,10 @@ in
       minecraftPort = mc_port;
       environmentFile = config.sops.secrets."cloudflare".path;
     };
+    crowdsec = {
+      enable = true;
+      secrets.credFile = config.sops.secrets."crowdsec/caddy-creds".path;
+    };
   };
 
   # Set your time zone.
@@ -89,6 +93,7 @@ in
   sops.secrets."cloudflare" = caddywg_key_config;
   sops.secrets."wireguard/psk" = caddywg_key_config;
   sops.secrets."wireguard/shalquoir" = caddywg_key_config;
+  sops.secrets."crowdsec/caddy-creds" = caddywg_key_config;
   sops.secrets."crowdsec/bouncer-env".restartUnits = [ "crowdsec-firewall-bouncer.service" ];
   sops.secrets."crowdsec/sshd-creds" = {
     owner = "crowdsec";
