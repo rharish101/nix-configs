@@ -749,7 +749,7 @@ in
               "~@cpu-emulation"
               "~@clock"
               "~@raw-io"
-              # "~@privileged" # This crashes Log Processors
+              "~@privileged"
               "~@resources"
             ];
             CapabilityBoundingSet = [

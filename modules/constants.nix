@@ -148,7 +148,6 @@
     caddywg = 65536 * 10;
     authelia = 65536 * 12;
     postgres = 65536 * 13;
-    lldap = 65536 * 14;
     crowdsec = 65536 * 15;
   };
 

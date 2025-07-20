@@ -29,11 +29,7 @@
     let
       constants = import ../constants.nix;
       caddyDataDir = "/var/lib/containers/caddy";
-      secretsConfig = {
-        owner = "caddywg";
-        group = "caddywg";
-        restartUnits = [ "container@caddy-wg-server.service" ];
-      };
+      secretsConfig.restartUnits = [ "container@caddy-wg-server.service" ];
     in
     lib.mkIf config.modules.caddy-wg-server.enable {
       users.users.caddywg = {
@@ -55,179 +51,160 @@
         };
       };
 
-      containers.caddy-wg-server =
-        let
-          privKeyFile = config.sops.secrets."wireguard/server".path;
-          pskFile = config.sops.secrets."wireguard/psk".path;
-          caddyEnvFile = config.sops.secrets."cloudflare".path;
-          csecCreds = config.sops.secrets."crowdsec/caddy-creds".path;
-        in
-        {
-          privateNetwork = true;
-          hostAddress = constants.veths.caddy.host.ip4;
-          hostAddress6 = constants.veths.caddy.host.ip6;
-          localAddress = constants.veths.caddy.local.ip4;
-          localAddress6 = constants.veths.caddy.local.ip6;
+      containers.caddy-wg-server = {
+        privateNetwork = true;
+        hostAddress = constants.veths.caddy.host.ip4;
+        hostAddress6 = constants.veths.caddy.host.ip6;
+        localAddress = constants.veths.caddy.local.ip4;
+        localAddress6 = constants.veths.caddy.local.ip6;
 
-          forwardPorts = with config.modules.caddy-wg-server; [
-            {
-              containerPort = constants.ports.wireguard;
-              hostPort = wireguard.port;
-              protocol = "udp";
-            }
-            { hostPort = 443; }
-            {
-              hostPort = caddy.minecraftPort;
-              containerPort = constants.ports.minecraft;
-              protocol = "tcp";
-            }
-            {
-              hostPort = caddy.minecraftPort;
-              containerPort = constants.ports.minecraft;
-              protocol = "udp";
-            }
-          ];
+        forwardPorts = with config.modules.caddy-wg-server; [
+          {
+            containerPort = constants.ports.wireguard;
+            hostPort = wireguard.port;
+            protocol = "udp";
+          }
+          { hostPort = 443; }
+          {
+            hostPort = caddy.minecraftPort;
+            containerPort = constants.ports.minecraft;
+            protocol = "tcp";
+          }
+          {
+            hostPort = caddy.minecraftPort;
+            containerPort = constants.ports.minecraft;
+            protocol = "udp";
+          }
+        ];
 
-          privateUsers = config.users.users.caddywg.uid;
-          extraFlags = [ "--private-users-ownership=auto" ];
+        privateUsers = config.users.users.caddywg.uid;
+        extraFlags = [
+          "--private-users-ownership=auto"
+          "--load-credential=priv-key:${config.sops.secrets."wireguard/server".path}"
+          "--load-credential=psk:${config.sops.secrets."wireguard/psk".path}"
+          "--load-credential=caddy-env:${config.sops.secrets."cloudflare".path}"
+          "--load-credential=csec-creds:${config.sops.secrets."crowdsec/caddy-creds".path}"
+        ];
 
-          ephemeral = true;
-          autoStart = true;
+        ephemeral = true;
+        autoStart = true;
 
-          # Make the key files and data dirs accessible to the container.
-          # NOTE: Key files should be readable by the "caddywg" user.
-          bindMounts = {
-            privateKeyFile = {
-              hostPath = privKeyFile;
-              mountPoint = privKeyFile;
-            };
-            presharedKeyFile = {
-              hostPath = pskFile;
-              mountPoint = pskFile;
-            };
-            environmentFile = {
-              hostPath = caddyEnvFile;
-              mountPoint = caddyEnvFile;
-            };
-            dataDir = {
-              hostPath = caddyDataDir;
-              mountPoint = "/var/lib/caddy";
-              isReadOnly = false;
-            };
-            crowdsec = {
-              hostPath = csecCreds;
-              mountPoint = csecCreds;
-            };
-          };
-
-          config =
-            { pkgs, ... }:
-            {
-              imports = [ ../vendored/crowdsec.nix ];
-
-              networking.firewall.allowedTCPPorts = with constants.ports; [
-                443 # HTTPS
-                minecraft # Minecraft Java
-                crowdsec # CrowdSec LAPI
-              ];
-              networking.firewall.allowedUDPPorts = with constants.ports; [
-                minecraft # Minecraft Bedrock
-                wireguard # WireGuard tunnel
-              ];
-
-              # Allow internet access for clients through the WireGuard tunnel.
-              networking.nat = {
-                enable = true;
-                internalInterfaces = [ "wg0" ];
-                externalInterface = "eth0";
-              };
-
-              networking.wg-quick.interfaces.wg0 = with config.modules.caddy-wg-server.wireguard; {
-                address = [
-                  "${constants.veths.tunnel.server.ip4}/24"
-                  "${constants.veths.tunnel.server.ip6}/112"
-                ];
-                listenPort = constants.ports.wireguard;
-                privateKeyFile = privKeyFile;
-                peers = [
-                  {
-                    publicKey = client.publicKey;
-                    presharedKeyFile = pskFile;
-                    allowedIPs = [
-                      "${constants.veths.tunnel.client.ip4}/24"
-                      "${constants.veths.tunnel.client.ip6}/112"
-                    ];
-                  }
-                ];
-              };
-
-              services.caddy =
-                let
-                  clientIp = constants.veths.tunnel.client.ip4;
-                  proxyConfig = "reverse_proxy ${clientIp}:80";
-                in
-                with constants.domain;
-                {
-                  enable = true;
-                  package = pkgs.caddy.withPlugins {
-                    plugins = [
-                      "github.com/caddy-dns/cloudflare@v0.2.1"
-                      "github.com/mholt/caddy-l4@v0.0.0-20250124234235-87e3e5e2c7f9"
-                    ];
-                    hash = "sha256-kADjiFy2v0wF4o4X8EACNSW0M4+13LNJYDpHynBPVz8=";
-                  };
-                  environmentFile = caddyEnvFile;
-                  email = "harish.rajagopals@gmail.com";
-                  globalConfig = with constants.ports; ''
-                    acme_dns cloudflare {
-                      zone_token {env.ZONE_TOKEN}
-                      api_token {env.DNS_TOKEN}
-                    }
-                    layer4 {
-                      tcp/:${toString minecraft} {
-                        route {
-                          proxy ${clientIp}:${toString minecraft}
-                        }
-                      }
-                      udp/:${toString minecraft} {
-                        route {
-                          proxy udp/${clientIp}:${toString minecraft}
-                        }
-                      }
-                    }
-                  '';
-                  virtualHosts.":${toString constants.ports.crowdsec}".extraConfig =
-                    "reverse_proxy ${clientIp}:${toString constants.ports.crowdsec}";
-                  virtualHosts.${domain}.extraConfig = proxyConfig;
-                  virtualHosts."www.${domain}".extraConfig = "redir https://${domain} 301";
-                  virtualHosts."${subdomains.auth}.${domain}".extraConfig = proxyConfig;
-                };
-
-              services.crowdsec = lib.mkIf config.modules.caddy-wg-server.crowdsec.enable {
-                enable = true;
-                autoUpdateService = true;
-                name = "${config.networking.hostName}-caddy";
-
-                user = "root";
-                group = "root";
-
-                localConfig.acquisitions = [
-                  {
-                    source = "journalctl";
-                    journalctl_filter = [ "_SYSTEMD_UNIT=caddy.service" ];
-                    labels.type = "syslog";
-                    use_time_machine = true;
-                  }
-                ];
-                hub.collections = [
-                  "crowdsecurity/linux"
-                  "crowdsecurity/caddy"
-                ];
-                settings.lapi.credentialsFile = csecCreds;
-              };
-
-              system.stateVersion = "25.05";
-            };
+        bindMounts.dataDir = {
+          hostPath = caddyDataDir;
+          mountPoint = "/var/lib/caddy";
+          isReadOnly = false;
         };
+
+        config =
+          { pkgs, ... }:
+          {
+            imports = [ ../vendored/crowdsec.nix ];
+
+            networking.firewall.allowedTCPPorts = with constants.ports; [
+              443 # HTTPS
+              minecraft # Minecraft Java
+              crowdsec # CrowdSec LAPI
+            ];
+            networking.firewall.allowedUDPPorts = with constants.ports; [
+              minecraft # Minecraft Bedrock
+              wireguard # WireGuard tunnel
+            ];
+
+            # Allow internet access for clients through the WireGuard tunnel.
+            networking.nat = {
+              enable = true;
+              internalInterfaces = [ "wg0" ];
+              externalInterface = "eth0";
+            };
+
+            networking.wg-quick.interfaces.wg0 = with config.modules.caddy-wg-server.wireguard; {
+              address = [
+                "${constants.veths.tunnel.server.ip4}/24"
+                "${constants.veths.tunnel.server.ip6}/112"
+              ];
+              listenPort = constants.ports.wireguard;
+              privateKeyFile = "$CREDENTIALS_DIRECTORY/priv-key";
+              peers = [
+                {
+                  publicKey = client.publicKey;
+                  presharedKeyFile = "$CREDENTIALS_DIRECTORY/psk";
+                  allowedIPs = [
+                    "${constants.veths.tunnel.client.ip4}/24"
+                    "${constants.veths.tunnel.client.ip6}/112"
+                  ];
+                }
+              ];
+            };
+            systemd.services.wg-quick-wg0.serviceConfig.LoadCredential = [
+              "priv-key:priv-key"
+              "psk:psk"
+            ];
+
+            services.caddy =
+              let
+                clientIp = constants.veths.tunnel.client.ip4;
+                proxyConfig = "reverse_proxy ${clientIp}:80";
+              in
+              with constants.domain;
+              {
+                enable = true;
+                package = pkgs.caddy.withPlugins {
+                  plugins = [
+                    "github.com/caddy-dns/cloudflare@v0.2.1"
+                    "github.com/mholt/caddy-l4@v0.0.0-20250124234235-87e3e5e2c7f9"
+                  ];
+                  hash = "sha256-kADjiFy2v0wF4o4X8EACNSW0M4+13LNJYDpHynBPVz8=";
+                };
+                environmentFile = "/run/credentials/@system/caddy-env";
+                email = "harish.rajagopals@gmail.com";
+                globalConfig = with constants.ports; ''
+                  acme_dns cloudflare {
+                    zone_token {env.ZONE_TOKEN}
+                    api_token {env.DNS_TOKEN}
+                  }
+                  layer4 {
+                    tcp/:${toString minecraft} {
+                      route {
+                        proxy ${clientIp}:${toString minecraft}
+                      }
+                    }
+                    udp/:${toString minecraft} {
+                      route {
+                        proxy udp/${clientIp}:${toString minecraft}
+                      }
+                    }
+                  }
+                '';
+                virtualHosts.":${toString constants.ports.crowdsec}".extraConfig =
+                  "reverse_proxy ${clientIp}:${toString constants.ports.crowdsec}";
+                virtualHosts.${domain}.extraConfig = proxyConfig;
+                virtualHosts."www.${domain}".extraConfig = "redir https://${domain} 301";
+                virtualHosts."${subdomains.auth}.${domain}".extraConfig = proxyConfig;
+              };
+
+            services.crowdsec = lib.mkIf config.modules.caddy-wg-server.crowdsec.enable {
+              enable = true;
+              autoUpdateService = true;
+              name = "${config.networking.hostName}-caddy";
+
+              localConfig.acquisitions = [
+                {
+                  source = "journalctl";
+                  journalctl_filter = [ "_SYSTEMD_UNIT=caddy.service" ];
+                  labels.type = "syslog";
+                  use_time_machine = true;
+                }
+              ];
+              hub.collections = [
+                "crowdsecurity/linux"
+                "crowdsecurity/caddy"
+              ];
+              settings.general.api.client.credentials_path = lib.mkForce "\${CREDENTIALS_DIRECTORY}/csec-creds";
+            };
+            systemd.services.crowdsec.serviceConfig.LoadCredential = [ "csec-creds:csec-creds" ];
+
+            system.stateVersion = "25.05";
+          };
+      };
     };
 }

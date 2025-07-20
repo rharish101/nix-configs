@@ -118,9 +118,6 @@
                   openFirewall = true;
                   name = "${config.networking.hostName}-lapi";
 
-                  user = "root";
-                  group = "root";
-
                   # XXX: CrowdSec refuses to start unless some acquisitions are specified.
                   localConfig.acquisitions = [
                     {
