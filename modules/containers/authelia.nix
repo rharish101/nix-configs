@@ -253,41 +253,42 @@
             };
         };
 
-        containers.authelia-redis =
-          let
-            passFile = config.sops.secrets."authelia/redis".path;
-          in
-          {
-            privateNetwork = true;
-            hostBridge = constants.bridges.auth-redis.name;
-            localAddress = "${constants.bridges.auth-redis.redis.ip4}/24";
-            localAddress6 = "${constants.bridges.auth-redis.redis.ip6}/112";
+        containers.authelia-redis = {
+          privateNetwork = true;
+          hostBridge = constants.bridges.auth-redis.name;
+          localAddress = "${constants.bridges.auth-redis.redis.ip4}/24";
+          localAddress6 = "${constants.bridges.auth-redis.redis.ip6}/112";
 
-            privateUsers = config.users.users.authelia.uid;
-            extraFlags = [ "--private-users-ownership=auto" ];
+          privateUsers = "pick";
+          extraFlags = [
+            "--private-users-ownership=auto"
+            "--load-credential=pass:${config.sops.secrets."authelia/redis".path}"
+          ];
 
-            autoStart = true;
-            ephemeral = true;
+          autoStart = true;
+          ephemeral = true;
 
-            bindMounts.redis = {
-              hostPath = passFile;
-              mountPoint = passFile;
-            };
-
-            config =
-              { ... }:
-              {
-                services.redis.package = pkgs.valkey;
-                services.redis.servers."" = {
-                  enable = true;
-                  bind = null;
-                  openFirewall = true;
-                  requirePassFile = passFile;
-                  save = [ ];
-                };
-
-                system.stateVersion = "25.05";
+          config =
+            { ... }:
+            {
+              services.redis.package = pkgs.valkey;
+              services.redis.servers."" = {
+                enable = true;
+                bind = null;
+                openFirewall = true;
+                requirePassFile = "/run/redis/passfile";
+                save = [ ];
               };
-          };
+              systemd.services.redis.serviceConfig = {
+                # `requirePassFile` needs an absolute path, so copy the credential to a directory that the setup script can access.
+                ExecStartPre = lib.mkBefore [
+                  "${lib.getExe' pkgs.coreutils-full "install"} -m600 \${CREDENTIALS_DIRECTORY}/pass /run/redis/passfile"
+                ];
+                LoadCredential = [ "pass:pass" ];
+              };
+
+              system.stateVersion = "25.05";
+            };
+        };
       };
 }
