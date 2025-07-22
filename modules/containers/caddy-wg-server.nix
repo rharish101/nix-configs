@@ -151,9 +151,9 @@
                 package = pkgs.caddy.withPlugins {
                   plugins = [
                     "github.com/caddy-dns/cloudflare@v0.2.1"
-                    "github.com/mholt/caddy-l4@v0.0.0-20250124234235-87e3e5e2c7f9"
+                    "github.com/mholt/caddy-l4@v0.0.0-20250530154005-4d3c80e89c5f"
                   ];
-                  hash = "sha256-kADjiFy2v0wF4o4X8EACNSW0M4+13LNJYDpHynBPVz8=";
+                  hash = "sha256-YML1EyyssiYmIvU72RkiSIKPmPb8COeJkatv4jgZsFA=";
                 };
                 environmentFile = "/run/credentials/@system/caddy-env";
                 email = "harish.rajagopals@gmail.com";
@@ -165,12 +165,18 @@
                   layer4 {
                     tcp/:${toString minecraft} {
                       route {
-                        proxy ${clientIp}:${toString minecraft}
+                        proxy {
+                          proxy_protocol v2
+                          upstream tcp/${clientIp}:${toString minecraft}
+                        }
                       }
                     }
                     udp/:${toString minecraft} {
                       route {
-                        proxy udp/${clientIp}:${toString minecraft}
+                        proxy {
+                          proxy_protocol v2
+                          upstream udp/${clientIp}:${toString minecraft}
+                        }
                       }
                     }
                   }

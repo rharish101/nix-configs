@@ -144,6 +144,7 @@
                     hash = "sha256-lnLGEWtBGuQSFU7fLZMVxLZ9sbNtGJhUedPMl8S0WrU=";
                   };
                 };
+                files."config/paper-global.yml".value.proxies.proxy-protocol = true;
               };
             };
             # XXX: Fixes permission errors in plugin install scripts (in ExecStartPre).

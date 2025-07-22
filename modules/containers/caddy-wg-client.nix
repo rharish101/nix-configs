@@ -130,8 +130,8 @@
               {
                 enable = true;
                 package = pkgs.caddy.withPlugins {
-                  plugins = [ "github.com/mholt/caddy-l4@v0.0.0-20250124234235-87e3e5e2c7f9" ];
-                  hash = "sha256-GDTZEHtfY3jVt4//6714BiFzBbXS3V+Gi0yDAA/T7hg=";
+                  plugins = [ "github.com/mholt/caddy-l4@v0.0.0-20250530154005-4d3c80e89c5f" ];
+                  hash = "sha256-O2shDuAA4OjUx44uOxMbd5iQUQVl6GUuFKqv+P/PXNM=";
                 };
                 globalConfig =
                   with constants.bridges.caddy-mc.mc;
@@ -140,12 +140,20 @@
                     layer4 {
                       tcp/:${toString minecraft} {
                         route {
-                          proxy ${ip4}:${toString minecraft}
+                          proxy_protocol
+                          proxy {
+                            proxy_protocol v2
+                            upstream tcp/${ip4}:${toString minecraft}
+                          }
                         }
                       }
                       udp/:${toString minecraft} {
                         route {
-                          proxy udp/${ip4}:${toString minecraft}
+                          proxy_protocol
+                          proxy {
+                            proxy_protocol v2
+                            upstream udp/${ip4}:${toString minecraft}
+                          }
                         }
                       }
                     }
