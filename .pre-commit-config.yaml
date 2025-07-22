@@ -4,7 +4,7 @@
 
 repos:
   - repo: https://github.com/NixOS/nixfmt
-    rev: 65af4b69133d19f534d97746c97c2d5b464f43b4
+    rev: v1.0.0
     hooks:
       - id: nixfmt
   - repo: https://github.com/fsfe/reuse-tool
