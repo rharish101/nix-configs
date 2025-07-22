@@ -147,8 +147,6 @@
                 files."config/paper-global.yml".value.proxies.proxy-protocol = true;
               };
             };
-            # XXX: Fixes permission errors in plugin install scripts (in ExecStartPre).
-            systemd.services.minecraft-server-original.serviceConfig.PermissionsStartOnly = true;
 
             system.stateVersion = "25.05";
           };
