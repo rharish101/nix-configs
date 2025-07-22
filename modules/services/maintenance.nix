@@ -2,19 +2,14 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{
-  config,
-  inputs,
-  lib,
-  ...
-}:
+{ config, lib, ... }:
 {
   options.modules.autoUpdate = lib.mkEnableOption "Enable automatic system updates";
   config = {
     # Enable automatic upgrades.
     system.autoUpgrade = lib.mkIf config.modules.autoUpdate {
       enable = true;
-      flake = inputs.self.outPath;
+      flake = "/etc/nixos";
       flags = [
         "--update-input"
         "nixpkgs"
