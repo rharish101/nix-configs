@@ -78,16 +78,16 @@
         ];
 
         privateUsers = config.users.users.caddywg.uid;
+        autoStart = true;
         extraFlags = [
           "--private-users-ownership=auto"
+          "--volatile=overlay"
+          "--link-journal=host"
           "--load-credential=priv-key:${config.sops.secrets."wireguard/server".path}"
           "--load-credential=psk:${config.sops.secrets."wireguard/psk".path}"
           "--load-credential=caddy-env:${config.sops.secrets."cloudflare".path}"
           "--load-credential=csec-creds:${config.sops.secrets."crowdsec/caddy-creds".path}"
         ];
-
-        ephemeral = true;
-        autoStart = true;
 
         bindMounts.dataDir = {
           hostPath = caddyDataDir;

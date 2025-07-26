@@ -40,16 +40,16 @@
         };
 
         privateUsers = "pick";
+        autoStart = true;
         extraFlags = [
           "--private-users-ownership=auto"
+          "--volatile=overlay"
+          "--link-journal=host"
           "--load-credential=db-url:${config.sops.secrets."lldap/db".path}"
           "--load-credential=jwt:${config.sops.secrets."lldap/jwt".path}"
           "--load-credential=key-seed:${config.sops.secrets."lldap/key".path}"
           "--load-credential=user-pass:${config.sops.secrets."lldap/pass".path}"
         ];
-
-        autoStart = true;
-        ephemeral = true;
 
         config =
           { ... }:

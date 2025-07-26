@@ -53,10 +53,12 @@
         localAddress6 = "${constants.bridges.caddy-mc.mc.ip6}/112";
 
         privateUsers = config.users.users.minecraft.uid;
-        extraFlags = [ "--private-users-ownership=auto" ];
-
         autoStart = true;
-        ephemeral = true;
+        extraFlags = [
+          "--private-users-ownership=auto"
+          "--volatile=overlay"
+          "--link-journal=host"
+        ];
 
         bindMounts.dataDir = {
           hostPath = config.modules.minecraft.dataDir;

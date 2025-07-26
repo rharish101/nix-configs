@@ -133,8 +133,11 @@
           };
 
           privateUsers = config.users.users.authelia.uid;
+          autoStart = true;
           extraFlags = [
             "--private-users-ownership=auto"
+            "--volatile=overlay"
+            "--link-journal=host"
             "--load-credential=csec-creds:${config.sops.secrets."authelia/crowdsec".path}"
             "--load-credential=ldap-pass:${config.sops.secrets."authelia/ldap".path}"
             "--load-credential=jwt:${config.sops.secrets."authelia/jwt".path}"
@@ -143,9 +146,6 @@
             "--load-credential=sess:${config.sops.secrets."authelia/session".path}"
             "--load-credential=storage-enc:${config.sops.secrets."authelia/storage".path}"
           ];
-
-          autoStart = true;
-          ephemeral = true;
 
           bindMounts.data = {
             hostPath = config.modules.authelia.dataDir;
@@ -260,13 +260,13 @@
           localAddress6 = "${constants.bridges.auth-redis.redis.ip6}/112";
 
           privateUsers = "pick";
+          autoStart = true;
           extraFlags = [
             "--private-users-ownership=auto"
+            "--volatile=overlay"
+            "--link-journal=host"
             "--load-credential=pass:${config.sops.secrets."authelia/redis".path}"
           ];
-
-          autoStart = true;
-          ephemeral = true;
 
           config =
             { ... }:

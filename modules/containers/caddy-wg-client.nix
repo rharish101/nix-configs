@@ -61,14 +61,14 @@
         localAddress6 = constants.veths.caddy.local.ip6;
 
         privateUsers = config.users.users.caddywg.uid;
+        autoStart = true;
         extraFlags = [
           "--private-users-ownership=auto"
+          "--volatile=overlay"
+          "--link-journal=host"
           "--load-credential=priv-key:${config.sops.secrets."wireguard/client".path}"
           "--load-credential=psk:${config.sops.secrets."wireguard/psk".path}"
         ];
-
-        autoStart = true;
-        ephemeral = true;
 
         bindMounts.dataDir = {
           hostPath = caddyDataDir;

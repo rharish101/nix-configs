@@ -76,10 +76,12 @@
             };
 
             privateUsers = config.users.users.crowdsec.uid;
-            extraFlags = [ "--private-users-ownership=auto" ];
-
             autoStart = true;
-            ephemeral = true;
+            extraFlags = [
+              "--private-users-ownership=auto"
+              "--volatile=overlay"
+              "--link-journal=host"
+            ];
 
             bindMounts = with config.modules.crowdsec-lapi; {
               dataDir = {
