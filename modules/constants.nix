@@ -91,6 +91,19 @@
         ip6 = "fc00::12";
       };
     };
+    csec-mc = {
+      name = "br-csec-mc";
+      csec = {
+        interface = "csec-mc";
+        ip4 = "10.2.1.1";
+        ip6 = "fc00::13";
+      };
+      mc = {
+        interface = "mc-csec";
+        ip4 = "10.2.1.2";
+        ip6 = "fc00::14";
+      };
+    };
     csec-pg = {
       name = "br-csec-pg";
       csec = {

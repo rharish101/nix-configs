@@ -20,6 +20,7 @@
     let
       constants = import ../constants.nix;
       serverName = "EBG6 Minecraft server";
+      csecEnabled = config.modules.crowdsec-lapi.enable;
     in
     lib.mkIf (config.modules.minecraft.enable && config.modules.caddy-wg-client.enable) {
       # User for the Minecraft server.
@@ -30,20 +31,36 @@
       };
       users.groups.minecraft.gid = constants.uids.minecraft;
 
+      sops.secrets."crowdsec/mc-creds".restartUnits = [ "container@minecraft.service" ];
+
       systemd.services."container@minecraft" = {
         serviceConfig = with constants.limits.minecraft; {
           MemoryHigh = "${toString memory}G";
           CPUQuota = "${toString (cpu * 100)}%";
         };
-        requires = [ "container@caddy-wg-client.service" ];
+        requires = [
+          "container@caddy-wg-client.service"
+          (lib.mkIf csecEnabled "container@crowdsec-lapi.service")
+        ];
       };
 
-      networking.bridges.${constants.bridges.caddy-mc.name}.interfaces = [ ];
+      networking.bridges = with constants.bridges; {
+        "${caddy-mc.name}".interfaces = [ ];
+        "${csec-mc.name}" = lib.mkIf csecEnabled { interfaces = [ ]; };
+      };
+
       containers.caddy-wg-client.extraVeths.${constants.bridges.caddy-mc.caddy.interface} =
         with constants.bridges.caddy-mc; {
           hostBridge = name;
           localAddress = "${caddy.ip4}/24";
           localAddress6 = "${caddy.ip6}/112";
+        };
+      containers.crowdsec-lapi.extraVeths.${constants.bridges.csec-mc.csec.interface} =
+        with constants.bridges.csec-mc;
+        lib.mkIf csecEnabled {
+          hostBridge = name;
+          localAddress = "${csec.ip4}/24";
+          localAddress6 = "${csec.ip6}/112";
         };
 
       containers.minecraft = {
@@ -52,12 +69,23 @@
         localAddress = "${constants.bridges.caddy-mc.mc.ip4}/24";
         localAddress6 = "${constants.bridges.caddy-mc.mc.ip6}/112";
 
+        extraVeths = with constants.bridges; {
+          "${csec-mc.mc.interface}" =
+            with csec-mc;
+            lib.mkIf csecEnabled {
+              hostBridge = name;
+              localAddress = "${mc.ip4}/24";
+              localAddress6 = "${mc.ip6}/112";
+            };
+        };
+
         privateUsers = config.users.users.minecraft.uid;
         autoStart = true;
         extraFlags = [
           "--private-users-ownership=auto"
           "--volatile=overlay"
           "--link-journal=host"
+          "--load-credential=csec-creds:${config.sops.secrets."crowdsec/mc-creds".path}"
         ];
 
         bindMounts.dataDir = {
@@ -69,7 +97,10 @@
         config =
           { pkgs, ... }:
           {
-            imports = [ inputs.nix-minecraft.nixosModules.minecraft-servers ];
+            imports = [
+              inputs.nix-minecraft.nixosModules.minecraft-servers
+              ../vendored/crowdsec.nix
+            ];
             nixpkgs.overlays = [ inputs.nix-minecraft.overlay ];
             nixpkgs.config.allowUnfreePredicate =
               pkg:
@@ -149,6 +180,38 @@
                 files."config/paper-global.yml".value.proxies.proxy-protocol = true;
               };
             };
+
+            services.crowdsec = lib.mkIf csecEnabled {
+              enable = true;
+              autoUpdateService = true;
+              name = "${config.networking.hostName}-minecraft";
+
+              localConfig =
+                let
+                  mcParser = import ../crowdsec/parsers/minecraft.nix;
+                  mcScenario = import ../crowdsec/scenarios/minecraft.nix;
+                in
+                {
+                  acquisitions = [
+                    {
+                      source = "file";
+                      # Since log lines don't have any dates in them, CrowdSec will lump all events
+                      # in the same day. Thus, to avoid unwanted collisions across different logs
+                      # (each log gzip is for a different run on a different day), just parse the
+                      # latest log.
+                      filenames = [ "/srv/minecraft/original/logs/latest.log" ];
+                      labels.type = "minecraft";
+                      use_time_machine = true;
+                    }
+                  ];
+                  scenarios = [ mcScenario ];
+                  parsers.s01Parse = [ mcParser ];
+                };
+              hub.collections = [ "crowdsecurity/linux" ];
+              settings.general.api.client.credentials_path = lib.mkForce "\${CREDENTIALS_DIRECTORY}/csec-creds";
+            };
+            systemd.services.crowdsec.serviceConfig.LoadCredential = [ "csec-creds:csec-creds" ];
+            users.users.crowdsec.extraGroups = [ "minecraft" ];
 
             system.stateVersion = "25.05";
           };
