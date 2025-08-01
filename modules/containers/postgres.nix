@@ -56,6 +56,7 @@
               authentication = with constants.bridges; ''
                 host sameuser authelia ${auth-pg.auth.ip4}/32 scram-sha-256
                 host sameuser crowdsec ${csec-pg.csec.ip4}/32 scram-sha-256
+                host sameuser immich   ${imm-pg.imm.ip4}/32   scram-sha-256
                 host sameuser lldap    ${ldap-pg.ldap.ip4}/32 scram-sha-256
               '';
               ensureUsers = [
@@ -67,6 +68,10 @@
                   name = "crowdsec";
                   ensureDBOwnership = true;
                 })
+                (lib.mkIf config.modules.immich.enable {
+                  name = "immich";
+                  ensureDBOwnership = true;
+                })
                 (lib.mkIf config.modules.lldap.enable {
                   name = "lldap";
                   ensureDBOwnership = true;
@@ -75,8 +80,17 @@
               ensureDatabases = [
                 (lib.mkIf config.modules.authelia.enable "authelia")
                 (lib.mkIf config.modules.crowdsec-lapi.enable "crowdsec")
+                (lib.mkIf config.modules.immich.enable "immich")
                 (lib.mkIf config.modules.lldap.enable "lldap")
               ];
+
+              # Install VectorChord for Immich.
+              extensions =
+                ps: with ps; [
+                  vectorchord
+                  pgvector # VectorChord dependency
+                ];
+              settings.shared_preload_libraries = [ "vchord" ];
             };
 
             system.stateVersion = "25.05";

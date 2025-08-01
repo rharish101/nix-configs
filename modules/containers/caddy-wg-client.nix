@@ -170,6 +170,9 @@
                 virtualHosts."http://${subdomains.auth}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridges.auth-caddy.auth.ip4}:${toString constants.ports.authelia}
                 '';
+                virtualHosts."http://${subdomains.imm}.${domain}".extraConfig = ''
+                  reverse_proxy ${constants.bridges.caddy-imm.imm.ip4}:${toString constants.ports.immich}
+                '';
               };
 
             system.stateVersion = "24.11";

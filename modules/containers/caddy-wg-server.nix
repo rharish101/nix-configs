@@ -186,6 +186,7 @@
                 virtualHosts.${domain}.extraConfig = proxyConfig;
                 virtualHosts."www.${domain}".extraConfig = "redir https://${domain} 301";
                 virtualHosts."${subdomains.auth}.${domain}".extraConfig = proxyConfig;
+                virtualHosts."${subdomains.imm}.${domain}".extraConfig = proxyConfig;
               };
 
             services.crowdsec = lib.mkIf config.modules.caddy-wg-server.crowdsec.enable {

@@ -9,6 +9,7 @@
     ./caddy-wg-client.nix
     ./caddy-wg-server.nix
     ./crowdsec-lapi.nix
+    ./immich.nix
     ./lldap.nix
     ./minecraft.nix
     ./postgres.nix

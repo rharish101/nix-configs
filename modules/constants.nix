@@ -79,6 +79,18 @@
         ip6 = "fc00::52";
       };
     };
+    caddy-imm = {
+      name = "br-caddy-imm";
+      caddy = {
+        interface = "caddy-imm";
+        ip4 = "10.7.0.1";
+        ip6 = "fc00::61";
+      };
+      imm = {
+        ip4 = "10.7.0.2";
+        ip6 = "fc00::62";
+      };
+    };
     caddy-mc = {
       name = "br-caddy-mc";
       caddy = {
@@ -115,6 +127,32 @@
         interface = "pg-csec";
         ip4 = "10.6.1.2";
         ip6 = "fc00::54";
+      };
+    };
+    imm-pg = {
+      name = "br-imm-pg";
+      imm = {
+        interface = "imm-pg";
+        ip4 = "10.7.1.1";
+        ip6 = "fc00::63";
+      };
+      pg = {
+        interface = "pg-imm";
+        ip4 = "10.7.1.2";
+        ip6 = "fc00::64";
+      };
+    };
+    imm-redis = {
+      name = "br-imm-redis";
+      imm = {
+        interface = "imm-redis";
+        ip4 = "10.7.2.1";
+        ip6 = "fc00::65";
+      };
+      redis = {
+        interface = "redis-imm";
+        ip4 = "10.7.2.2";
+        ip6 = "fc00::66";
       };
     };
     ldap-pg = {
@@ -162,11 +200,13 @@
     authelia = 65536 * 12;
     postgres = 65536 * 13;
     crowdsec = 65536 * 15;
+    immich = 65536 * 16;
   };
 
   ports = {
     authelia = 9091;
     crowdsec = 20546; # Don't use defaut of 8080, since it's not unique.
+    immich = 2283;
     lldap = 3890;
     minecraft = 25565; # Used for both Java (TCP) & Bedrock (UDP) editions
     postgres = 5432;
@@ -178,6 +218,7 @@
     domain = "rharish.dev";
     subdomains = {
       auth = "auth";
+      imm = "photos";
     };
     ldapBaseDn = "dc=rharish,dc=dev";
   };
@@ -196,6 +237,10 @@
     caddy-wg-server = {
       cpu = 1;
       memory = 1;
+    };
+    immich = {
+      cpu = 4;
+      memory = 6;
     };
     minecraft = {
       cpu = 6;

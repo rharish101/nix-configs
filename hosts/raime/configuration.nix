@@ -92,6 +92,8 @@
   modules.lldap.enable = true;
   modules.minecraft.enable = true;
   modules.minecraft.dataDir = "/data/minecraft";
+  modules.immich.enable = true;
+  modules.immich.dataDir = "/data/immich";
   modules.postgres.enable = true;
   modules.secureBoot.enable = true;
 
