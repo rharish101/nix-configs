@@ -199,7 +199,7 @@
     };
     minecraft = {
       cpu = 6;
-      memory = 12;
+      memory = 8;
     };
   };
 }
