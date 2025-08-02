@@ -19,6 +19,7 @@
   config =
     let
       constants = import ../constants.nix;
+      secretsConfig.restartUnits = [ "container@immich.service" ];
     in
     lib.mkIf
       (
@@ -35,7 +36,8 @@
         };
         users.groups.immich.gid = constants.uids.immich;
 
-        sops.secrets."immich/env".restartUnits = [ "container@immich.service" ];
+        sops.secrets."immich/env" = secretsConfig;
+        sops.secrets."immich/oidc" = secretsConfig;
         sops.secrets."immich/redis" = {
           owner = "immich";
           group = "immich";
@@ -43,6 +45,26 @@
             "container@immich.service"
             "container@immich-redis.service"
           ];
+        };
+
+        # Immich doesn't have a way to pass the OIDC client secret as an env var or path, so create
+        # a config manually and add it as a placeholder.
+        sops.templates."immich.json" = secretsConfig // {
+          content =
+            with constants.domain;
+            builtins.toJSON {
+              server.externalDomain = "https://${subdomains.imm}.${domain}";
+              passwordLogin.enabled = false;
+              oauth = {
+                enabled = true;
+                issuerUrl = "https://${subdomains.auth}.${domain}/.well-known/openid-configuration";
+                clientId = "JuhCQHaHI65vm~.Oyw7F~X9nFiJpC1UsyxMzthVhDHwzjfcJhofhxV43Ezcs31Er";
+                clientSecret = config.sops.placeholder."immich/oidc";
+                buttonText = "Login with Authelia";
+                autoRegister = false;
+              };
+              backup.database.enabled = false;
+            };
         };
 
         systemd.services."container@immich" = with constants.limits.immich; {
@@ -101,6 +123,7 @@
             "--volatile=overlay"
             "--link-journal=host"
             "--load-credential=env:${config.sops.secrets."immich/env".path}"
+            "--load-credential=config:${config.sops.templates."immich.json".path}"
           ];
 
           bindMounts = with config.modules.immich; {
@@ -141,11 +164,11 @@
                   host = constants.bridges.imm-redis.redis.ip4;
                   port = 6379;
                 };
-                settings = {
-                  server.externalDomain = "https://${constants.domain.subdomains.imm}.${constants.domain.domain}";
-                  backup.database.enabled = false;
-                };
                 machine-learning.enable = false;
+              };
+              systemd.services.immich-server = {
+                serviceConfig.LoadCredential = [ "config:config" ];
+                environment.IMMICH_CONFIG_FILE = "%d/config";
               };
 
               system.stateVersion = "25.05";

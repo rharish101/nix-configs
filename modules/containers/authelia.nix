@@ -43,6 +43,8 @@
         sops.secrets."authelia/crowdsec" = secretsConfig;
         sops.secrets."authelia/ldap" = secretsConfig;
         sops.secrets."authelia/jwt" = secretsConfig;
+        sops.secrets."authelia/oidc-hmac" = secretsConfig;
+        sops.secrets."authelia/oidc-jwks" = secretsConfig;
         sops.secrets."authelia/postgres" = secretsConfig;
         sops.secrets."authelia/redis" = {
           owner = "authelia";
@@ -141,6 +143,8 @@
             "--load-credential=csec-creds:${config.sops.secrets."authelia/crowdsec".path}"
             "--load-credential=ldap-pass:${config.sops.secrets."authelia/ldap".path}"
             "--load-credential=jwt:${config.sops.secrets."authelia/jwt".path}"
+            "--load-credential=oidc-hmac:${config.sops.secrets."authelia/oidc-hmac".path}"
+            "--load-credential=oidc-jwks:${config.sops.secrets."authelia/oidc-jwks".path}"
             "--load-credential=pg-pass:${config.sops.secrets."authelia/postgres".path}"
             "--load-credential=redis-pass:${config.sops.secrets."authelia/redis".path}"
             "--load-credential=sess:${config.sops.secrets."authelia/session".path}"
@@ -209,19 +213,51 @@
                         policy = "two_factor";
                       }
                     ];
+                    identity_providers.oidc.clients = [
+                      {
+                        client_id = "JuhCQHaHI65vm~.Oyw7F~X9nFiJpC1UsyxMzthVhDHwzjfcJhofhxV43Ezcs31Er";
+                        client_name = "Immich";
+                        client_secret = "$pbkdf2-sha512$310000$nKsIAFb7St17WH4uKLPH3A$O2/SqbuoeuDehSRkboSpfOS4DNXUn5ZDSWo.4DU3kKgUu3Qr0VkvZYgWsAWvYv2ywl/eJxyBOwwl3h68wm3/Kg";
+                        redirect_uris = [
+                          "https://${subdomains.imm}.${domain}/auth/login"
+                          "https://${subdomains.imm}.${domain}/user-settings"
+                          "app.immich:///oauth-callback"
+                        ];
+                        scopes = [
+                          "openid"
+                          "email"
+                          "profile"
+                        ];
+                        token_endpoint_auth_method = "client_secret_post";
+                        pre_configured_consent_duration = "1 month";
+                      }
+                    ];
                   };
+                settingsFiles = [
+                  # Use separate YAML file to preserve newlines in the private key.
+                  (pkgs.writeText "oidc-jwks.yaml" ''
+                    identity_providers:
+                      oidc:
+                        jwks:
+                          - key: {{ expandenv "$CREDENTIALS_DIRECTORY/oidc-jwks" | secret | mindent 10 "|" | msquote }}
+                  '')
+                ];
                 environmentVariables = {
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = "%d/ldap-pass";
+                  AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE = "%d/oidc-hmac";
                   AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE = "%d/jwt";
                   AUTHELIA_SESSION_REDIS_PASSWORD_FILE = "%d/redis-pass";
                   AUTHELIA_SESSION_SECRET_FILE = "%d/sess";
                   AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE = "%d/storage-enc";
                   AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE = "%d/pg-pass";
+                  X_AUTHELIA_CONFIG_FILTERS = "template";
                 };
               };
               systemd.services.authelia-main.serviceConfig.LoadCredential = [
                 "jwt:jwt"
                 "ldap-pass:ldap-pass"
+                "oidc-hmac:oidc-hmac"
+                "oidc-jwks:oidc-jwks"
                 "pg-pass:pg-pass"
                 "redis-pass:redis-pass"
                 "sess:sess"
