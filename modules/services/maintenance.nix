@@ -17,6 +17,7 @@
       ];
       dates = "weekly";
     };
+    programs.git.config.safe.directory = "/etc/nixos";
 
     # Enable automatic garbage collection & optimisation.
     nix.gc = {
