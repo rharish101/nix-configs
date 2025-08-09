@@ -169,12 +169,12 @@
                   "plugins/Geyser.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot";
                     name = "Geyser";
-                    hash = "sha256-vRNYzLMA28eZkTAulzQc0El6jK4w/gWBFV8OGIrsKtc=";
+                    hash = "sha256-AOYd7L/lZGOaUW21+TBOJo5r1SkSmTMYzRE17ZQPBN0=";
                   };
                   "plugins/Floodgate.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot";
                     name = "Floodgate";
-                    hash = "sha256-lnLGEWtBGuQSFU7fLZMVxLZ9sbNtGJhUedPMl8S0WrU=";
+                    hash = "sha256-AelUlBDvIOJk75r2tDxp89HPJOl1b/9mc4KgScPKjTk=";
                   };
                 };
                 files."config/paper-global.yml".value.proxies.proxy-protocol = true;
