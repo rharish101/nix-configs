@@ -20,6 +20,7 @@
     let
       constants = import ../constants.nix;
       secretsConfig.restartUnits = [ "container@immich.service" ];
+      gpuDevice = "/dev/dri/renderD128";
     in
     lib.mkIf
       (
@@ -55,6 +56,16 @@
             builtins.toJSON {
               server.externalDomain = "https://${subdomains.imm}.${domain}";
               passwordLogin.enabled = false;
+              ffmpeg = {
+                accel = "qsv";
+                accelDecode = true;
+                acceptedVideoCodecs = [
+                  "h264"
+                  "hevc"
+                  "vp9"
+                  "av1"
+                ];
+              };
               oauth = {
                 enabled = true;
                 issuerUrl = "https://${subdomains.auth}.${domain}/.well-known/openid-configuration";
@@ -132,7 +143,15 @@
               mountPoint = "/var/lib/immich";
               isReadOnly = false;
             };
+            render.mountPoint = "/dev/dri";
           };
+
+          allowedDevices = [
+            {
+              node = gpuDevice;
+              modifier = "rw";
+            }
+          ];
 
           config =
             { ... }:
@@ -147,6 +166,14 @@
                 interface = "eth0";
               };
               networking.nameservers = [ "1.1.1.1" ];
+
+              hardware.graphics = {
+                enable = true;
+                extraPackages = with pkgs; [
+                  intel-media-driver
+                  vpl-gpu-rt
+                ];
+              };
 
               services.immich = {
                 enable = true;
@@ -165,6 +192,7 @@
                   port = 6379;
                 };
                 machine-learning.enable = false;
+                accelerationDevices = [ gpuDevice ];
               };
               systemd.services.immich-server = {
                 serviceConfig.LoadCredential = [ "config:config" ];

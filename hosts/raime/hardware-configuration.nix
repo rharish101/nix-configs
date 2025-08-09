@@ -25,7 +25,10 @@
   boot.initrd.kernelModules = [ ];
   boot.initrd.systemd.enable = true; # Required for TPM2 unlock
   boot.extraModulePackages = with config.boot.kernelPackages; [ ryzen-smu ];
-  boot.kernelParams = [ "pcie_aspm.policy=powersupersave" "microcode.amd_sha_check=off" ];
+  boot.kernelParams = [
+    "pcie_aspm.policy=powersave"
+    "microcode.amd_sha_check=off"
+  ];
 
   fileSystems."/" = {
     device = "none";
