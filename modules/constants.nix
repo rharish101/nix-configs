@@ -240,7 +240,7 @@
     };
     immich = {
       cpu = 4;
-      memory = 6;
+      memory = 8;
     };
     minecraft = {
       cpu = 6;

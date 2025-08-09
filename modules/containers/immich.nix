@@ -144,6 +144,7 @@
               isReadOnly = false;
             };
             render.mountPoint = "/dev/dri";
+            usb.mountPoint = "/dev/bus/usb";
           };
 
           allowedDevices = [
@@ -191,8 +192,16 @@
                   host = constants.bridges.imm-redis.redis.ip4;
                   port = 6379;
                 };
-                machine-learning.enable = false;
                 accelerationDevices = [ gpuDevice ];
+                # XXX: Workaround for: https://github.com/NixOS/nixpkgs/issues/418799
+                machine-learning.environment =
+                  let
+                    cacheDir = "/var/cache/immich";
+                  in
+                  {
+                    MPLCONFIGDIR = cacheDir;
+                    HF_XET_CACHE = "${cacheDir}/huggingface-xet";
+                  };
               };
               systemd.services.immich-server = {
                 serviceConfig.LoadCredential = [ "config:config" ];
