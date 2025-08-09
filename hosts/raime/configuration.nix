@@ -94,6 +94,8 @@
   modules.minecraft.dataDir = "/data/minecraft";
   modules.immich.enable = true;
   modules.immich.dataDir = "/data/immich";
+  modules.jellyfin.enable = true;
+  modules.jellyfin.dataDir = "/data/jellyfin";
   modules.postgres.enable = true;
   modules.secureBoot.enable = true;
 

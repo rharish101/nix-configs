@@ -91,6 +91,18 @@
         ip6 = "fc00::62";
       };
     };
+    caddy-jf = {
+      name = "br-caddy-jf";
+      caddy = {
+        interface = "caddy-jf";
+        ip4 = "10.3.0.1";
+        ip6 = "fc00::21";
+      };
+      jf = {
+        ip4 = "10.3.0.2";
+        ip6 = "fc00::22";
+      };
+    };
     caddy-mc = {
       name = "br-caddy-mc";
       caddy = {
@@ -101,6 +113,19 @@
       mc = {
         ip4 = "10.2.0.2";
         ip6 = "fc00::12";
+      };
+    };
+    csec-jf = {
+      name = "br-csec-jf";
+      jf = {
+        interface = "jf-csec";
+        ip4 = "10.3.1.1";
+        ip6 = "fc00::23";
+      };
+      csec = {
+        interface = "csec-jf";
+        ip4 = "10.3.1.2";
+        ip6 = "fc00::24";
       };
     };
     csec-mc = {
@@ -197,6 +222,7 @@
   uids = {
     minecraft = 65536 * 9;
     caddywg = 65536 * 10;
+    jellyfin = 65536 * 11;
     authelia = 65536 * 12;
     postgres = 65536 * 13;
     crowdsec = 65536 * 15;
@@ -207,6 +233,7 @@
     authelia = 9091;
     crowdsec = 20546; # Don't use defaut of 8080, since it's not unique.
     immich = 2283;
+    jellyfin = 8096;
     lldap = 3890;
     minecraft = 25565; # Used for both Java (TCP) & Bedrock (UDP) editions
     postgres = 5432;
@@ -219,6 +246,7 @@
     subdomains = {
       auth = "auth";
       imm = "photos";
+      jf = "media";
     };
     ldapBaseDn = "dc=rharish,dc=dev";
   };
@@ -241,6 +269,10 @@
     immich = {
       cpu = 4;
       memory = 8;
+    };
+    jellyfin = {
+      cpu = 4;
+      memory = 4;
     };
     minecraft = {
       cpu = 6;

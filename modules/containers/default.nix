@@ -10,6 +10,7 @@
     ./caddy-wg-server.nix
     ./crowdsec-lapi.nix
     ./immich.nix
+    ./jellyfin.nix
     ./lldap.nix
     ./minecraft.nix
     ./postgres.nix

@@ -173,6 +173,9 @@
                 virtualHosts."http://${subdomains.imm}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridges.caddy-imm.imm.ip4}:${toString constants.ports.immich}
                 '';
+                virtualHosts."http://${subdomains.jf}.${domain}".extraConfig = ''
+                  reverse_proxy ${constants.bridges.caddy-jf.jf.ip4}:${toString constants.ports.jellyfin}
+                '';
               };
 
             system.stateVersion = "24.11";
