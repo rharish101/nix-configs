@@ -230,6 +230,22 @@
                         token_endpoint_auth_method = "client_secret_post";
                         pre_configured_consent_duration = "1 month";
                       }
+                      {
+                        client_id = "7Fmtx-TlskeuagWedosmtKublan0JgxbMRe5V.SZyWR-GeNcOc1ngXoXpZ8U5SeI";
+                        client_name = "Jellyfin";
+                        client_secret = "$pbkdf2-sha512$310000$K4ozS7erBqjatwrxo5Do4Q$fDvzpM4xiAluUfBU6iSZ2wrk/xiT2brt1ko2UgLdSKo88OYbi2QcXALLi7UqoQ2qGo3.E1ChUVG330jLJdWk.Q";
+                        redirect_uris = [
+                          "https://${subdomains.jf}.${domain}/sso/OID/redirect/authelia"
+                          "org.jellyfin.mobile://login-callback"
+                        ];
+                        scopes = [
+                          "openid"
+                          "profile"
+                          "groups"
+                        ];
+                        token_endpoint_auth_method = "client_secret_post";
+                        pre_configured_consent_duration = "1 month";
+                      }
                     ];
                   };
                 settingsFiles = [
