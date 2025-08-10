@@ -189,7 +189,6 @@
                       address = "ldap://${auth-ldap.ldap.ip4}:${toString lldap}";
                       implementation = "lldap";
                       base_dn = ldapBaseDn;
-                      additional_users_dn = "ou=people";
                       user = "uid=authelia,ou=people,${ldapBaseDn}";
                     };
                     storage.postgres = {
