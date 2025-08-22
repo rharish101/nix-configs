@@ -99,7 +99,7 @@
           let
             hostName = config.networking.hostName;
           in
-          { config, ... }:
+          { ... }:
           {
             imports = [ ../vendored/crowdsec.nix ];
 
@@ -124,8 +124,6 @@
             };
 
             services.jellyfin.enable = true;
-            # TODO: Setup Jellyfin config files in `config.services.jellyfin.configDir`.
-            # TODO: Enforce port.
 
             services.crowdsec = lib.mkIf csecEnabled {
               enable = true;
