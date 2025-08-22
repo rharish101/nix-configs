@@ -65,6 +65,14 @@
         localAddress = "${constants.bridges.caddy-jf.jf.ip4}/24";
         localAddress6 = "${constants.bridges.caddy-jf.jf.ip6}/112";
 
+        extraVeths.${constants.bridges.csec-jf.jf.interface} =
+          with constants.bridges.csec-jf;
+          lib.mkIf csecEnabled {
+            hostBridge = name;
+            localAddress = "${jf.ip4}/24";
+            localAddress6 = "${jf.ip6}/112";
+          };
+
         privateUsers = config.users.users.jellyfin.uid;
         autoStart = true;
         extraFlags = [
