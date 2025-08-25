@@ -66,6 +66,10 @@
           }
           { hostPort = 443; }
           {
+            hostPort = 443;
+            protocol = "udp";
+          }
+          {
             hostPort = caddy.minecraftPort;
             containerPort = constants.ports.minecraft;
             protocol = "tcp";
@@ -106,6 +110,7 @@
               crowdsec # CrowdSec LAPI
             ];
             networking.firewall.allowedUDPPorts = with constants.ports; [
+              443 # QUIC
               minecraft # Minecraft Bedrock
               wireguard # WireGuard tunnel
             ];

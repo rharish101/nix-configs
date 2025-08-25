@@ -40,6 +40,7 @@ in
       ssh_port
     ];
     allowedUDPPorts = [
+      443
       mc_port
       wg_port
     ];
