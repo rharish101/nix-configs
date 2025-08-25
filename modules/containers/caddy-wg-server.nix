@@ -163,10 +163,11 @@
                 environmentFile = "/run/credentials/@system/caddy-env";
                 email = "harish.rajagopals@gmail.com";
                 globalConfig = with constants.ports; ''
-                  acme_dns cloudflare {
+                  dns cloudflare {
                     zone_token {env.ZONE_TOKEN}
                     api_token {env.DNS_TOKEN}
                   }
+                  ech ${constants.domain.domain}
                   layer4 {
                     tcp/:${toString minecraft} {
                       route {
