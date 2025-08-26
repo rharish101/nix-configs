@@ -39,14 +39,7 @@
 
         sops.secrets."immich/env" = secretsConfig;
         sops.secrets."immich/oidc" = secretsConfig;
-        sops.secrets."immich/redis" = {
-          owner = "immich";
-          group = "immich";
-          restartUnits = [
-            "container@immich.service"
-            "container@immich-redis.service"
-          ];
-        };
+        sops.secrets."immich/redis".restartUnits = [ "container@immich-redis.service" ];
 
         # Immich doesn't have a way to pass the OIDC client secret as an env var or path, so create
         # a config manually and add it as a placeholder.

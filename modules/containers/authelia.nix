@@ -46,14 +46,10 @@
         sops.secrets."authelia/oidc-hmac" = secretsConfig;
         sops.secrets."authelia/oidc-jwks" = secretsConfig;
         sops.secrets."authelia/postgres" = secretsConfig;
-        sops.secrets."authelia/redis" = {
-          owner = "authelia";
-          group = "authelia";
-          restartUnits = [
-            "container@authelia.service"
-            "container@authelia-redis.service"
-          ];
-        };
+        sops.secrets."authelia/redis".restartUnits = [
+          "container@authelia.service"
+          "container@authelia-redis.service"
+        ];
         sops.secrets."authelia/session" = secretsConfig;
         sops.secrets."authelia/storage" = secretsConfig;
 
