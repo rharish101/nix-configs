@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: 2025 M0ustach3 <37956764+M0ustach3@users.noreply.github.com>
+# SPDX-FileCopyrightText: 2025 Summer Tea <zestypurple@protonmail.com>
 # SPDX-FileCopyrightText: 2025 TornaxO7 <tornax@proton.me>
 #
 # SPDX-License-Identifier: MIT
