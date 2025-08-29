@@ -39,7 +39,6 @@
 
         sops.secrets."immich/env" = secretsConfig;
         sops.secrets."immich/oidc" = secretsConfig;
-        sops.secrets."immich/redis".restartUnits = [ "container@immich-redis.service" ];
 
         # Immich doesn't have a way to pass the OIDC client secret as an env var or path, so create
         # a config manually and add it as a placeholder.
@@ -76,16 +75,12 @@
             MemoryHigh = "${toString memory}G";
             CPUQuota = "${toString (cpu * 100)}%";
           };
-          requires = [
-            "container@postgres.service"
-            "container@immich-redis.service"
-          ];
+          requires = [ "container@postgres.service" ];
         };
 
         networking.bridges = with constants.bridges; {
           ${caddy-imm.name}.interfaces = [ ];
           ${imm-pg.name}.interfaces = [ ];
-          ${imm-redis.name}.interfaces = [ ];
         };
 
         containers.caddy-wg-client.extraVeths.${constants.bridges.caddy-imm.caddy.interface} =
@@ -109,11 +104,6 @@
 
           extraVeths = with constants.bridges; {
             "${imm-pg.imm.interface}" = with imm-pg; {
-              hostBridge = name;
-              localAddress = "${imm.ip4}/24";
-              localAddress6 = "${imm.ip6}/112";
-            };
-            "${imm-redis.imm.interface}" = with imm-redis; {
               hostBridge = name;
               localAddress = "${imm.ip4}/24";
               localAddress6 = "${imm.ip6}/112";
@@ -180,11 +170,6 @@
                   host = constants.bridges.imm-pg.pg.ip4;
                   port = constants.ports.postgres;
                 };
-                redis = {
-                  enable = false;
-                  host = constants.bridges.imm-redis.redis.ip4;
-                  port = 6379;
-                };
                 accelerationDevices = [ gpuDevice ];
                 # XXX: Workaround for: https://github.com/NixOS/nixpkgs/issues/418799
                 machine-learning.environment =
@@ -201,43 +186,7 @@
                 environment.IMMICH_CONFIG_FILE = "%d/config";
               };
 
-              system.stateVersion = "25.05";
-            };
-        };
-
-        containers.immich-redis = {
-          privateNetwork = true;
-          hostBridge = constants.bridges.imm-redis.name;
-          localAddress = "${constants.bridges.imm-redis.redis.ip4}/24";
-          localAddress6 = "${constants.bridges.imm-redis.redis.ip6}/112";
-
-          privateUsers = "pick";
-          autoStart = true;
-          extraFlags = [
-            "--private-users-ownership=auto"
-            "--volatile=overlay"
-            "--link-journal=host"
-            "--load-credential=pass:${config.sops.secrets."immich/redis".path}"
-          ];
-
-          config =
-            { ... }:
-            {
               services.redis.package = pkgs.valkey;
-              services.redis.servers."" = {
-                enable = true;
-                bind = null;
-                openFirewall = true;
-                requirePassFile = "/run/redis/passfile";
-                save = [ ];
-              };
-              systemd.services.redis.serviceConfig = {
-                # `requirePassFile` needs an absolute path, so copy the credential to a directory that the setup script can access.
-                ExecStartPre = lib.mkBefore [
-                  "${lib.getExe' pkgs.coreutils-full "install"} -m600 \${CREDENTIALS_DIRECTORY}/pass /run/redis/passfile"
-                ];
-                LoadCredential = [ "pass:pass" ];
-              };
 
               system.stateVersion = "25.05";
             };

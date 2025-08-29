@@ -54,19 +54,6 @@
         ip6 = "fc00::36";
       };
     };
-    auth-redis = {
-      name = "br-auth-redis";
-      auth = {
-        interface = "auth-redis";
-        ip4 = "10.4.1.1";
-        ip6 = "fc00::33";
-      };
-      redis = {
-        interface = "redis-auth";
-        ip4 = "10.4.1.2";
-        ip6 = "fc00::34";
-      };
-    };
     caddy-csec = {
       name = "br-caddy-csec";
       caddy = {
@@ -165,19 +152,6 @@
         interface = "pg-imm";
         ip4 = "10.7.1.2";
         ip6 = "fc00::64";
-      };
-    };
-    imm-redis = {
-      name = "br-imm-redis";
-      imm = {
-        interface = "imm-redis";
-        ip4 = "10.7.2.1";
-        ip6 = "fc00::65";
-      };
-      redis = {
-        interface = "redis-imm";
-        ip4 = "10.7.2.2";
-        ip6 = "fc00::66";
       };
     };
     ldap-pg = {

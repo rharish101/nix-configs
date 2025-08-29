@@ -46,10 +46,6 @@
         sops.secrets."authelia/oidc-hmac" = secretsConfig;
         sops.secrets."authelia/oidc-jwks" = secretsConfig;
         sops.secrets."authelia/postgres" = secretsConfig;
-        sops.secrets."authelia/redis".restartUnits = [
-          "container@authelia.service"
-          "container@authelia-redis.service"
-        ];
         sops.secrets."authelia/session" = secretsConfig;
         sops.secrets."authelia/storage" = secretsConfig;
 
@@ -62,7 +58,6 @@
             (lib.mkIf csecEnabled "container@crowdsec-lapi.service")
             "container@lldap.service"
             "container@postgres.service"
-            "container@authelia-redis.service"
           ];
         };
 
@@ -71,7 +66,6 @@
           "${auth-csec.name}" = lib.mkIf csecEnabled { interfaces = [ ]; };
           "${auth-ldap.name}".interfaces = [ ];
           "${auth-pg.name}".interfaces = [ ];
-          "${auth-redis.name}".interfaces = [ ];
         };
 
         containers.caddy-wg-client.extraVeths.${constants.bridges.auth-caddy.caddy.interface} =
@@ -123,11 +117,6 @@
               localAddress = "${auth.ip4}/24";
               localAddress6 = "${auth.ip6}/112";
             };
-            "${auth-redis.auth.interface}" = with auth-redis; {
-              hostBridge = name;
-              localAddress = "${auth.ip4}/24";
-              localAddress6 = "${auth.ip6}/112";
-            };
           };
 
           privateUsers = config.users.users.authelia.uid;
@@ -142,7 +131,6 @@
             "--load-credential=oidc-hmac:${config.sops.secrets."authelia/oidc-hmac".path}"
             "--load-credential=oidc-jwks:${config.sops.secrets."authelia/oidc-jwks".path}"
             "--load-credential=pg-pass:${config.sops.secrets."authelia/postgres".path}"
-            "--load-credential=redis-pass:${config.sops.secrets."authelia/redis".path}"
             "--load-credential=sess:${config.sops.secrets."authelia/session".path}"
             "--load-credential=storage-enc:${config.sops.secrets."authelia/storage".path}"
           ];
@@ -154,7 +142,10 @@
           };
 
           config =
-            { ... }:
+            let
+              globalConfig = config;
+            in
+            { config, ... }:
             {
               imports = [ ../vendored/crowdsec.nix ];
 
@@ -170,7 +161,7 @@
               networking.nameservers = [ "1.1.1.1" ];
               networking.firewall.allowedTCPPorts = [ constants.ports.authelia ];
 
-              services.authelia.instances.main = with config.modules.authelia; {
+              services.authelia.instances.main = with globalConfig.modules.authelia; {
                 enable = true;
                 secrets.manual = true;
                 settings =
@@ -193,7 +184,7 @@
                       username = "authelia";
                     };
                     session = {
-                      redis.host = auth-redis.redis.ip4;
+                      redis.host = config.services.redis.servers.authelia.unixSocket;
                       cookies = [
                         {
                           domain = domain;
@@ -257,28 +248,29 @@
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = "%d/ldap-pass";
                   AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE = "%d/oidc-hmac";
                   AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE = "%d/jwt";
-                  AUTHELIA_SESSION_REDIS_PASSWORD_FILE = "%d/redis-pass";
                   AUTHELIA_SESSION_SECRET_FILE = "%d/sess";
                   AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE = "%d/storage-enc";
                   AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE = "%d/pg-pass";
                   X_AUTHELIA_CONFIG_FILTERS = "template";
                 };
               };
-              systemd.services.authelia-main.serviceConfig.LoadCredential = [
-                "jwt:jwt"
-                "ldap-pass:ldap-pass"
-                "oidc-hmac:oidc-hmac"
-                "oidc-jwks:oidc-jwks"
-                "pg-pass:pg-pass"
-                "redis-pass:redis-pass"
-                "sess:sess"
-                "storage-enc:storage-enc"
-              ];
+              systemd.services.authelia-main.serviceConfig = {
+                SupplementaryGroups = config.services.redis.servers.authelia.group;
+                LoadCredential = [
+                  "jwt:jwt"
+                  "ldap-pass:ldap-pass"
+                  "oidc-hmac:oidc-hmac"
+                  "oidc-jwks:oidc-jwks"
+                  "pg-pass:pg-pass"
+                  "sess:sess"
+                  "storage-enc:storage-enc"
+                ];
+              };
 
               services.crowdsec = lib.mkIf csecEnabled {
                 enable = true;
                 autoUpdateService = true;
-                name = "${config.networking.hostName}-authelia";
+                name = "${globalConfig.networking.hostName}-authelia";
 
                 localConfig.acquisitions = [
                   {
@@ -296,43 +288,8 @@
               };
               systemd.services.crowdsec.serviceConfig.LoadCredential = [ "csec-creds:csec-creds" ];
 
-              system.stateVersion = "25.05";
-            };
-        };
-
-        containers.authelia-redis = {
-          privateNetwork = true;
-          hostBridge = constants.bridges.auth-redis.name;
-          localAddress = "${constants.bridges.auth-redis.redis.ip4}/24";
-          localAddress6 = "${constants.bridges.auth-redis.redis.ip6}/112";
-
-          privateUsers = "pick";
-          autoStart = true;
-          extraFlags = [
-            "--private-users-ownership=auto"
-            "--volatile=overlay"
-            "--link-journal=host"
-            "--load-credential=pass:${config.sops.secrets."authelia/redis".path}"
-          ];
-
-          config =
-            { ... }:
-            {
               services.redis.package = pkgs.valkey;
-              services.redis.servers."" = {
-                enable = true;
-                bind = null;
-                openFirewall = true;
-                requirePassFile = "/run/redis/passfile";
-                save = [ ];
-              };
-              systemd.services.redis.serviceConfig = {
-                # `requirePassFile` needs an absolute path, so copy the credential to a directory that the setup script can access.
-                ExecStartPre = lib.mkBefore [
-                  "${lib.getExe' pkgs.coreutils-full "install"} -m600 \${CREDENTIALS_DIRECTORY}/pass /run/redis/passfile"
-                ];
-                LoadCredential = [ "pass:pass" ];
-              };
+              services.redis.servers.authelia.enable = true;
 
               system.stateVersion = "25.05";
             };
