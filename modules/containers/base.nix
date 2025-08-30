@@ -26,6 +26,7 @@ let
     mkMerge
     mkOption
     nameValuePair
+    pipe
     types
     ;
 
@@ -165,22 +166,52 @@ in
                 }
               ) (filterAttrs (key: _: key != mainBridge) bridges);
 
-              extraFlags = [
-                "--private-users-ownership=auto"
-                "--volatile=overlay"
-                "--link-journal=host"
-              ]
-              # Get the corresponding systemd-nspawn CLI flags for loading each SOPS secret as a systemd credential.
-              ++ mapAttrsToList (
-                credentialName: secret:
-                "--load-credential=${credentialName}:"
-                + (
-                  if secret.sopsType == "secret" then
-                    config.sops.secrets.${secret.name}.path
-                  else
-                    config.sops.templates.${secret.name}.path
-                )
-              ) cfg.credentials;
+              extraFlags =
+                let
+                  # Convert a single hex character at a given index to the corresponding character in the UUID.
+                  # This adds the UUID version or the UUID variant depending on the index.
+                  uuidImap =
+                    i: char:
+                    if i == 12 then
+                      "4"
+                    else if i == 16 then
+                      pipe char [
+                        lib.fromHexString
+                        (builtins.bitAnd 3)
+                        (builtins.bitOr 8)
+                        lib.toHexString
+                        lib.toLower
+                      ]
+                    else
+                      char;
+
+                  # Convert a container name (arbitrary string) deterministically to UUIDv4.
+                  # This just hashes it with MD5 (since the hash is 128 bits, same as UUIDv4) and formats it to look like UUIDv4.
+                  nameToUuid =
+                    name:
+                    pipe name [
+                      (builtins.hashString "md5")
+                      lib.stringToCharacters
+                      (lib.concatImapStrings uuidImap)
+                    ];
+                in
+                [
+                  "--private-users-ownership=auto"
+                  "--volatile=overlay"
+                  "--link-journal=host"
+                  "--uuid=${nameToUuid name}" # Make the machine ID deterministic.
+                ]
+                # Get the corresponding systemd-nspawn CLI flags for loading each SOPS secret as a systemd credential.
+                ++ mapAttrsToList (
+                  credentialName: secret:
+                  "--load-credential=${credentialName}:"
+                  + (
+                    if secret.sopsType == "secret" then
+                      config.sops.secrets.${secret.name}.path
+                    else
+                      config.sops.templates.${secret.name}.path
+                  )
+                ) cfg.credentials;
 
               config =
                 { ... }:
