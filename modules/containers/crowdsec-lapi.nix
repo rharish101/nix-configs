@@ -22,59 +22,11 @@
         && config.modules.postgres.enable
       )
       {
-        # User for the CrowdSec container.
-        users.users.crowdsec = {
-          uid = constants.uids.crowdsec;
-          group = "crowdsec";
-          isSystemUser = true;
-        };
-        users.groups.crowdsec.gid = constants.uids.crowdsec;
-
-        sops.secrets."crowdsec/lapi-env".restartUnits = [ "container@crowdsec-lapi.service" ];
-
-        systemd.services."container@crowdsec-lapi" = {
-          requires = [
-            "container@caddy-wg-client.service"
-            "container@postgres.service"
-          ];
-        };
-
-        networking.bridges.${constants.bridges.caddy-csec.name}.interfaces = [ ];
-        networking.bridges.${constants.bridges.csec-pg.name}.interfaces = [ ];
-
-        containers.caddy-wg-client.extraVeths.${constants.bridges.caddy-csec.caddy.interface} =
-          with constants.bridges.caddy-csec; {
-            hostBridge = name;
-            localAddress = "${caddy.ip4}/24";
-            localAddress6 = "${caddy.ip6}/112";
-          };
-        containers.postgres.extraVeths.${constants.bridges.csec-pg.pg.interface} =
-          with constants.bridges.csec-pg; {
-            hostBridge = name;
-            localAddress = "${pg.ip4}/24";
-            localAddress6 = "${pg.ip6}/112";
-          };
-
-        containers.crowdsec-lapi = {
-          privateNetwork = true;
-          hostBridge = constants.bridges.caddy-csec.name;
-          localAddress = "${constants.bridges.caddy-csec.csec.ip4}/24";
-          localAddress6 = "${constants.bridges.caddy-csec.csec.ip6}/112";
-
-          extraVeths.${constants.bridges.csec-pg.csec.interface} = with constants.bridges.csec-pg; {
-            hostBridge = name;
-            localAddress = "${csec.ip4}/24";
-            localAddress6 = "${csec.ip6}/112";
-          };
-
-          privateUsers = config.users.users.crowdsec.uid;
-          autoStart = true;
-          extraFlags = [
-            "--private-users-ownership=auto"
-            "--volatile=overlay"
-            "--link-journal=host"
-            "--load-credential=env:${config.sops.secrets."crowdsec/lapi-env".path}"
-          ];
+        modules.containers.crowdsec-lapi = {
+          shortName = "csec";
+          username = "crowdsec";
+          allowInternet = true;
+          credentials.env.name = "crowdsec/lapi-env";
 
           bindMounts.dataDir = {
             hostPath = config.modules.crowdsec-lapi.dataDir;
@@ -86,17 +38,6 @@
             { ... }:
             {
               imports = [ ../vendored/crowdsec.nix ];
-
-              # To allow this container to access the internet through the bridge.
-              networking.defaultGateway = {
-                address = constants.bridges.caddy-csec.caddy.ip4;
-                interface = "eth0";
-              };
-              networking.defaultGateway6 = {
-                address = constants.bridges.caddy-csec.caddy.ip6;
-                interface = "eth0";
-              };
-              networking.nameservers = [ "1.1.1.1" ];
 
               # Add secrets using an environment file.
               systemd.services.crowdsec.serviceConfig.EnvironmentFile = "/run/credentials/@system/env";

@@ -19,7 +19,6 @@
   config =
     let
       constants = import ../constants.nix;
-      secretsConfig.restartUnits = [ "container@immich.service" ];
       gpuDevice = "/dev/dri/renderD128";
     in
     lib.mkIf
@@ -29,20 +28,10 @@
         && config.modules.postgres.enable
       )
       {
-        # User for the Immich container.
-        users.users.immich = {
-          uid = constants.uids.immich;
-          group = "immich";
-          isSystemUser = true;
-        };
-        users.groups.immich.gid = constants.uids.immich;
-
-        sops.secrets."immich/env" = secretsConfig;
-        sops.secrets."immich/oidc" = secretsConfig;
-
         # Immich doesn't have a way to pass the OIDC client secret as an env var or path, so create
         # a config manually and add it as a placeholder.
-        sops.templates."immich.json" = secretsConfig // {
+        sops.secrets."immich/oidc".restartUnits = [ "container@immich.service" ];
+        sops.templates."immich.json" = {
           content =
             with constants.domain;
             builtins.toJSON {
@@ -70,55 +59,18 @@
             };
         };
 
-        systemd.services."container@immich" = with constants.limits.immich; {
-          serviceConfig = {
-            MemoryHigh = "${toString memory}G";
-            CPUQuota = "${toString (cpu * 100)}%";
-          };
-          requires = [ "container@postgres.service" ];
-        };
+        modules.containers.immich = {
+          shortName = "imm";
+          username = "immich";
+          allowInternet = true;
 
-        networking.bridges = with constants.bridges; {
-          ${caddy-imm.name}.interfaces = [ ];
-          ${imm-pg.name}.interfaces = [ ];
-        };
-
-        containers.caddy-wg-client.extraVeths.${constants.bridges.caddy-imm.caddy.interface} =
-          with constants.bridges.caddy-imm; {
-            hostBridge = name;
-            localAddress = "${caddy.ip4}/24";
-            localAddress6 = "${caddy.ip6}/112";
-          };
-        containers.postgres.extraVeths.${constants.bridges.imm-pg.pg.interface} =
-          with constants.bridges.imm-pg; {
-            hostBridge = name;
-            localAddress = "${pg.ip4}/24";
-            localAddress6 = "${pg.ip6}/112";
-          };
-
-        containers.immich = {
-          privateNetwork = true;
-          hostBridge = constants.bridges.caddy-imm.name;
-          localAddress = "${constants.bridges.caddy-imm.imm.ip4}/24";
-          localAddress6 = "${constants.bridges.caddy-imm.imm.ip6}/112";
-
-          extraVeths = with constants.bridges; {
-            "${imm-pg.imm.interface}" = with imm-pg; {
-              hostBridge = name;
-              localAddress = "${imm.ip4}/24";
-              localAddress6 = "${imm.ip6}/112";
+          credentials = {
+            env.name = "immich/env";
+            config = {
+              name = "immich.json";
+              sopsType = "template";
             };
           };
-
-          privateUsers = config.users.users.immich.uid;
-          autoStart = true;
-          extraFlags = [
-            "--private-users-ownership=auto"
-            "--volatile=overlay"
-            "--link-journal=host"
-            "--load-credential=env:${config.sops.secrets."immich/env".path}"
-            "--load-credential=config:${config.sops.templates."immich.json".path}"
-          ];
 
           bindMounts = with config.modules.immich; {
             dataDir = {
@@ -140,17 +92,6 @@
           config =
             { ... }:
             {
-              # To allow this container to access the internet through the bridge.
-              networking.defaultGateway = {
-                address = constants.bridges.caddy-imm.caddy.ip4;
-                interface = "eth0";
-              };
-              networking.defaultGateway6 = {
-                address = constants.bridges.caddy-imm.caddy.ip6;
-                interface = "eth0";
-              };
-              networking.nameservers = [ "1.1.1.1" ];
-
               hardware.graphics = {
                 enable = true;
                 extraPackages = with pkgs; [
@@ -185,8 +126,6 @@
                 serviceConfig.LoadCredential = [ "config:config" ];
                 environment.IMMICH_CONFIG_FILE = "%d/config";
               };
-
-              services.redis.package = pkgs.valkey;
 
               system.stateVersion = "25.05";
             };

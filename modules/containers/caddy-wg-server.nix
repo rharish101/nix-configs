@@ -29,34 +29,17 @@
     let
       constants = import ../constants.nix;
       caddyDataDir = "/var/lib/containers/caddy";
-      secretsConfig.restartUnits = [ "container@caddy-wg-server.service" ];
     in
     lib.mkIf config.modules.caddy-wg-server.enable {
-      users.users.caddywg = {
-        uid = constants.uids.caddywg;
-        group = "caddywg";
-        isSystemUser = true;
-      };
-      users.groups.caddywg.gid = constants.uids.caddywg;
-
-      sops.secrets."cloudflare" = secretsConfig;
-      sops.secrets."wireguard/psk" = secretsConfig;
-      sops.secrets."wireguard/server" = secretsConfig;
-      sops.secrets."crowdsec/caddy-creds" = secretsConfig;
-
-      systemd.services."container@caddy-wg-server" = {
-        serviceConfig = with constants.limits.caddy-wg-server; {
-          MemoryHigh = "${toString memory}G";
-          CPUQuota = "${toString (cpu * 100)}%";
+      modules.containers.caddy-wg-server = {
+        shortName = "caddy";
+        username = "caddywg";
+        credentials = {
+          priv-key.name = "wireguard/server";
+          psk.name = "wireguard/psk";
+          caddy-env.name = "cloudflare";
+          csec-creds.name = "crowdsec/caddy-creds";
         };
-      };
-
-      containers.caddy-wg-server = {
-        privateNetwork = true;
-        hostAddress = constants.veths.caddy.host.ip4;
-        hostAddress6 = constants.veths.caddy.host.ip6;
-        localAddress = constants.veths.caddy.local.ip4;
-        localAddress6 = constants.veths.caddy.local.ip6;
 
         forwardPorts = with config.modules.caddy-wg-server; [
           {
@@ -79,18 +62,6 @@
             containerPort = constants.ports.minecraft;
             protocol = "udp";
           }
-        ];
-
-        privateUsers = config.users.users.caddywg.uid;
-        autoStart = true;
-        extraFlags = [
-          "--private-users-ownership=auto"
-          "--volatile=overlay"
-          "--link-journal=host"
-          "--load-credential=priv-key:${config.sops.secrets."wireguard/server".path}"
-          "--load-credential=psk:${config.sops.secrets."wireguard/psk".path}"
-          "--load-credential=caddy-env:${config.sops.secrets."cloudflare".path}"
-          "--load-credential=csec-creds:${config.sops.secrets."crowdsec/caddy-creds".path}"
         ];
 
         bindMounts.dataDir = {

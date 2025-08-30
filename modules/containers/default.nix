@@ -5,6 +5,7 @@
 { ... }:
 {
   imports = [
+    ./base.nix
     ./authelia.nix
     ./caddy-wg-client.nix
     ./caddy-wg-server.nix

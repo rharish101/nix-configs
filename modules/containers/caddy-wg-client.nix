@@ -33,42 +33,15 @@
     let
       constants = import ../constants.nix;
       caddyDataDir = "/var/lib/containers/caddy";
-      secretsConfig.restartUnits = [ "container@caddy-wg-client.service" ];
     in
     lib.mkIf (config.modules.caddy-wg-client.enable) {
-      users.users.caddywg = {
-        uid = constants.uids.caddywg;
-        group = "caddywg";
-        isSystemUser = true;
-      };
-      users.groups.caddywg.gid = constants.uids.caddywg;
-
-      sops.secrets."wireguard/client" = secretsConfig;
-      sops.secrets."wireguard/psk" = secretsConfig;
-
-      systemd.services."container@caddy-wg-client" = {
-        serviceConfig = with constants.limits.caddy-wg-client; {
-          MemoryHigh = "${toString memory}G";
-          CPUQuota = "${toString (cpu * 100)}%";
+      modules.containers.caddy-wg-client = {
+        shortName = "caddy";
+        username = "caddywg";
+        credentials = {
+          priv-key.name = "wireguard/client";
+          psk.name = "wireguard/psk";
         };
-      };
-
-      containers.caddy-wg-client = {
-        privateNetwork = true;
-        hostAddress = constants.veths.caddy.host.ip4;
-        hostAddress6 = constants.veths.caddy.host.ip6;
-        localAddress = constants.veths.caddy.local.ip4;
-        localAddress6 = constants.veths.caddy.local.ip6;
-
-        privateUsers = config.users.users.caddywg.uid;
-        autoStart = true;
-        extraFlags = [
-          "--private-users-ownership=auto"
-          "--volatile=overlay"
-          "--link-journal=host"
-          "--load-credential=priv-key:${config.sops.secrets."wireguard/client".path}"
-          "--load-credential=psk:${config.sops.secrets."wireguard/psk".path}"
-        ];
 
         bindMounts.dataDir = {
           hostPath = caddyDataDir;
@@ -134,7 +107,7 @@
                   hash = "sha256-NLFl+ix36z6X1Anr1F6rdMPwSEysSVl84Ad71zprsbU=";
                 };
                 globalConfig =
-                  with constants.bridges.caddy-mc.mc;
+                  with constants.bridges.mc-caddy.mc;
                   with constants.ports;
                   ''
                     layer4 {
@@ -165,16 +138,16 @@
                   respond "hello world"
                 '';
                 virtualHosts.":${toString constants.ports.crowdsec}".extraConfig = ''
-                  reverse_proxy ${constants.bridges.caddy-csec.csec.ip4}:${toString constants.ports.crowdsec}
+                  reverse_proxy ${constants.bridges.csec-caddy.csec.ip4}:${toString constants.ports.crowdsec}
                 '';
                 virtualHosts."http://${subdomains.auth}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridges.auth-caddy.auth.ip4}:${toString constants.ports.authelia}
                 '';
                 virtualHosts."http://${subdomains.imm}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridges.caddy-imm.imm.ip4}:${toString constants.ports.immich}
+                  reverse_proxy ${constants.bridges.imm-caddy.imm.ip4}:${toString constants.ports.immich}
                 '';
                 virtualHosts."http://${subdomains.jf}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridges.caddy-jf.jf.ip4}:${toString constants.ports.jellyfin}
+                  reverse_proxy ${constants.bridges.jf-caddy.jf.ip4}:${toString constants.ports.jellyfin}
                 '';
               };
 

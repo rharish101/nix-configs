@@ -20,73 +20,13 @@
     let
       constants = import ../constants.nix;
       serverName = "EBG6 Minecraft server";
-      csecEnabled = config.modules.crowdsec-lapi.enable;
     in
     lib.mkIf (config.modules.minecraft.enable && config.modules.caddy-wg-client.enable) {
-      # User for the Minecraft server.
-      users.users.minecraft = {
-        uid = constants.uids.minecraft;
-        group = "minecraft";
-        isSystemUser = true;
-      };
-      users.groups.minecraft.gid = constants.uids.minecraft;
-
-      sops.secrets."crowdsec/mc-creds".restartUnits = [ "container@minecraft.service" ];
-
-      systemd.services."container@minecraft" = {
-        serviceConfig = with constants.limits.minecraft; {
-          MemoryHigh = "${toString memory}G";
-          CPUQuota = "${toString (cpu * 100)}%";
-        };
-        requires = [
-          "container@caddy-wg-client.service"
-          (lib.mkIf csecEnabled "container@crowdsec-lapi.service")
-        ];
-      };
-
-      networking.bridges = with constants.bridges; {
-        "${caddy-mc.name}".interfaces = [ ];
-        "${csec-mc.name}" = lib.mkIf csecEnabled { interfaces = [ ]; };
-      };
-
-      containers.caddy-wg-client.extraVeths.${constants.bridges.caddy-mc.caddy.interface} =
-        with constants.bridges.caddy-mc; {
-          hostBridge = name;
-          localAddress = "${caddy.ip4}/24";
-          localAddress6 = "${caddy.ip6}/112";
-        };
-      containers.crowdsec-lapi.extraVeths.${constants.bridges.csec-mc.csec.interface} =
-        with constants.bridges.csec-mc;
-        lib.mkIf csecEnabled {
-          hostBridge = name;
-          localAddress = "${csec.ip4}/24";
-          localAddress6 = "${csec.ip6}/112";
-        };
-
-      containers.minecraft = {
-        privateNetwork = true;
-        hostBridge = constants.bridges.caddy-mc.name;
-        localAddress = "${constants.bridges.caddy-mc.mc.ip4}/24";
-        localAddress6 = "${constants.bridges.caddy-mc.mc.ip6}/112";
-
-        extraVeths = with constants.bridges; {
-          "${csec-mc.mc.interface}" =
-            with csec-mc;
-            lib.mkIf csecEnabled {
-              hostBridge = name;
-              localAddress = "${mc.ip4}/24";
-              localAddress6 = "${mc.ip6}/112";
-            };
-        };
-
-        privateUsers = config.users.users.minecraft.uid;
-        autoStart = true;
-        extraFlags = [
-          "--private-users-ownership=auto"
-          "--volatile=overlay"
-          "--link-journal=host"
-          "--load-credential=csec-creds:${config.sops.secrets."crowdsec/mc-creds".path}"
-        ];
+      modules.containers.minecraft = {
+        shortName = "mc";
+        username = "minecraft";
+        allowInternet = true;
+        credentials.csec-creds.name = "crowdsec/mc-creds";
 
         bindMounts.dataDir = {
           hostPath = config.modules.minecraft.dataDir;
@@ -110,17 +50,6 @@
 
             networking.firewall.allowedTCPPorts = [ constants.ports.minecraft ];
             networking.firewall.allowedUDPPorts = [ constants.ports.minecraft ];
-
-            # To allow this container to access the internet through the bridge.
-            networking.defaultGateway = {
-              address = constants.bridges.caddy-mc.caddy.ip4;
-              interface = "eth0";
-            };
-            networking.defaultGateway6 = {
-              address = constants.bridges.caddy-mc.caddy.ip6;
-              interface = "eth0";
-            };
-            networking.nameservers = [ "1.1.1.1" ];
 
             services.minecraft-servers = {
               enable = true;
@@ -181,7 +110,7 @@
               };
             };
 
-            services.crowdsec = lib.mkIf csecEnabled {
+            services.crowdsec = lib.mkIf config.modules.crowdsec-lapi.enable {
               enable = true;
               autoUpdateService = true;
               name = "${config.networking.hostName}-minecraft";

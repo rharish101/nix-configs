@@ -19,7 +19,6 @@
   config =
     let
       constants = import ../constants.nix;
-      csecEnabled = config.modules.crowdsec-lapi.enable;
       gpuDevice = "/dev/dri/renderD128";
     in
     lib.mkIf (config.modules.jellyfin.enable && config.modules.caddy-wg-client.enable) {
@@ -31,56 +30,11 @@
       };
       users.groups.jellyfin.gid = constants.uids.jellyfin;
 
-      sops.secrets."jellyfin/crowdsec".restartUnits = [ "container@jellyfin.service" ];
-
-      systemd.services."container@jellyfin" = with constants.limits.jellyfin; {
-        serviceConfig = {
-          MemoryHigh = "${toString memory}G";
-          CPUQuota = "${toString (cpu * 100)}%";
-        };
-        requires = [ (lib.mkIf csecEnabled "container@crowdsec-lapi.service") ];
-      };
-
-      networking.bridges = with constants.bridges; {
-        ${caddy-jf.name}.interfaces = [ ];
-        ${csec-jf.name} = lib.mkIf csecEnabled { interfaces = [ ]; };
-      };
-      containers.caddy-wg-client.extraVeths.${constants.bridges.caddy-jf.caddy.interface} =
-        with constants.bridges.caddy-jf; {
-          hostBridge = name;
-          localAddress = "${caddy.ip4}/24";
-          localAddress6 = "${caddy.ip6}/112";
-        };
-      containers.crowdsec-lapi.extraVeths.${constants.bridges.csec-jf.csec.interface} =
-        with constants.bridges.csec-jf;
-        lib.mkIf csecEnabled {
-          hostBridge = name;
-          localAddress = "${csec.ip4}/24";
-          localAddress6 = "${csec.ip6}/112";
-        };
-
-      containers.jellyfin = {
-        privateNetwork = true;
-        hostBridge = constants.bridges.caddy-jf.name;
-        localAddress = "${constants.bridges.caddy-jf.jf.ip4}/24";
-        localAddress6 = "${constants.bridges.caddy-jf.jf.ip6}/112";
-
-        extraVeths.${constants.bridges.csec-jf.jf.interface} =
-          with constants.bridges.csec-jf;
-          lib.mkIf csecEnabled {
-            hostBridge = name;
-            localAddress = "${jf.ip4}/24";
-            localAddress6 = "${jf.ip6}/112";
-          };
-
-        privateUsers = config.users.users.jellyfin.uid;
-        autoStart = true;
-        extraFlags = [
-          "--private-users-ownership=auto"
-          "--volatile=overlay"
-          "--link-journal=host"
-          "--load-credential=csec-creds:${config.sops.secrets."jellyfin/crowdsec".path}"
-        ];
+      modules.containers.jellyfin = {
+        shortName = "jf";
+        username = "jellyfin";
+        allowInternet = true;
+        credentials.csec-creds.name = "jellyfin/crowdsec";
 
         bindMounts = with config.modules.jellyfin; {
           data = {
@@ -111,16 +65,6 @@
           {
             imports = [ ../vendored/crowdsec.nix ];
 
-            # To allow this container to access the internet through the bridge.
-            networking.defaultGateway = {
-              address = constants.bridges.caddy-jf.caddy.ip4;
-              interface = "eth0";
-            };
-            networking.defaultGateway6 = {
-              address = constants.bridges.caddy-jf.caddy.ip6;
-              interface = "eth0";
-            };
-            networking.nameservers = [ "1.1.1.1" ];
             networking.firewall.allowedTCPPorts = [ constants.ports.jellyfin ];
 
             hardware.graphics = {
@@ -133,7 +77,7 @@
 
             services.jellyfin.enable = true;
 
-            services.crowdsec = lib.mkIf csecEnabled {
+            services.crowdsec = lib.mkIf config.modules.crowdsec-lapi.enable {
               enable = true;
               autoUpdateService = true;
               name = "${hostName}-jellyfin";

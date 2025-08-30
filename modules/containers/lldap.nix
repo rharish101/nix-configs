@@ -13,43 +13,16 @@
   config =
     let
       constants = import ../constants.nix;
-      secretsConfig.restartUnits = [ "container@lldap.service" ];
     in
     lib.mkIf (config.modules.lldap.enable && config.modules.postgres.enable) {
-      sops.secrets."lldap/db" = secretsConfig;
-      sops.secrets."lldap/jwt" = secretsConfig;
-      sops.secrets."lldap/key" = secretsConfig;
-      sops.secrets."lldap/pass" = secretsConfig;
-
-      systemd.services."container@lldap".requires = [ "container@postgres.service" ];
-
-      networking.bridges.${constants.bridges.ldap-pg.name}.interfaces = [ ];
-      containers.postgres.extraVeths.${constants.bridges.ldap-pg.pg.interface} =
-        with constants.bridges.ldap-pg; {
-          hostBridge = name;
-          localAddress = "${pg.ip4}/24";
-          localAddress6 = "${pg.ip6}/112";
+      modules.containers.lldap = {
+        shortName = "ldap";
+        credentials = {
+          db-url.name = "lldap/db";
+          jwt.name = "lldap/jwt";
+          key-seed.name = "lldap/key";
+          user-pass.name = "lldap/pass";
         };
-
-      containers.lldap = {
-        privateNetwork = true;
-        extraVeths.${constants.bridges.ldap-pg.ldap.interface} = with constants.bridges.ldap-pg; {
-          hostBridge = name;
-          localAddress = "${ldap.ip4}/24";
-          localAddress6 = "${ldap.ip6}/112";
-        };
-
-        privateUsers = "pick";
-        autoStart = true;
-        extraFlags = [
-          "--private-users-ownership=auto"
-          "--volatile=overlay"
-          "--link-journal=host"
-          "--load-credential=db-url:${config.sops.secrets."lldap/db".path}"
-          "--load-credential=jwt:${config.sops.secrets."lldap/jwt".path}"
-          "--load-credential=key-seed:${config.sops.secrets."lldap/key".path}"
-          "--load-credential=user-pass:${config.sops.secrets."lldap/pass".path}"
-        ];
 
         config =
           { ... }:

@@ -20,9 +20,7 @@
   config =
     let
       constants = import ../constants.nix;
-      csecEnabled = config.modules.crowdsec-lapi.enable;
       configDir = "/var/lib/authelia-main/configs"; # MUST be a (sub)directory of "/var/lib/authelia-{instanceName}"
-      secretsConfig.restartUnits = [ "container@authelia.service" ];
     in
     lib.mkIf
       (
@@ -32,108 +30,21 @@
         && config.modules.lldap.enable
       )
       {
-        # User for the Authelia container.
-        users.users.authelia = {
-          uid = constants.uids.authelia;
-          group = "authelia";
-          isSystemUser = true;
-        };
-        users.groups.authelia.gid = constants.uids.authelia;
+        modules.containers.authelia = {
+          shortName = "auth";
+          username = "authelia";
+          allowInternet = true;
 
-        sops.secrets."authelia/crowdsec" = secretsConfig;
-        sops.secrets."authelia/ldap" = secretsConfig;
-        sops.secrets."authelia/jwt" = secretsConfig;
-        sops.secrets."authelia/oidc-hmac" = secretsConfig;
-        sops.secrets."authelia/oidc-jwks" = secretsConfig;
-        sops.secrets."authelia/postgres" = secretsConfig;
-        sops.secrets."authelia/session" = secretsConfig;
-        sops.secrets."authelia/storage" = secretsConfig;
-
-        systemd.services."container@authelia" = {
-          serviceConfig = with constants.limits.authelia; {
-            MemoryHigh = "${toString memory}G";
-            CPUQuota = "${toString (cpu * 100)}%";
+          credentials = {
+            csec-creds.name = "authelia/crowdsec";
+            jwt.name = "authelia/jwt";
+            ldap-pass.name = "authelia/ldap";
+            oidc-hmac.name = "authelia/oidc-hmac";
+            oidc-jwks.name = "authelia/oidc-jwks";
+            pg-pass.name = "authelia/postgres";
+            sess.name = "authelia/session";
+            storage-enc.name = "authelia/storage";
           };
-          requires = [
-            (lib.mkIf csecEnabled "container@crowdsec-lapi.service")
-            "container@lldap.service"
-            "container@postgres.service"
-          ];
-        };
-
-        networking.bridges = with constants.bridges; {
-          "${auth-caddy.name}".interfaces = [ ];
-          "${auth-csec.name}" = lib.mkIf csecEnabled { interfaces = [ ]; };
-          "${auth-ldap.name}".interfaces = [ ];
-          "${auth-pg.name}".interfaces = [ ];
-        };
-
-        containers.caddy-wg-client.extraVeths.${constants.bridges.auth-caddy.caddy.interface} =
-          with constants.bridges.auth-caddy; {
-            hostBridge = name;
-            localAddress = "${caddy.ip4}/24";
-            localAddress6 = "${caddy.ip6}/112";
-          };
-        containers.crowdsec-lapi.extraVeths.${constants.bridges.auth-csec.csec.interface} =
-          with constants.bridges.auth-csec;
-          lib.mkIf csecEnabled {
-            hostBridge = name;
-            localAddress = "${csec.ip4}/24";
-            localAddress6 = "${csec.ip6}/112";
-          };
-        containers.lldap = with constants.bridges.auth-ldap; {
-          hostBridge = name;
-          localAddress = "${ldap.ip4}/24";
-          localAddress6 = "${ldap.ip6}/112";
-        };
-        containers.postgres.extraVeths.${constants.bridges.auth-pg.pg.interface} =
-          with constants.bridges.auth-pg; {
-            hostBridge = name;
-            localAddress = "${pg.ip4}/24";
-            localAddress6 = "${pg.ip6}/112";
-          };
-
-        containers.authelia = {
-          privateNetwork = true;
-          hostBridge = constants.bridges.auth-caddy.name;
-          localAddress = "${constants.bridges.auth-caddy.auth.ip4}/24";
-          localAddress6 = "${constants.bridges.auth-caddy.auth.ip6}/112";
-
-          extraVeths = with constants.bridges; {
-            "${auth-csec.auth.interface}" =
-              with auth-csec;
-              lib.mkIf csecEnabled {
-                hostBridge = name;
-                localAddress = "${auth.ip4}/24";
-                localAddress6 = "${auth.ip6}/112";
-              };
-            "${auth-ldap.auth.interface}" = with auth-ldap; {
-              hostBridge = name;
-              localAddress = "${auth.ip4}/24";
-              localAddress6 = "${auth.ip6}/112";
-            };
-            "${auth-pg.auth.interface}" = with auth-pg; {
-              hostBridge = name;
-              localAddress = "${auth.ip4}/24";
-              localAddress6 = "${auth.ip6}/112";
-            };
-          };
-
-          privateUsers = config.users.users.authelia.uid;
-          autoStart = true;
-          extraFlags = [
-            "--private-users-ownership=auto"
-            "--volatile=overlay"
-            "--link-journal=host"
-            "--load-credential=csec-creds:${config.sops.secrets."authelia/crowdsec".path}"
-            "--load-credential=ldap-pass:${config.sops.secrets."authelia/ldap".path}"
-            "--load-credential=jwt:${config.sops.secrets."authelia/jwt".path}"
-            "--load-credential=oidc-hmac:${config.sops.secrets."authelia/oidc-hmac".path}"
-            "--load-credential=oidc-jwks:${config.sops.secrets."authelia/oidc-jwks".path}"
-            "--load-credential=pg-pass:${config.sops.secrets."authelia/postgres".path}"
-            "--load-credential=sess:${config.sops.secrets."authelia/session".path}"
-            "--load-credential=storage-enc:${config.sops.secrets."authelia/storage".path}"
-          ];
 
           bindMounts.data = {
             hostPath = config.modules.authelia.dataDir;
@@ -149,16 +60,6 @@
             {
               imports = [ ../vendored/crowdsec.nix ];
 
-              # To allow this container to access the internet through the bridge.
-              networking.defaultGateway = {
-                address = constants.bridges.auth-caddy.caddy.ip4;
-                interface = "eth0";
-              };
-              networking.defaultGateway6 = {
-                address = constants.bridges.auth-caddy.caddy.ip6;
-                interface = "eth0";
-              };
-              networking.nameservers = [ "1.1.1.1" ];
               networking.firewall.allowedTCPPorts = [ constants.ports.authelia ];
 
               services.authelia.instances.main = with globalConfig.modules.authelia; {
@@ -267,7 +168,7 @@
                 ];
               };
 
-              services.crowdsec = lib.mkIf csecEnabled {
+              services.crowdsec = lib.mkIf globalConfig.modules.crowdsec-lapi.enable {
                 enable = true;
                 autoUpdateService = true;
                 name = "${globalConfig.networking.hostName}-authelia";
@@ -288,7 +189,6 @@
               };
               systemd.services.crowdsec.serviceConfig.LoadCredential = [ "csec-creds:csec-creds" ];
 
-              services.redis.package = pkgs.valkey;
               services.redis.servers.authelia.enable = true;
 
               system.stateVersion = "25.05";

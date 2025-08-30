@@ -17,31 +17,14 @@
       constants = import ../constants.nix;
     in
     lib.mkIf config.modules.postgres.enable {
-      # User for the PostgreSQL container.
-      users.users.postgres = {
-        uid = constants.uids.postgres;
-        group = "postgres";
-        isSystemUser = true;
-      };
-      users.groups.postgres.gid = constants.uids.postgres;
+      modules.containers.postgres = {
+        shortName = "pg";
+        username = "postgres";
 
-      containers.postgres = {
-        privateNetwork = true;
-
-        privateUsers = config.users.users.postgres.uid;
-        autoStart = true;
-        extraFlags = [
-          "--private-users-ownership=auto"
-          "--volatile=overlay"
-          "--link-journal=host"
-        ];
-
-        bindMounts = with config.modules.postgres; {
-          dataDir = {
-            hostPath = dataDir;
-            mountPoint = "/var/lib/postgresql";
-            isReadOnly = false;
-          };
+        bindMounts.dataDir = {
+          hostPath = config.modules.postgres.dataDir;
+          mountPoint = "/var/lib/postgresql";
+          isReadOnly = false;
         };
 
         config =

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 {
+  # NOTE: Keys **must** use corresponding container short names, such that the first one depends on the second.
   bridges = {
     auth-caddy = {
       name = "br-auth-caddy";
@@ -54,7 +55,7 @@
         ip6 = "fc00::36";
       };
     };
-    caddy-csec = {
+    csec-caddy = {
       name = "br-caddy-csec";
       caddy = {
         interface = "caddy-csec";
@@ -64,68 +65,6 @@
       csec = {
         ip4 = "10.6.0.2";
         ip6 = "fc00::52";
-      };
-    };
-    caddy-imm = {
-      name = "br-caddy-imm";
-      caddy = {
-        interface = "caddy-imm";
-        ip4 = "10.7.0.1";
-        ip6 = "fc00::61";
-      };
-      imm = {
-        ip4 = "10.7.0.2";
-        ip6 = "fc00::62";
-      };
-    };
-    caddy-jf = {
-      name = "br-caddy-jf";
-      caddy = {
-        interface = "caddy-jf";
-        ip4 = "10.3.0.1";
-        ip6 = "fc00::21";
-      };
-      jf = {
-        ip4 = "10.3.0.2";
-        ip6 = "fc00::22";
-      };
-    };
-    caddy-mc = {
-      name = "br-caddy-mc";
-      caddy = {
-        interface = "caddy-mc";
-        ip4 = "10.2.0.1";
-        ip6 = "fc00::11";
-      };
-      mc = {
-        ip4 = "10.2.0.2";
-        ip6 = "fc00::12";
-      };
-    };
-    csec-jf = {
-      name = "br-csec-jf";
-      jf = {
-        interface = "jf-csec";
-        ip4 = "10.3.1.1";
-        ip6 = "fc00::23";
-      };
-      csec = {
-        interface = "csec-jf";
-        ip4 = "10.3.1.2";
-        ip6 = "fc00::24";
-      };
-    };
-    csec-mc = {
-      name = "br-csec-mc";
-      csec = {
-        interface = "csec-mc";
-        ip4 = "10.2.1.1";
-        ip6 = "fc00::13";
-      };
-      mc = {
-        interface = "mc-csec";
-        ip4 = "10.2.1.2";
-        ip6 = "fc00::14";
       };
     };
     csec-pg = {
@@ -141,6 +80,18 @@
         ip6 = "fc00::54";
       };
     };
+    imm-caddy = {
+      name = "br-caddy-imm";
+      caddy = {
+        interface = "caddy-imm";
+        ip4 = "10.7.0.1";
+        ip6 = "fc00::61";
+      };
+      imm = {
+        ip4 = "10.7.0.2";
+        ip6 = "fc00::62";
+      };
+    };
     imm-pg = {
       name = "br-imm-pg";
       imm = {
@@ -152,6 +103,56 @@
         interface = "pg-imm";
         ip4 = "10.7.1.2";
         ip6 = "fc00::64";
+      };
+    };
+    jf-caddy = {
+      name = "br-caddy-jf";
+      caddy = {
+        interface = "caddy-jf";
+        ip4 = "10.3.0.1";
+        ip6 = "fc00::21";
+      };
+      jf = {
+        ip4 = "10.3.0.2";
+        ip6 = "fc00::22";
+      };
+    };
+    jf-csec = {
+      name = "br-csec-jf";
+      jf = {
+        interface = "jf-csec";
+        ip4 = "10.3.1.1";
+        ip6 = "fc00::23";
+      };
+      csec = {
+        interface = "csec-jf";
+        ip4 = "10.3.1.2";
+        ip6 = "fc00::24";
+      };
+    };
+    mc-caddy = {
+      name = "br-caddy-mc";
+      caddy = {
+        interface = "caddy-mc";
+        ip4 = "10.2.0.1";
+        ip6 = "fc00::11";
+      };
+      mc = {
+        ip4 = "10.2.0.2";
+        ip6 = "fc00::12";
+      };
+    };
+    mc-csec = {
+      name = "br-csec-mc";
+      csec = {
+        interface = "csec-mc";
+        ip4 = "10.2.1.1";
+        ip6 = "fc00::13";
+      };
+      mc = {
+        interface = "mc-csec";
+        ip4 = "10.2.1.2";
+        ip6 = "fc00::14";
       };
     };
     ldap-pg = {
@@ -169,6 +170,7 @@
     };
   };
 
+  # NOTE: Keys for containers **must** correspond to their short names.
   veths = {
     caddy = {
       host = {
@@ -193,6 +195,7 @@
   };
 
   # UIDs/GIDs that are multiples of 65536 are chosen a/c to how systemd-nspawn chooses one for user namespacing.
+  # NOTE: Keys for containers **must** correspond to their usernames.
   uids = {
     minecraft = 65536 * 9;
     caddywg = 65536 * 10;
@@ -227,6 +230,7 @@
 
   # Resource limits
   # CPU: #(virtual) threads, memory: GiB
+  # NOTE: Keys for containers **must** correspond to their names.
   limits = {
     authelia = {
       cpu = 2;
