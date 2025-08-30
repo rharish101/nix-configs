@@ -9,12 +9,12 @@
       name = "br-auth-caddy";
       auth = {
         ip4 = "10.4.0.2";
-        ip6 = "fc00::32";
+        ip6 = "fc00::402";
       };
       caddy = {
         interface = "caddy-auth";
         ip4 = "10.4.0.1";
-        ip6 = "fc00::31";
+        ip6 = "fc00::401";
       };
     };
     auth-csec = {
@@ -22,12 +22,12 @@
       auth = {
         interface = "auth-csec";
         ip4 = "10.4.4.1";
-        ip6 = "fc00::39";
+        ip6 = "fc00::441";
       };
       csec = {
         interface = "csec-auth";
         ip4 = "10.4.4.2";
-        ip6 = "fc00::3a";
+        ip6 = "fc00::442";
       };
     };
     auth-ldap = {
@@ -35,11 +35,11 @@
       auth = {
         interface = "auth-ldap";
         ip4 = "10.4.3.1";
-        ip6 = "fc00::37";
+        ip6 = "fc00::431";
       };
       ldap = {
         ip4 = "10.4.3.2";
-        ip6 = "fc00::38";
+        ip6 = "fc00::432";
       };
     };
     auth-pg = {
@@ -47,12 +47,12 @@
       auth = {
         interface = "auth-pg";
         ip4 = "10.4.2.1";
-        ip6 = "fc00::35";
+        ip6 = "fc00::421";
       };
       pg = {
         interface = "pg-auth";
         ip4 = "10.4.2.2";
-        ip6 = "fc00::36";
+        ip6 = "fc00::422";
       };
     };
     csec-caddy = {
@@ -60,11 +60,11 @@
       caddy = {
         interface = "caddy-csec";
         ip4 = "10.6.0.1";
-        ip6 = "fc00::51";
+        ip6 = "fc00::601";
       };
       csec = {
         ip4 = "10.6.0.2";
-        ip6 = "fc00::52";
+        ip6 = "fc00::601";
       };
     };
     csec-pg = {
@@ -72,12 +72,12 @@
       csec = {
         interface = "csec-pg";
         ip4 = "10.6.1.1";
-        ip6 = "fc00::53";
+        ip6 = "fc00::611";
       };
       pg = {
         interface = "pg-csec";
         ip4 = "10.6.1.2";
-        ip6 = "fc00::54";
+        ip6 = "fc00::612";
       };
     };
     imm-caddy = {
@@ -85,11 +85,11 @@
       caddy = {
         interface = "caddy-imm";
         ip4 = "10.7.0.1";
-        ip6 = "fc00::61";
+        ip6 = "fc00::701";
       };
       imm = {
         ip4 = "10.7.0.2";
-        ip6 = "fc00::62";
+        ip6 = "fc00::702";
       };
     };
     imm-pg = {
@@ -97,12 +97,12 @@
       imm = {
         interface = "imm-pg";
         ip4 = "10.7.1.1";
-        ip6 = "fc00::63";
+        ip6 = "fc00::711";
       };
       pg = {
         interface = "pg-imm";
         ip4 = "10.7.1.2";
-        ip6 = "fc00::64";
+        ip6 = "fc00::712";
       };
     };
     jf-caddy = {
@@ -110,11 +110,11 @@
       caddy = {
         interface = "caddy-jf";
         ip4 = "10.3.0.1";
-        ip6 = "fc00::21";
+        ip6 = "fc00::301";
       };
       jf = {
         ip4 = "10.3.0.2";
-        ip6 = "fc00::22";
+        ip6 = "fc00::302";
       };
     };
     jf-csec = {
@@ -122,12 +122,12 @@
       jf = {
         interface = "jf-csec";
         ip4 = "10.3.1.1";
-        ip6 = "fc00::23";
+        ip6 = "fc00::311";
       };
       csec = {
         interface = "csec-jf";
         ip4 = "10.3.1.2";
-        ip6 = "fc00::24";
+        ip6 = "fc00::312";
       };
     };
     mc-caddy = {
@@ -135,11 +135,11 @@
       caddy = {
         interface = "caddy-mc";
         ip4 = "10.2.0.1";
-        ip6 = "fc00::11";
+        ip6 = "fc00::201";
       };
       mc = {
         ip4 = "10.2.0.2";
-        ip6 = "fc00::12";
+        ip6 = "fc00::202";
       };
     };
     mc-csec = {
@@ -147,12 +147,12 @@
       csec = {
         interface = "csec-mc";
         ip4 = "10.2.1.1";
-        ip6 = "fc00::13";
+        ip6 = "fc00::211";
       };
       mc = {
         interface = "mc-csec";
         ip4 = "10.2.1.2";
-        ip6 = "fc00::14";
+        ip6 = "fc00::212";
       };
     };
     ldap-pg = {
@@ -160,12 +160,12 @@
       ldap = {
         interface = "ldap-pg";
         ip4 = "10.5.0.1";
-        ip6 = "fc00::41";
+        ip6 = "fc00::501";
       };
       pg = {
         interface = "pg-ldap";
         ip4 = "10.5.0.2";
-        ip6 = "fc00::42";
+        ip6 = "fc00::502";
       };
     };
   };
