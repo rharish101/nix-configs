@@ -13,7 +13,6 @@
       flags = [
         "--update-input"
         "nixpkgs"
-        "--commit-lock-file"
       ];
       dates = "weekly";
     };
