@@ -100,6 +100,12 @@
                         policy = "two_factor";
                       }
                     ];
+                    identity_providers.oidc.authorization_policies = {
+                      tandoor = {
+                        default_policy = "deny";
+                        rules = [ { subject = "group:tandoor-users"; } ];
+                      };
+                    };
                     identity_providers.oidc.clients = [
                       {
                         client_id = "JuhCQHaHI65vm~.Oyw7F~X9nFiJpC1UsyxMzthVhDHwzjfcJhofhxV43Ezcs31Er";
@@ -132,6 +138,19 @@
                           "groups"
                         ];
                         token_endpoint_auth_method = "client_secret_post";
+                        pre_configured_consent_duration = "1 month";
+                      }
+                      {
+                        client_id = "ze1RwDxg_zLBH40.D9eP3RPbXl.fa~c2Q99q8vbwIQVZqFcn37GtzP3Wbk-HhsBO";
+                        client_name = "Tandoor Recipes";
+                        client_secret = "$pbkdf2-sha512$310000$qbwXRo.OH3g8/C5/QSYX5A$9sUVtyen0XwJi4Ky88g6NWK/C6HcHPig6sIhGzr7llkeQrNh0bpklafz3jOJx7A9d632NSPVIaNDWBWAaONeMQ";
+                        redirect_uris = [ "https://${subdomains.tr}.${domain}/accounts/oidc/authelia/login/callback/" ];
+                        scopes = [
+                          "openid"
+                          "profile"
+                          "email"
+                        ];
+                        authorization_policy = "tandoor";
                         pre_configured_consent_duration = "1 month";
                       }
                     ];

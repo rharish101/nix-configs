@@ -168,6 +168,31 @@
         ip6 = "fc00::502";
       };
     };
+    tr-caddy = {
+      name = "br-caddy-tr";
+      caddy = {
+        interface = "caddy-tr";
+        ip4 = "10.8.0.1";
+        ip6 = "fc00::801";
+      };
+      tr = {
+        ip4 = "10.8.0.2";
+        ip6 = "fc00::802";
+      };
+    };
+    tr-pg = {
+      name = "br-pg-tr";
+      tr = {
+        interface = "tr-pg";
+        ip4 = "10.8.1.1";
+        ip6 = "fc00::811";
+      };
+      pg = {
+        interface = "pg-tr";
+        ip4 = "10.8.1.2";
+        ip6 = "fc00::812";
+      };
+    };
   };
 
   # NOTE: Keys for containers **must** correspond to their short names.
@@ -204,6 +229,7 @@
     postgres = 65536 * 13;
     crowdsec = 65536 * 15;
     immich = 65536 * 16;
+    tandoor = 65536 * 17;
   };
 
   ports = {
@@ -214,6 +240,7 @@
     lldap = 3890;
     minecraft = 25565; # Used for both Java (TCP) & Bedrock (UDP) editions
     postgres = 5432;
+    tandoor = 2113; # Don't use defaut of 8080, since it's not unique.
     wireguard = 51820;
   };
 
@@ -224,6 +251,7 @@
       auth = "auth";
       imm = "photos";
       jf = "media";
+      tr = "recipes";
     };
     ldapBaseDn = "dc=rharish,dc=dev";
   };

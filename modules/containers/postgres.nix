@@ -41,6 +41,7 @@
                 host sameuser crowdsec ${csec-pg.csec.ip4}/32 scram-sha-256
                 host sameuser immich   ${imm-pg.imm.ip4}/32   scram-sha-256
                 host sameuser lldap    ${ldap-pg.ldap.ip4}/32 scram-sha-256
+                host sameuser tandoor  ${tr-pg.tr.ip4}/32     scram-sha-256
               '';
               ensureUsers = [
                 (lib.mkIf config.modules.authelia.enable {
@@ -59,12 +60,17 @@
                   name = "lldap";
                   ensureDBOwnership = true;
                 })
+                (lib.mkIf config.modules.tandoor.enable {
+                  name = "tandoor";
+                  ensureDBOwnership = true;
+                })
               ];
               ensureDatabases = [
                 (lib.mkIf config.modules.authelia.enable "authelia")
                 (lib.mkIf config.modules.crowdsec-lapi.enable "crowdsec")
                 (lib.mkIf config.modules.immich.enable "immich")
                 (lib.mkIf config.modules.lldap.enable "lldap")
+                (lib.mkIf config.modules.tandoor.enable "tandoor")
               ];
 
               # Install VectorChord for Immich.

@@ -15,5 +15,6 @@
     ./lldap.nix
     ./minecraft.nix
     ./postgres.nix
+    ./tandoor.nix
   ];
 }

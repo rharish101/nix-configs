@@ -96,6 +96,8 @@
   modules.immich.dataDir = "/data/immich";
   modules.jellyfin.enable = true;
   modules.jellyfin.dataDir = "/data/jellyfin";
+  modules.tandoor.enable = true;
+  modules.tandoor.dataDir = "/data/tandoor";
   modules.postgres.enable = true;
   modules.secureBoot.enable = true;
 

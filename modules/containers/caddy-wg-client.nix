@@ -149,6 +149,9 @@
                 virtualHosts."http://${subdomains.jf}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridges.jf-caddy.jf.ip4}:${toString constants.ports.jellyfin}
                 '';
+                virtualHosts."http://${subdomains.tr}.${domain}".extraConfig = ''
+                  reverse_proxy ${constants.bridges.tr-caddy.tr.ip4}:${toString constants.ports.tandoor}
+                '';
               };
 
             system.stateVersion = "24.11";
