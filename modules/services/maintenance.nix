@@ -2,7 +2,12 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{ config, lib, ... }:
+{
+  config,
+  inputs,
+  lib,
+  ...
+}:
 {
   options.modules.autoUpdate = lib.mkEnableOption "Enable automatic system updates";
   config = {
@@ -10,10 +15,10 @@
     system.autoUpgrade = lib.mkIf config.modules.autoUpdate {
       enable = true;
       flake = "/etc/nixos";
-      flags = [
+      flags = builtins.concatMap (inp: [
         "--update-input"
-        "nixpkgs"
-      ];
+        inp
+      ]) (builtins.attrNames inputs);
       dates = "weekly";
     };
     programs.git.config.safe.directory = "/etc/nixos";
