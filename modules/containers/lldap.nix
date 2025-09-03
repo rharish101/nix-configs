@@ -36,6 +36,7 @@
               settings = {
                 ldap_base_dn = constants.domain.ldapBaseDn;
                 ldap_port = constants.ports.lldap;
+                force_ldap_user_pass_reset = "always";
               };
               # These env vars are directly passed to systemd, so "%d" should be the credentials directory.
               environment = {

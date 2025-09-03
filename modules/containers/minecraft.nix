@@ -98,7 +98,7 @@
                   "plugins/Geyser.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot";
                     name = "Geyser";
-                    hash = "sha256-yc8GwOkeCLXclkLdgZhTm2xjIfpeAsCf2OywR1NIcgY=";
+                    hash = "sha256-IZFB9qQkFJUyurtCQqWBbd5rNvJ03OzNz7/17VtQdWM=";
                   };
                   "plugins/Floodgate.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot";
