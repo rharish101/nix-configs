@@ -57,46 +57,40 @@
     ];
   };
 
-  # Enable the following secrets.
-  sops.secrets."crypttab/cache" = { };
-  sops.secrets."crypttab/data1" = { };
-  sops.secrets."crypttab/data2" = { };
-
   # List packages installed in system profile. To search, run:
   # $ nix search wget
 
-  # Enable the OpenSSH daemon.
   services.openssh.enable = true;
-
-  # Enable fresh AMD microcode updates.
   services.ucodenix.enable = true;
-
-  # Enable firmware updates.
   services.fwupd.enable = true;
 
-  # Enable identity provider.
-  modules.authelia.enable = true;
+  modules.git.dev = true;
+  modules.impermanence.path = "/persist";
+  modules.secure-boot.enable = true;
 
-  # Enable CrowdSec Local API server.
+  modules.authelia.enable = true;
   modules.crowdsec-lapi = {
     enable = true;
     dataDir = "/data/crowdsec";
   };
-
-  # Custom module configuration
-  modules.git.dev = true;
-  modules.impermanence.path = "/persist";
+  modules.immich = {
+    enable = true;
+    dataDir = "/data/immich";
+  };
+  modules.jellyfin = {
+    enable = true;
+    dataDir = "/data/jellyfin";
+  };
   modules.lldap.enable = true;
-  modules.minecraft.enable = true;
-  modules.minecraft.dataDir = "/data/minecraft";
-  modules.immich.enable = true;
-  modules.immich.dataDir = "/data/immich";
-  modules.jellyfin.enable = true;
-  modules.jellyfin.dataDir = "/data/jellyfin";
-  modules.tandoor.enable = true;
-  modules.tandoor.dataDir = "/data/tandoor";
+  modules.minecraft = {
+    enable = true;
+    dataDir = "/data/minecraft";
+  };
   modules.postgres.enable = true;
-  modules.secureBoot.enable = true;
+  modules.tandoor = {
+    enable = true;
+    dataDir = "/data/tandoor";
+  };
 
   # This option defines the first version of NixOS you have installed on this particular machine,
   # and is used to maintain compatibility with application data (e.g. databases) created on older NixOS versions.

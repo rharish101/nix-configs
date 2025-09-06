@@ -48,13 +48,16 @@
 
   environment.etc.crypttab = {
     mode = "0600";
-    text = ''
-      # <name> <device>                                  <password>                                   <options>
-      cache    UUID=764e86a8-67c0-4ffd-bd71-1327a80c2c0c ${config.sops.secrets."crypttab/cache".path} nofail,x-systemd.device-timeout=5s,discard,no-read-workqueue,no-write-workqueue
-      data1    UUID=1288769a-3175-4068-b184-67dc6004b658 ${config.sops.secrets."crypttab/data1".path} nofail,x-systemd.device-timeout=5s
-      data2    UUID=9f0339bc-ef75-4fb7-8125-24a90d5aab92 ${config.sops.secrets."crypttab/data2".path} nofail,x-systemd.device-timeout=5s
+    text = with config.sops; ''
+      # <name> <device>                                  <password>                       <options>
+      cache    UUID=764e86a8-67c0-4ffd-bd71-1327a80c2c0c ${secrets."crypttab/cache".path} nofail,x-systemd.device-timeout=5s,discard,no-read-workqueue,no-write-workqueue
+      data1    UUID=1288769a-3175-4068-b184-67dc6004b658 ${secrets."crypttab/data1".path} nofail,x-systemd.device-timeout=5s
+      data2    UUID=9f0339bc-ef75-4fb7-8125-24a90d5aab92 ${secrets."crypttab/data2".path} nofail,x-systemd.device-timeout=5s
     '';
   };
+  sops.secrets."crypttab/cache" = { };
+  sops.secrets."crypttab/data1" = { };
+  sops.secrets."crypttab/data2" = { };
 
   fileSystems."/persist" = {
     device = "/dev/disk/by-uuid/76177813-16ba-4a28-98fc-10efcdea03b1";

@@ -96,7 +96,7 @@ in
   # List packages installed in system profile. To search, run:
   # $ nix search wget
 
-  # Enable the OpenSSH daemon.
+  # Enable the OpenSSH daemon with strict security.
   services.openssh = {
     enable = true;
     ports = [ ssh_port ];
@@ -108,7 +108,6 @@ in
     };
   };
 
-  # Custom module configuration
   modules.crowdsec-bouncer.enable = true;
   modules.crowdsec-sshd.enable = true;
   modules.editor.nixLsp.enable = false;
