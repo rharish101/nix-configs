@@ -225,7 +225,6 @@
     minecraft = 65536 * 9;
     caddywg = 65536 * 10;
     jellyfin = 65536 * 11;
-    authelia = 65536 * 12;
     postgres = 65536 * 13;
     crowdsec = 65536 * 15;
     immich = 65536 * 16;
@@ -254,6 +253,12 @@
       tr = "recipes";
     };
     ldapBaseDn = "dc=rharish,dc=dev";
+  };
+
+  # SMTP configuration for sending emails.
+  smtp = {
+    address = "submission://smtp.gmail.com:587";
+    username = "harish.rajagopals@gmail.com";
   };
 
   # Resource limits

@@ -75,10 +75,7 @@
   services.fwupd.enable = true;
 
   # Enable identity provider.
-  modules.authelia = {
-    enable = true;
-    dataDir = "/data/authelia";
-  };
+  modules.authelia.enable = true;
 
   # Enable CrowdSec Local API server.
   modules.crowdsec-lapi = {

@@ -9,18 +9,11 @@
   ...
 }:
 {
-  options.modules.authelia = {
-    enable = lib.mkEnableOption "Enable Authelia";
-    dataDir = lib.mkOption {
-      description = "Path to the directory to store Authelia info & secrets.";
-      type = lib.types.str;
-    };
-  };
+  options.modules.authelia.enable = lib.mkEnableOption "Enable Authelia";
 
   config =
     let
       constants = import ../constants.nix;
-      configDir = "/var/lib/authelia-main/configs"; # MUST be a (sub)directory of "/var/lib/authelia-{instanceName}"
     in
     lib.mkIf
       (
@@ -32,7 +25,6 @@
       {
         modules.containers.authelia = {
           shortName = "auth";
-          username = "authelia";
           allowInternet = true;
 
           credentials = {
@@ -43,13 +35,8 @@
             oidc-jwks.name = "authelia/oidc-jwks";
             pg-pass.name = "authelia/postgres";
             sess.name = "authelia/session";
+            smtp.name = "authelia/smtp";
             storage-enc.name = "authelia/storage";
-          };
-
-          bindMounts.data = {
-            hostPath = config.modules.authelia.dataDir;
-            mountPoint = configDir;
-            isReadOnly = false;
           };
 
           config =
@@ -93,7 +80,11 @@
                         }
                       ];
                     };
-                    notifier.filesystem.filename = "${configDir}/notification.txt";
+                    notifier.smtp = with constants.smtp; {
+                      address = address;
+                      username = username;
+                      sender = "Authelia <${subdomains.auth}@${domain}>";
+                    };
                     access_control.rules = [
                       {
                         domain = "*.${domain}";
@@ -168,6 +159,7 @@
                   AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE = "%d/ldap-pass";
                   AUTHELIA_IDENTITY_PROVIDERS_OIDC_HMAC_SECRET_FILE = "%d/oidc-hmac";
                   AUTHELIA_IDENTITY_VALIDATION_RESET_PASSWORD_JWT_SECRET_FILE = "%d/jwt";
+                  AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE = "%d/smtp";
                   AUTHELIA_SESSION_SECRET_FILE = "%d/sess";
                   AUTHELIA_STORAGE_ENCRYPTION_KEY_FILE = "%d/storage-enc";
                   AUTHELIA_STORAGE_POSTGRES_PASSWORD_FILE = "%d/pg-pass";
@@ -183,6 +175,7 @@
                   "oidc-jwks:oidc-jwks"
                   "pg-pass:pg-pass"
                   "sess:sess"
+                  "smtp:smtp"
                   "storage-enc:storage-enc"
                 ];
               };
