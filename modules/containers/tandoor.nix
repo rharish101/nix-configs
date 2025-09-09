@@ -83,6 +83,7 @@
                   POSTGRES_PORT = constants.ports.postgres;
                   POSTGRES_USER = "tandoor";
                   POSTGRES_DB = "tandoor";
+                  MEDIA_ROOT = "/var/lib/tandoor-recipes/mediafiles";
                   GUNICORN_MEDIA = 1;
                   SOCIAL_PROVIDERS = "allauth.socialaccount.providers.openid_connect";
                 };
