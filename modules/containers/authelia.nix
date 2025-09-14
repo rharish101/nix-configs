@@ -45,8 +45,6 @@
             in
             { config, ... }:
             {
-              imports = [ ../vendored/crowdsec.nix ];
-
               networking.firewall.allowedTCPPorts = [ constants.ports.authelia ];
 
               services.authelia.instances.main = with globalConfig.modules.authelia; {

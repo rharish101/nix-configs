@@ -11,7 +11,6 @@
       type = lib.types.str;
     };
   };
-  imports = [ ../vendored/crowdsec.nix ];
   config = lib.mkIf config.modules.crowdsec-sshd.enable {
     sops.secrets."crowdsec/sshd-creds" = {
       owner = "crowdsec";

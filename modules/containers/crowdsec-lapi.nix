@@ -37,8 +37,6 @@
           config =
             { ... }:
             {
-              imports = [ ../vendored/crowdsec.nix ];
-
               # Add secrets using an environment file.
               systemd.services.crowdsec.serviceConfig.EnvironmentFile = "/run/credentials/@system/env";
 

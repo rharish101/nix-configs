@@ -37,10 +37,7 @@
         config =
           { pkgs, ... }:
           {
-            imports = [
-              inputs.nix-minecraft.nixosModules.minecraft-servers
-              ../vendored/crowdsec.nix
-            ];
+            imports = [ inputs.nix-minecraft.nixosModules.minecraft-servers ];
             nixpkgs.overlays = [ inputs.nix-minecraft.overlay ];
             nixpkgs.config.allowUnfreePredicate =
               pkg:

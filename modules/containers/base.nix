@@ -240,6 +240,11 @@ in
                     };
 
                   services.redis.package = mkDefault pkgs.valkey;
+
+                  # Set a low reload time, to account for crashes on init:
+                  # 1. The local API server crashes due to temporary networking issues.
+                  # 2. The log processor crashes because it wants us to reload the config (after a hub update).
+                  systemd.services.crowdsec.serviceConfig.RestartSec = lib.mkForce 5;
                 };
             }
           )

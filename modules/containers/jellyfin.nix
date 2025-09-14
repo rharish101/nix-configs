@@ -63,8 +63,6 @@
           in
           { ... }:
           {
-            imports = [ ../vendored/crowdsec.nix ];
-
             networking.firewall.allowedTCPPorts = [ constants.ports.jellyfin ];
 
             hardware.graphics = {

@@ -73,8 +73,6 @@
         config =
           { pkgs, ... }:
           {
-            imports = [ ../vendored/crowdsec.nix ];
-
             networking.firewall.allowedTCPPorts = with constants.ports; [
               443 # HTTPS
               minecraft # Minecraft Java
@@ -129,7 +127,7 @@
                     "github.com/caddy-dns/cloudflare@v0.2.1"
                     "github.com/mholt/caddy-l4@v0.0.0-20250902102621-4a517a98d7fa"
                   ];
-                  hash = "sha256-OdgPZolj1Gd5i/I2AHv9Ct4jnp+w3g73txyB+/24vtQ=";
+                  hash = "sha256-LLK4QDATejb+1alpzPqa5I9oGJqK/QUKYtjBCmCkVr0=";
                 };
                 environmentFile = "/run/credentials/@system/caddy-env";
                 email = "harish.rajagopals@gmail.com";
