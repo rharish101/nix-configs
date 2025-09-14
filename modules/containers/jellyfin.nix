@@ -22,14 +22,6 @@
       gpuDevice = "/dev/dri/renderD128";
     in
     lib.mkIf (config.modules.jellyfin.enable && config.modules.caddy-wg-client.enable) {
-      # User for the Jellyfin container.
-      users.users.jellyfin = {
-        uid = constants.uids.jellyfin;
-        group = "jellyfin";
-        isSystemUser = true;
-      };
-      users.groups.jellyfin.gid = constants.uids.jellyfin;
-
       modules.containers.jellyfin = {
         shortName = "jf";
         username = "jellyfin";
