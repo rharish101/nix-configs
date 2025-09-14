@@ -12,11 +12,7 @@
     };
   };
   config = lib.mkIf config.modules.crowdsec-sshd.enable {
-    sops.secrets."crowdsec/sshd-creds" = {
-      owner = "crowdsec";
-      group = "crowdsec";
-      restartUnits = [ "crowdsec.service" ];
-    };
+    sops.secrets."crowdsec/sshd-creds".restartUnits = [ "crowdsec.service" ];
 
     services.crowdsec = {
       enable = true;
@@ -32,7 +28,10 @@
         }
       ];
       hub.collections = [ "crowdsecurity/linux" ];
-      settings.lapi.credentialsFile = config.sops.secrets."crowdsec/sshd-creds".path;
+      settings.general.api.client.credentials_path = lib.mkForce "\${CREDENTIALS_DIRECTORY}/csec-creds";
     };
+    systemd.services.crowdsec.serviceConfig.LoadCredential = [
+      "csec-creds:${config.sops.secrets."crowdsec/sshd-creds".path}"
+    ];
   };
 }
