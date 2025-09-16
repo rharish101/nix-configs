@@ -67,6 +67,7 @@ let
         default = { };
       };
       allowInternet = lib.mkEnableOption "Allow this container to access the internet";
+      useMacvlan = lib.mkEnableOption "Allow this container to access the local network through a macvlan interface";
     };
   };
 
@@ -127,7 +128,9 @@ in
               # It also has a flag denoting whether to add the subnet mask.
               # This depends on whether the interface is a network bridge or not (IDK why).
               localAddresses =
-                if cfg ? "shortName" && hasAttr cfg.shortName constants.veths then
+                if cfg.useMacvlan then
+                  null
+                else if cfg ? "shortName" && hasAttr cfg.shortName constants.veths then
                   constants.veths.${cfg.shortName}.local // { subnet = false; }
                 else if cfg ? "shortName" && mainBridge != null then
                   bridges.${mainBridge}.${cfg.shortName} // { subnet = true; }
@@ -136,7 +139,7 @@ in
 
               # The host's IP addresses for this container's default network interface.
               hostAddresses =
-                if cfg ? "shortName" && hasAttr cfg.shortName constants.veths then
+                if !cfg.useMacvlan && cfg ? "shortName" && hasAttr cfg.shortName constants.veths then
                   constants.veths.${cfg.shortName}.host
                 else
                   null;
@@ -155,6 +158,7 @@ in
               localAddress6 = mkIf (localAddresses != null) (
                 mkDefault (localAddresses.ip6 + (if localAddresses.subnet then "/112" else ""))
               );
+              macvlans = if cfg.useMacvlan then mkDefault [ config.networking.nat.externalInterface ] else [ ];
 
               # Iterate over all valid bridges for this container (that aren't the main bridge) and form the interface config.
               extraVeths = mapAttrs' (
@@ -227,16 +231,24 @@ in
                           );
                       gateway = if length matches == 1 then bridges.${mainBridge}.${elemAt matches 0} else null;
                     in
-                    mkIf (cfg.allowInternet && !isNull mainBridge) {
-                      defaultGateway = {
+                    {
+                      # Config for allowing internet through the "main" bridge to another container
+                      defaultGateway = mkIf (cfg.allowInternet && !isNull mainBridge) {
                         address = mkDefault gateway.ip4;
                         interface = mkDefault "eth0";
                       };
-                      defaultGateway6 = {
+                      defaultGateway6 = mkIf (cfg.allowInternet && !isNull mainBridge) {
                         address = mkDefault gateway.ip6;
                         interface = mkDefault "eth0";
                       };
-                      nameservers = [ nameserver ];
+                      nameservers = if cfg.allowInternet && !isNull mainBridge then [ nameserver ] else [ ];
+
+                      # Config for allowing internet through the macvlan
+                      useNetworkd = mkDefault cfg.useMacvlan;
+                      interfaces = mkIf cfg.useMacvlan {
+                        "mv-${config.networking.nat.externalInterface}".useDHCP = mkDefault true;
+                      };
+                      useHostResolvConf = !cfg.useMacvlan;
                     };
 
                   services.redis.package = mkDefault pkgs.valkey;

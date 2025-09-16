@@ -38,6 +38,7 @@
       modules.containers.caddy-wg-client = {
         shortName = "caddy";
         username = "caddywg";
+        useMacvlan = true;
         credentials = {
           priv-key.name = "wireguard/client";
           psk.name = "wireguard/psk";
