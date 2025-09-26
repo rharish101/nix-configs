@@ -4,9 +4,9 @@
 
 repos:
   - repo: https://github.com/NixOS/nixfmt
-    rev: v1.0.0
+    rev: v1.0.1
     hooks:
-      - id: nixfmt
+      - id: nixfmt-nix
   - repo: https://github.com/fsfe/reuse-tool
     rev: v5.1.1
     hooks:
