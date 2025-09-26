@@ -40,39 +40,45 @@
               # Add secrets using an environment file.
               systemd.services.crowdsec.serviceConfig.EnvironmentFile = "/run/credentials/@system/env";
 
-              services.crowdsec = {
-                enable = true;
-                autoUpdateService = true;
-                openFirewall = true;
-                name = "${config.networking.hostName}-lapi";
+              services.crowdsec =
+                let
+                  credentialsDir = "/var/lib/crowdsec/credentials";
+                in
+                {
+                  enable = true;
+                  autoUpdateService = true;
+                  openFirewall = true;
+                  name = "${config.networking.hostName}-lapi";
 
-                # XXX: CrowdSec refuses to start unless some acquisitions are specified.
-                localConfig.acquisitions = [
-                  {
-                    source = "journalctl";
-                    journalctl_filter = [ "_SYSTEMD_UNIT=ssh.service" ];
-                    labels.type = "syslog";
-                  }
-                ];
+                  # XXX: CrowdSec refuses to start unless some acquisitions are specified.
+                  localConfig.acquisitions = [
+                    {
+                      source = "journalctl";
+                      journalctl_filter = [ "_SYSTEMD_UNIT=ssh.service" ];
+                      labels.type = "syslog";
+                    }
+                  ];
 
-                settings.general = {
-                  db_config = {
-                    type = "postgres";
-                    user = "crowdsec";
-                    password = "\${DB_PASSWORD}";
-                    db_name = "crowdsec";
-                    host = constants.bridges.csec-pg.pg.ip4;
-                    port = constants.ports.postgres;
-                  };
-                  api.server = {
-                    enable = true;
-                    listen_uri = "0.0.0.0:${toString constants.ports.crowdsec}";
-                    console_path = "/var/lib/crowdsec/credentials/console.yaml";
-                    online_client.credentials_path = "/var/lib/crowdsec/credentials/capi.yaml";
+                  settings = {
+                    general = {
+                      db_config = {
+                        type = "postgres";
+                        user = "crowdsec";
+                        password = "\${DB_PASSWORD}";
+                        db_name = "crowdsec";
+                        host = constants.bridges.csec-pg.pg.ip4;
+                        port = constants.ports.postgres;
+                      };
+                      api.server = {
+                        enable = true;
+                        listen_uri = "0.0.0.0:${toString constants.ports.crowdsec}";
+                        console_path = "${credentialsDir}/console.yaml";
+                      };
+                    };
+                    capi.credentialsFile = "${credentialsDir}/capi.yaml";
+                    lapi.credentialsFile = "${credentialsDir}/lapi.yaml";
                   };
                 };
-                settings.lapi.credentialsFile = "/var/lib/crowdsec/credentials/lapi.yaml";
-              };
 
               system.stateVersion = "25.05";
             };
