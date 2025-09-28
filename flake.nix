@@ -27,12 +27,10 @@
     { nixpkgs, ... }@inputs:
     {
       nixosConfigurations.raime = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
         specialArgs = { inherit inputs; };
         modules = [ ./hosts/raime/configuration.nix ];
       };
       nixosConfigurations.shalquoir = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
         specialArgs = { inherit inputs; };
         modules = [ ./hosts/shalquoir/configuration.nix ];
       };
