@@ -20,13 +20,28 @@
     let
       constants = import ../constants.nix;
       serverName = "EBG6 Minecraft server";
+      serverPorts = {
+        original = 5001;
+      };
     in
     lib.mkIf (config.modules.minecraft.enable && config.modules.caddy-wg-client.enable) {
+      sops.templates."minecraft/env".content = ''
+        VELOCITY_SECRET=${config.sops.placeholder."minecraft/velocity"}
+      '';
+
       modules.containers.minecraft = {
         shortName = "mc";
         username = "minecraft";
         allowInternet = true;
-        credentials.csec-creds.name = "crowdsec/mc-creds";
+
+        credentials = {
+          csec-creds.name = "crowdsec/mc-creds";
+          velocity-secret.name = "minecraft/velocity";
+          env = {
+            name = "minecraft/env";
+            sopsType = "template";
+          };
+        };
 
         bindMounts.dataDir = {
           hostPath = config.modules.minecraft.dataDir;
@@ -51,14 +66,56 @@
             services.minecraft-servers = {
               enable = true;
               eula = true;
+              environmentFile = "/run/credentials/@system/env";
+
+              servers.proxy = {
+                enable = true;
+                package = pkgs.velocityServers.velocity;
+                # Flags from: https://docs.papermc.io/velocity/getting-started/
+                jvmOpts = ''
+                  -Xms1G \
+                  -Xmx1G \
+                  -XX:+UseG1GC \
+                  -XX:G1HeapRegionSize=4M \
+                  -XX:+UnlockExperimentalVMOptions \
+                  -XX:+ParallelRefProcEnabled \
+                  -XX:+AlwaysPreTouch \
+                  -XX:MaxInlineLevel=15 \
+                  -DgeyserUdpPort=server
+                '';
+                symlinks = {
+                  "plugins/Geyser.jar" = pkgs.fetchurl {
+                    url = "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/velocity";
+                    name = "Geyser";
+                    hash = "sha256-58Cl5UpT1DmxUPKfPbkEvqij5xPz9oGw/GbPM8JIipE=";
+                  };
+                  "plugins/Floodgate.jar" = pkgs.fetchurl {
+                    url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/velocity";
+                    name = "Floodgate";
+                    hash = "sha256-uS07yH1s8Gjqc1YhfwCdgwFD6Dz6FHrcFaETF6Eirdo=";
+                  };
+                };
+                files."velocity.toml".value = {
+                  config-version = "2.7";
+                  bind = "0.0.0.0:${toString constants.ports.minecraft}";
+                  motd = serverName;
+                  player-info-forwarding-mode = "modern";
+                  forwarding-secret-file = "@CREDENTIALS_DIRECTORY@/velocity-secret";
+                  servers = builtins.mapAttrs (_: port: "127.0.0.1:${toString port}") serverPorts // {
+                    try = builtins.attrNames serverPorts;
+                  };
+                  forced-hosts = { }; # Unset the existing example hosts.
+                  advanced.haproxy-protocol = true;
+                };
+              };
 
               servers.original = {
                 enable = true;
                 package = pkgs.minecraftServers.paper-1_21_8;
                 # Aikar's flags.
                 jvmOpts = with constants.limits.minecraft; ''
-                  -Xms${toString memory}G \
-                  -Xmx${toString memory}G \
+                  -Xms${toString (memory - 1)}G \
+                  -Xmx${toString (memory - 1)}G \
                   -XX:+UseG1GC \
                   -XX:+ParallelRefProcEnabled \
                   -XX:MaxGCPauseMillis=200 \
@@ -78,34 +135,28 @@
                   -XX:+PerfDisableSharedMem \
                   -XX:MaxTenuringThreshold=1 \
                   -Dusing.aikars.flags=https://mcflags.emc.gs \
-                  -Daikars.new.flags=true \
-                  -DgeyserUdpPort=server
+                  -Daikars.new.flags=true
                 '';
                 serverProperties = {
                   server-name = serverName;
-                  motd = serverName;
                   difficulty = "easy";
                   view-distance = 50;
                   max-world-size = 29999984;
                   spawn-protection = 0;
                   white-list = true;
-                  server-port = constants.ports.minecraft;
+                  server-ip = "127.0.0.1"; # Only needs to be accessible by Velocity
+                  server-port = serverPorts.original;
+                  online-mode = false; # Velocity does this for us.
                 };
-                symlinks = {
-                  "plugins/Geyser.jar" = pkgs.fetchurl {
-                    url = "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot";
-                    name = "Geyser";
-                    hash = "sha256-uSDcQmPsbrfEE4Hu/JPbNX7By3y36UKVtBtbVm6pejM=";
-                  };
-                  "plugins/Floodgate.jar" = pkgs.fetchurl {
-                    url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot";
-                    name = "Floodgate";
-                    hash = "sha256-AelUlBDvIOJk75r2tDxp89HPJOl1b/9mc4KgScPKjTk=";
-                  };
+                files."config/paper-global.yml".value.proxies.velocity = {
+                  enabled = true;
+                  secret = "@VELOCITY_SECRET@";
                 };
-                files."config/paper-global.yml".value.proxies.proxy-protocol = true;
               };
             };
+            systemd.services.minecraft-server-proxy.serviceConfig.LoadCredential = [
+              "velocity-secret:velocity-secret"
+            ];
 
             services.crowdsec = lib.mkIf config.modules.crowdsec-lapi.enable {
               enable = true;
