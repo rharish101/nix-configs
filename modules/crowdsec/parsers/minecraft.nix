@@ -4,7 +4,7 @@
 
 {
   name = "rharish101/minecraft-logs";
-  description = "Parse Minecraft logs for non-whitelisted/banned/unauthenticated users";
+  description = "Parse Minecraft & Velocity logs for non-whitelisted/banned/unauthenticated users";
   filter = "evt.Parsed.program == 'minecraft'";
   onsuccess = "next_stage";
   pattern_syntax.MINECRAFT_USER = "[a-zA-Z0-9_]{3,16}";
@@ -46,30 +46,13 @@
     {
       name = "Possibly offline account user";
       grok = {
-        pattern = "^\\[%{TIME:time}\\] \\[Server thread/INFO\\]: %{MINECRAFT_USER:user} \\(/%{IP:source_ip}:%{POSINT}\\) lost connection: Disconnected$";
+        pattern = "^\\[%{TIME:time}\\] \\[Netty epoll Worker #%{POSINT}/INFO\\] [com.velocitypowered.proxy.connection.MinecraftConnection]: [initial connection] /%{IP:source_ip}:%{POSINT} has disconnected$";
         apply_on = "message";
       };
       statics = [
         {
           meta = "log_subtype";
           value = "minecraft_possibly_offline";
-        }
-        {
-          meta = "user";
-          expression = "evt.Parsed.user";
-        }
-      ];
-    }
-    {
-      name = "Invalid username";
-      grok = {
-        pattern = "^\\[%{TIME:time}\\] \\[Server thread/INFO\\]: /%{IP:source_ip}:%{POSINT} lost connection: Disconnected$";
-        apply_on = "message";
-      };
-      statics = [
-        {
-          meta = "log_subtype";
-          value = "minecraft_invalid_username";
         }
       ];
     }

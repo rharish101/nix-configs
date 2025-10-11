@@ -176,7 +176,7 @@
                       # in the same day. Thus, to avoid unwanted collisions across different logs
                       # (each log gzip is for a different run on a different day), just parse the
                       # latest log.
-                      filenames = [ "/srv/minecraft/original/logs/latest.log" ];
+                      filenames = [ "/srv/minecraft/*/logs/latest.log" ];
                       labels.type = "minecraft";
                       use_time_machine = true;
                     }
