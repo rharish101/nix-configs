@@ -111,7 +111,7 @@
 
               servers.original = {
                 enable = true;
-                package = pkgs.minecraftServers.paper-1_21_8;
+                package = pkgs.minecraftServers.paper-1_21_10;
                 # Aikar's flags.
                 jvmOpts = with constants.limits.minecraft; ''
                   -Xms${toString (memory - 1)}G \
