@@ -163,6 +163,7 @@
                 virtualHosts."${subdomains.auth}.${domain}".extraConfig = proxyConfig;
                 virtualHosts."${subdomains.imm}.${domain}".extraConfig = proxyConfig;
                 virtualHosts."${subdomains.jf}.${domain}".extraConfig = proxyConfig;
+                virtualHosts."${subdomains.oc}.${domain}".extraConfig = proxyConfig;
                 virtualHosts."${subdomains.tr}.${domain}".extraConfig = proxyConfig;
               };
 

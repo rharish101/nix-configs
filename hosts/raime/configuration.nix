@@ -86,6 +86,10 @@
     enable = true;
     dataDir = "/data/minecraft";
   };
+  modules.opencloud = {
+    enable = true;
+    dataDir = "/data/opencloud";
+  };
   modules.postgres.enable = true;
   modules.tandoor = {
     enable = true;

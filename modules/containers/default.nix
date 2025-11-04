@@ -14,6 +14,7 @@
     ./jellyfin.nix
     ./lldap.nix
     ./minecraft.nix
+    ./opencloud.nix
     ./postgres.nix
     ./tandoor.nix
   ];

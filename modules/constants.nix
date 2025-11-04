@@ -193,6 +193,18 @@
         ip6 = "fc00::812";
       };
     };
+    oc-caddy = {
+      name = "br-caddy-oc";
+      caddy = {
+        interface = "caddy-oc";
+        ip4 = "10.9.0.1";
+        ip6 = "fc00::901";
+      };
+      oc = {
+        ip4 = "10.9.0.2";
+        ip6 = "fc00::902";
+      };
+    };
   };
 
   # NOTE: Keys for containers **must** correspond to their short names.
@@ -229,6 +241,7 @@
     crowdsec = 65536 * 15;
     immich = 65536 * 16;
     tandoor = 65536 * 17;
+    opencloud = 65536 * 18;
   };
 
   ports = {
@@ -238,6 +251,7 @@
     jellyfin = 8096;
     lldap = 3890;
     minecraft = 25565; # Used for both Java (TCP) & Bedrock (UDP) editions
+    opencloud = 9200;
     postgres = 5432;
     tandoor = 2113; # Don't use defaut of 8080, since it's not unique.
     wireguard = 51820;
@@ -250,6 +264,7 @@
       auth = "auth";
       imm = "photos";
       jf = "media";
+      oc = "cloud";
       tr = "recipes";
     };
     ldapBaseDn = "dc=rharish,dc=dev";
@@ -257,7 +272,8 @@
 
   # SMTP configuration for sending emails.
   smtp = {
-    address = "submission://smtp.gmail.com:587";
+    host = "smtp.gmail.com";
+    port = 587;
     username = "harish.rajagopals@gmail.com";
   };
 
@@ -288,6 +304,10 @@
     minecraft = {
       cpu = 6;
       memory = 9;
+    };
+    opencloud = {
+      cpu = 1;
+      memory = 1;
     };
   };
 }
