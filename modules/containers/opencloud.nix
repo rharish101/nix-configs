@@ -48,15 +48,11 @@
                 SMTP_USERNAME = constants.smtp.username;
                 SMTP_TRANSPORT_ENCRYPTION = "true";
                 SMTP_INSECURE = "false";
-                STORAGE_USERS_ID_CACHE_STORE = "nats-js-kv";
                 OC_OIDC_ISSUER = with constants.domain; "https://${subdomains.auth}.${domain}";
                 WEB_OIDC_CLIENT_ID = "9j4m5zcr5c51gJB6Qs50bChpQFWj3Htzc4wj3F2SMGVtIw-LhF3k8XpdXsWLP7YN";
                 WEB_OIDC_SCOPE = "openid profile email groups";
                 OC_EXCLUDE_RUN_SERVICES = "idp";
-                PROXY_USER_OIDC_CLAIM = "preferred_username";
-                PROXY_USER_CS3_CLAIM = "username";
                 PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD = "none";
-                PROXY_AUTOPROVISION_ACCOUNTS = "false";
                 PROXY_CSP_CONFIG_FILE_LOCATION = "/etc/opencloud/csp.yaml";
               };
               settings.csp.directives = {
