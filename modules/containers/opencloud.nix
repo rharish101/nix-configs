@@ -55,10 +55,8 @@
                 OC_EXCLUDE_RUN_SERVICES = "idp";
                 PROXY_USER_OIDC_CLAIM = "preferred_username";
                 PROXY_USER_CS3_CLAIM = "username";
-                PROXY_ROLE_ASSIGNMENT_DRIVER = "oidc";
-                PROXY_ROLE_ASSIGNMENT_OIDC_CLAIM = "groups";
                 PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD = "none";
-                PROXY_AUTOPROVISION_ACCOUNTS = "true";
+                PROXY_AUTOPROVISION_ACCOUNTS = "false";
                 PROXY_CSP_CONFIG_FILE_LOCATION = "/etc/opencloud/csp.yaml";
               };
             };
@@ -114,31 +112,6 @@
                       style-src = [
                         "'self'"
                         "'unsafe-inline'"
-                      ];
-                    };
-                  };
-                };
-                "opencloud/proxy.yaml" = commonConfig // {
-                  text = lib.generators.toYAML { } {
-                    role_assignment = {
-                      driver = "oidc";
-                      oidc_role_mapper.role_mapping = [
-                        {
-                          role_name = "admin";
-                          claim_value = "opencloud-admins";
-                        }
-                        {
-                          role_name = "spaceadmin";
-                          claim_value = "opencloud-space-admins";
-                        }
-                        {
-                          role_name = "user";
-                          claim_value = "opencloud-users";
-                        }
-                        {
-                          role_name = "guest";
-                          claim_value = "opencloud-guests";
-                        }
                       ];
                     };
                   };

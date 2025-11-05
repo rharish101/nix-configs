@@ -90,20 +90,9 @@
                       }
                     ];
                     identity_providers.oidc = {
-                      authorization_policies = {
-                        opencloud = {
-                          default_policy = "deny";
-                          rules = [
-                            { subject = "group:opencloud-admins"; }
-                            { subject = "group:opencloud-space-admins"; }
-                            { subject = "group:opencloud-users"; }
-                            { subject = "group:opencloud-guests"; }
-                          ];
-                        };
-                        tandoor = {
-                          default_policy = "deny";
-                          rules = [ { subject = "group:tandoor-users"; } ];
-                        };
+                      authorization_policies.tandoor = {
+                        default_policy = "deny";
+                        rules = [ { subject = "group:tandoor-users"; } ];
                       };
                       cors = {
                         endpoints = [ "token" ];
@@ -172,7 +161,6 @@
                             "email"
                             "groups"
                           ];
-                          authorization_policy = "opencloud";
                           pre_configured_consent_duration = "1 month";
                         }
                         {
@@ -195,7 +183,6 @@
                             "refresh_token"
                             "authorization_code"
                           ];
-                          authorization_policy = "opencloud";
                           pre_configured_consent_duration = "1 month";
                         }
                         {
@@ -215,7 +202,6 @@
                             "refresh_token"
                             "authorization_code"
                           ];
-                          authorization_policy = "opencloud";
                           pre_configured_consent_duration = "1 month";
                         }
                         {
@@ -235,7 +221,6 @@
                             "refresh_token"
                             "authorization_code"
                           ];
-                          authorization_policy = "opencloud";
                           pre_configured_consent_duration = "1 month";
                         }
                       ];
