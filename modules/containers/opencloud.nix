@@ -59,64 +59,53 @@
                 PROXY_AUTOPROVISION_ACCOUNTS = "false";
                 PROXY_CSP_CONFIG_FILE_LOCATION = "/etc/opencloud/csp.yaml";
               };
+              settings.csp.directives = {
+                child-src = [ "'self'" ];
+                connect-src = [
+                  "'self'"
+                  "blob:"
+                  "https://raw.githubusercontent.com/opencloud-eu/awesome-apps/"
+                  (with constants.domain; "https://${subdomains.auth}.${domain}/")
+                ];
+                default-src = [ "'none'" ];
+                font-src = [ "'self'" ];
+                frame-ancestors = [ "'self'" ];
+                frame-src = [
+                  "'self'"
+                  "blob:"
+                  "https://embed.diagrams.net"
+                ];
+                img-src = [
+                  "'self'"
+                  "data:"
+                  "blob:"
+                  "https://raw.githubusercontent.com/opencloud-eu/awesome-apps/"
+                ];
+                manifest-src = [ "'self'" ];
+                media-src = [ "'self'" ];
+                object-src = [
+                  "'self'"
+                  "blob:"
+                ];
+                script-src = [
+                  "'self'"
+                  "'unsafe-inline'"
+                  "'unsafe-eval'"
+                ];
+                style-src = [
+                  "'self'"
+                  "'unsafe-inline'"
+                ];
+              };
             };
 
-            environment.etc =
-              let
-                commonConfig = {
-                  user = config.services.opencloud.user;
-                  group = config.services.opencloud.group;
-                };
-              in
-              {
-                # NOTE: This is created when running OpenCloud with an empty state directory.
-                # You have to then copy /etc/opencloud/opencloud.yaml to the state directory.
-                "opencloud/opencloud.yaml" = commonConfig // {
-                  source = "${config.services.opencloud.stateDir}/opencloud.yaml";
-                };
-                "opencloud/csp.yaml" = commonConfig // {
-                  text = lib.generators.toYAML { } {
-                    directives = {
-                      child-src = [ "'self'" ];
-                      connect-src = [
-                        "'self'"
-                        "blob:"
-                        "https://raw.githubusercontent.com/opencloud-eu/awesome-apps/"
-                        (with constants.domain; "https://${subdomains.auth}.${domain}/")
-                      ];
-                      default-src = [ "'none'" ];
-                      font-src = [ "'self'" ];
-                      frame-ancestors = [ "'self'" ];
-                      frame-src = [
-                        "'self'"
-                        "blob:"
-                        "https://embed.diagrams.net"
-                      ];
-                      img-src = [
-                        "'self'"
-                        "data:"
-                        "blob:"
-                        "https://raw.githubusercontent.com/opencloud-eu/awesome-apps/"
-                      ];
-                      manifest-src = [ "'self'" ];
-                      media-src = [ "'self'" ];
-                      object-src = [
-                        "'self'"
-                        "blob:"
-                      ];
-                      script-src = [
-                        "'self'"
-                        "'unsafe-inline'"
-                        "'unsafe-eval'"
-                      ];
-                      style-src = [
-                        "'self'"
-                        "'unsafe-inline'"
-                      ];
-                    };
-                  };
-                };
-              };
+            # NOTE: This is created when running OpenCloud with an empty state directory.
+            # You have to then copy /etc/opencloud/opencloud.yaml to the state directory.
+            environment.etc."opencloud/opencloud.yaml" = {
+              user = config.services.opencloud.user;
+              group = config.services.opencloud.group;
+              source = "${config.services.opencloud.stateDir}/opencloud.yaml";
+            };
 
             system.stateVersion = "25.11";
           };
