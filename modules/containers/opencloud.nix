@@ -128,8 +128,16 @@
                           claim_value = "opencloud-admins";
                         }
                         {
+                          role_name = "spaceadmin";
+                          claim_value = "opencloud-space-admins";
+                        }
+                        {
                           role_name = "user";
                           claim_value = "opencloud-users";
+                        }
+                        {
+                          role_name = "guest";
+                          claim_value = "opencloud-guests";
                         }
                       ];
                     };

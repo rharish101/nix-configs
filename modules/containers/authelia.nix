@@ -95,7 +95,9 @@
                           default_policy = "deny";
                           rules = [
                             { subject = "group:opencloud-admins"; }
+                            { subject = "group:opencloud-space-admins"; }
                             { subject = "group:opencloud-users"; }
+                            { subject = "group:opencloud-guests"; }
                           ];
                         };
                         tandoor = {
