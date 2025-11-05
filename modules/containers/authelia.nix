@@ -175,6 +175,69 @@
                           authorization_policy = "opencloud";
                           pre_configured_consent_duration = "1 month";
                         }
+                        {
+                          client_id = "OpenCloudDesktop";
+                          client_name = "OpenCloud (Desktop)";
+                          client_secret = "";
+                          public = true;
+                          redirect_uris = [
+                            "http://127.0.0.1"
+                            "http://localhost"
+                          ];
+                          scopes = [
+                            "openid"
+                            "profile"
+                            "email"
+                            "groups"
+                            "offline_access"
+                          ];
+                          grant_types = [
+                            "refresh_token"
+                            "authorization_code"
+                          ];
+                          authorization_policy = "opencloud";
+                          pre_configured_consent_duration = "1 month";
+                        }
+                        {
+                          client_id = "OpenCloudAndroid";
+                          client_name = "OpenCloud (Android)";
+                          client_secret = "";
+                          public = true;
+                          redirect_uris = [ "oc://android.opencloud.eu" ];
+                          scopes = [
+                            "openid"
+                            "profile"
+                            "email"
+                            "groups"
+                            "offline_access"
+                          ];
+                          grant_types = [
+                            "refresh_token"
+                            "authorization_code"
+                          ];
+                          authorization_policy = "opencloud";
+                          pre_configured_consent_duration = "1 month";
+                        }
+                        {
+                          client_id = "OpenCloudIOS";
+                          client_name = "OpenCloud (iOS)";
+                          client_secret = "";
+                          public = true;
+                          redirect_uris = [ "oc://ios.opencloud.eu" ];
+                          scopes = [
+                            "openid"
+                            "profile"
+                            "email"
+                            "groups"
+                            "offline_access"
+                          ];
+                          grant_types = [
+                            "refresh_token"
+                            "authorization_code"
+                          ];
+                          authorization_policy = "opencloud";
+                          pre_configured_consent_duration = "1 month";
+                        }
                       ];
                     };
                   };
