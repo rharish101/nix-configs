@@ -69,6 +69,7 @@
   modules.secure-boot.enable = true;
 
   modules.authelia.enable = true;
+  modules.collabora.enable = true;
   modules.crowdsec-lapi = {
     enable = true;
     dataDir = "/data/crowdsec";

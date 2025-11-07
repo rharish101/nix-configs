@@ -9,6 +9,7 @@
     ./authelia.nix
     ./caddy-wg-client.nix
     ./caddy-wg-server.nix
+    ./collabora.nix
     ./crowdsec-lapi.nix
     ./immich.nix
     ./jellyfin.nix

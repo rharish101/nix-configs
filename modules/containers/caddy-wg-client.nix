@@ -144,6 +144,9 @@
                 virtualHosts."http://${subdomains.auth}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridges.auth-caddy.auth.ip4}:${toString constants.ports.authelia}
                 '';
+                virtualHosts."http://${subdomains.cb}.${domain}".extraConfig = ''
+                  reverse_proxy ${constants.bridges.cb-caddy.cb.ip4}:${toString constants.ports.collabora}
+                '';
                 virtualHosts."http://${subdomains.imm}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridges.imm-caddy.imm.ip4}:${toString constants.ports.immich}
                 '';
@@ -155,6 +158,9 @@
                 '';
                 virtualHosts."http://${subdomains.tr}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridges.tr-caddy.tr.ip4}:${toString constants.ports.tandoor}
+                '';
+                virtualHosts."http://${subdomains.wopi}.${domain}".extraConfig = ''
+                  reverse_proxy ${constants.bridges.oc-caddy.oc.ip4}:${toString constants.ports.wopi}
                 '';
               };
 

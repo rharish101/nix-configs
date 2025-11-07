@@ -205,6 +205,18 @@
         ip6 = "fc00::902";
       };
     };
+    cb-caddy = {
+      name = "br-caddy-cb";
+      caddy = {
+        interface = "caddy-cb";
+        ip4 = "10.10.0.1";
+        ip6 = "fc00::a01";
+      };
+      cb = {
+        ip4 = "10.10.0.2";
+        ip6 = "fc00::a02";
+      };
+    };
   };
 
   # NOTE: Keys for containers **must** correspond to their short names.
@@ -246,6 +258,7 @@
 
   ports = {
     authelia = 9091;
+    collabora = 9980;
     crowdsec = 20546; # Don't use defaut of 8080, since it's not unique.
     immich = 2283;
     jellyfin = 8096;
@@ -255,6 +268,7 @@
     postgres = 5432;
     tandoor = 2113; # Don't use defaut of 8080, since it's not unique.
     wireguard = 51820;
+    wopi = 9300;
   };
 
   # Constants related to my personal domain.
@@ -262,10 +276,12 @@
     domain = "rharish.dev";
     subdomains = {
       auth = "auth";
+      cb = "office";
       imm = "photos";
       jf = "media";
       oc = "cloud";
       tr = "recipes";
+      wopi = "wopi";
     };
     ldapBaseDn = "dc=rharish,dc=dev";
   };
@@ -290,6 +306,10 @@
       memory = 1;
     };
     caddy-wg-server = {
+      cpu = 1;
+      memory = 1;
+    };
+    collabora = {
       cpu = 1;
       memory = 1;
     };

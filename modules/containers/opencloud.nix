@@ -14,6 +14,7 @@
   config =
     let
       constants = import ../constants.nix;
+      useCollabora = config.modules.collabora.enable;
     in
     lib.mkIf (config.modules.opencloud.enable && config.modules.caddy-wg-client.enable) {
       modules.containers.opencloud = {
@@ -29,9 +30,11 @@
         };
 
         config =
-          { config, ... }:
+          { config, pkgs, ... }:
           {
-            networking.firewall.allowedTCPPorts = [ constants.ports.opencloud ];
+            networking.firewall.allowedTCPPorts =
+              with constants.ports;
+              [ opencloud ] ++ lib.optional useCollabora wopi;
 
             services.opencloud = {
               enable = true;
@@ -54,6 +57,12 @@
                 OC_EXCLUDE_RUN_SERVICES = "idp";
                 PROXY_OIDC_ACCESS_TOKEN_VERIFY_METHOD = "none";
                 PROXY_CSP_CONFIG_FILE_LOCATION = "/etc/opencloud/csp.yaml";
+              }
+              // lib.optionalAttrs useCollabora {
+                COLLABORATION_APP_PRODUCT = "Collabora";
+                COLLABORATION_APP_ADDR = with constants.domain; "https://${subdomains.cb}.${domain}";
+                COLLABORATION_WOPI_SRC = with constants.domain; "https://${subdomains.wopi}.${domain}";
+                COLLABORATION_HTTP_ADDR = "0.0.0.0:${toString constants.ports.wopi}";
               };
               settings.csp.directives = {
                 child-src = [ "'self'" ];
@@ -70,6 +79,7 @@
                   "'self'"
                   "blob:"
                   "https://embed.diagrams.net"
+                  (with constants.domain; "https://${subdomains.cb}.${domain}/")
                   "https://docs.opencloud.eu"
                 ];
                 img-src = [
@@ -77,6 +87,7 @@
                   "data:"
                   "blob:"
                   "https://raw.githubusercontent.com/opencloud-eu/awesome-apps/"
+                  (with constants.domain; "https://${subdomains.cb}.${domain}/")
                 ];
                 manifest-src = [ "'self'" ];
                 media-src = [ "'self'" ];
@@ -103,8 +114,26 @@
               source = "${config.services.opencloud.stateDir}/opencloud.yaml";
             };
 
+            systemd.services.opencloud-collaboration = lib.mkIf useCollabora {
+              description = "Start OpenCloud collaboration service";
+              after = [ "opencloud.service" ];
+              requires = [ "opencloud.service" ];
+              wantedBy = [ "multi-user.target" ];
+              environment = config.systemd.services.opencloud.environment;
+              serviceConfig = config.systemd.services.opencloud.serviceConfig // {
+                # XXX: This is to ensure that Collabora fully starts before this service starts.
+                ExecStartPre = "${lib.getExe' pkgs.coreutils-full "sleep"} 10";
+                ExecStart = "${lib.getExe config.services.opencloud.package} collaboration server";
+              };
+            };
+
             system.stateVersion = "25.11";
           };
+      };
+
+      systemd.services."container@opencloud" = lib.mkIf useCollabora {
+        after = [ "container@collabora.service" ];
+        requires = [ "container@collabora.service" ];
       };
     };
 }
