@@ -70,6 +70,7 @@
                   "'self'"
                   "blob:"
                   "https://embed.diagrams.net"
+                  "https://docs.opencloud.eu"
                 ];
                 img-src = [
                   "'self'"
@@ -86,7 +87,6 @@
                 script-src = [
                   "'self'"
                   "'unsafe-inline'"
-                  "'unsafe-eval'"
                 ];
                 style-src = [
                   "'self'"
