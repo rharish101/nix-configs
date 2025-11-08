@@ -13,7 +13,6 @@
       modules.containers.collabora = {
         shortName = "cb";
         allowInternet = true;
-        extraFlags = [ "--notify-ready=yes" ]; # Notify that the container is ready only after the init process is ready (i.e. ready.target).
 
         config =
           { pkgs, ... }:
@@ -34,16 +33,9 @@
                   enable = false;
                   termination = true;
                 };
-                storage.wopi.host = with constants.domain; "https://${subdomains.wopi}.${domain}";
+                storage.wopi.host = with constants.domain; "https://${subdomains.oc}.${domain}";
                 per_document.max_concurrency = constants.limits.collabora.cpu;
-                net.content_security_policy = with constants.domain; "frame-ancestors ${subdomains.oc}.${domain}";
               };
-            };
-
-            # Make sure that the container reports itself as ready only after Collabora is ready.
-            systemd.targets.ready = {
-              after = [ "coolwsd.service" ];
-              requires = [ "coolwsd.service" ];
             };
 
             system.stateVersion = "25.11";

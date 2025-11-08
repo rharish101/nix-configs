@@ -268,7 +268,6 @@
     postgres = 5432;
     tandoor = 2113; # Don't use defaut of 8080, since it's not unique.
     wireguard = 51820;
-    wopi = 9300;
   };
 
   # Constants related to my personal domain.
@@ -281,7 +280,6 @@
       jf = "media";
       oc = "cloud";
       tr = "recipes";
-      wopi = "wopi";
     };
     ldapBaseDn = "dc=rharish,dc=dev";
   };

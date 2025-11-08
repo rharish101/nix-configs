@@ -159,9 +159,6 @@
                 virtualHosts."http://${subdomains.tr}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridges.tr-caddy.tr.ip4}:${toString constants.ports.tandoor}
                 '';
-                virtualHosts."http://${subdomains.wopi}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridges.oc-caddy.oc.ip4}:${toString constants.ports.wopi}
-                '';
               };
 
             system.stateVersion = "24.11";
