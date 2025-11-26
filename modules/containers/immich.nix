@@ -28,37 +28,6 @@
         && config.modules.postgres.enable
       )
       {
-        # Immich doesn't have a way to pass the OIDC client secret as an env var or path, so create
-        # a config manually and add it as a placeholder.
-        sops.secrets."immich/oidc".restartUnits = [ "container@immich.service" ];
-        sops.templates."immich.json" = {
-          content =
-            with constants.domain;
-            builtins.toJSON {
-              server.externalDomain = "https://${subdomains.imm}.${domain}";
-              passwordLogin.enabled = false;
-              ffmpeg = {
-                accel = "qsv";
-                accelDecode = true;
-                acceptedVideoCodecs = [
-                  "h264"
-                  "hevc"
-                  "vp9"
-                  "av1"
-                ];
-              };
-              oauth = {
-                enabled = true;
-                issuerUrl = "https://${subdomains.auth}.${domain}/.well-known/openid-configuration";
-                clientId = "JuhCQHaHI65vm~.Oyw7F~X9nFiJpC1UsyxMzthVhDHwzjfcJhofhxV43Ezcs31Er";
-                clientSecret = config.sops.placeholder."immich/oidc";
-                buttonText = "Login with Authelia";
-                autoRegister = false;
-              };
-              backup.database.enabled = false;
-            };
-        };
-
         modules.containers.immich = {
           shortName = "imm";
           username = "immich";
@@ -66,10 +35,7 @@
 
           credentials = {
             env.name = "immich/env";
-            config = {
-              name = "immich.json";
-              sopsType = "template";
-            };
+            oidc.name = "immich/oidc";
           };
 
           bindMounts = with config.modules.immich; {
@@ -121,10 +87,31 @@
                     MPLCONFIGDIR = cacheDir;
                     HF_XET_CACHE = "${cacheDir}/huggingface-xet";
                   };
-              };
-              systemd.services.immich-server = {
-                serviceConfig.LoadCredential = [ "config:config" ];
-                environment.IMMICH_CONFIG_FILE = "%d/config";
+                settings = {
+                  server.externalDomain = with constants.domain; "https://${subdomains.imm}.${domain}";
+                  passwordLogin.enabled = false;
+                  ffmpeg = {
+                    accel = "qsv";
+                    accelDecode = true;
+                    acceptedVideoCodecs = [
+                      "h264"
+                      "hevc"
+                      "vp9"
+                      "av1"
+                    ];
+                  };
+                  oauth = {
+                    enabled = true;
+                    issuerUrl =
+                      with constants.domain;
+                      "https://${subdomains.auth}.${domain}/.well-known/openid-configuration";
+                    clientId = "JuhCQHaHI65vm~.Oyw7F~X9nFiJpC1UsyxMzthVhDHwzjfcJhofhxV43Ezcs31Er";
+                    clientSecret._secret = "oidc";
+                    buttonText = "Login with Authelia";
+                    autoRegister = false;
+                  };
+                  backup.database.enabled = false;
+                };
               };
 
               system.stateVersion = "25.05";
