@@ -89,6 +89,10 @@
                         policy = "two_factor";
                       }
                     ];
+                    webauthn = {
+                      enable_passkey_login = true;
+                      experimental_enable_passkey_uv_two_factors = true;
+                    };
                     identity_providers.oidc = {
                       authorization_policies.tandoor = {
                         default_policy = "deny";
