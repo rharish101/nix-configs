@@ -87,12 +87,12 @@
                   "plugins/Geyser.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/velocity";
                     name = "Geyser";
-                    hash = "sha256-6v4ILtuN6FbH3SZdBjawRWVu8QlDo3mHM8o3TQoQNdE=";
+                    hash = "sha256-p2CLx+q1Zb5st3nXEWQgQpDGTBzfIlE2D5O66IG58Ww=";
                   };
                   "plugins/Floodgate.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/velocity";
                     name = "Floodgate";
-                    hash = "sha256-buSdDtH+uPaAjhuAtH3xEQSlt2HDj6St52Ky0XHiKCg=";
+                    hash = "sha256-JJFZZVqa6P64PGlz7KhkfgExajDOnLPfGDpoS39W/Bc=";
                   };
                 };
                 files."velocity.toml".value = {
@@ -111,7 +111,7 @@
 
               servers.original = {
                 enable = true;
-                package = pkgs.minecraftServers.paper-1_21_10;
+                package = pkgs.minecraftServers.paper-1_21_11;
                 # Aikar's flags.
                 jvmOpts = with constants.limits.minecraft; ''
                   -Xms${toString (memory - 1)}G \
