@@ -26,7 +26,7 @@
       with pkgs;
       lib.mkIf config.modules.editor.nixLsp.enable [
         nixd
-        nixfmt-rfc-style
+        nixfmt
       ];
   };
 }
