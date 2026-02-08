@@ -60,12 +60,16 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
 
+  # Allow custom SSH configs.
+  programs.ssh.extraConfig = "Include /etc/ssh/ssh_config.d/*";
+
   services.openssh.enable = true;
   services.ucodenix.enable = true;
   services.fwupd.enable = true;
 
   modules.git.dev = true;
   modules.impermanence.path = "/persist";
+  modules.restic.enable = true;
   modules.secure-boot.enable = true;
 
   modules.authelia.enable = true;

@@ -11,6 +11,7 @@
     ./maintenance.nix
     ./podman.nix
     ./power-management.nix
+    ./restic.nix
     ./ssh-agent.nix
     ./snapper.nix
   ];

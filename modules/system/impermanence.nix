@@ -23,6 +23,7 @@
       hideMounts = true;
       directories = [
         "/etc/NetworkManager/system-connections"
+        "/etc/ssh/ssh_config.d"
         "/var/lib/containers"
         "/var/lib/nixos"
         "/var/lib/postgresql"
