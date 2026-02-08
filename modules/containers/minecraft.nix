@@ -139,7 +139,7 @@
                 '';
                 serverProperties = {
                   server-name = serverName;
-                  difficulty = "easy";
+                  difficulty = "normal";
                   view-distance = 50;
                   max-world-size = 29999984;
                   spawn-protection = 0;
