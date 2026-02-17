@@ -18,5 +18,6 @@
     ./opencloud.nix
     ./postgres.nix
     ./tandoor.nix
+    ./vaultwarden.nix
   ];
 }

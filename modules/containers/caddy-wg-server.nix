@@ -166,6 +166,7 @@
                 virtualHosts."${subdomains.jf}.${domain}".extraConfig = proxyConfig;
                 virtualHosts."${subdomains.oc}.${domain}".extraConfig = proxyConfig;
                 virtualHosts."${subdomains.tr}.${domain}".extraConfig = proxyConfig;
+                virtualHosts."${subdomains.vw}.${domain}".extraConfig = proxyConfig;
               };
 
             services.crowdsec = lib.mkIf config.modules.caddy-wg-server.crowdsec.enable {

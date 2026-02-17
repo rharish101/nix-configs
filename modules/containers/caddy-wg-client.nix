@@ -159,6 +159,9 @@
                 virtualHosts."http://${subdomains.tr}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridges.tr-caddy.tr.ip4}:${toString constants.ports.tandoor}
                 '';
+                virtualHosts."http://${subdomains.vw}.${domain}".extraConfig = ''
+                  reverse_proxy ${constants.bridges.vw-caddy.vw.ip4}:${toString constants.ports.vaultwarden}
+                '';
               };
 
             system.stateVersion = "24.11";

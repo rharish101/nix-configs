@@ -217,6 +217,31 @@
         ip6 = "fc00::a02";
       };
     };
+    vw-caddy = {
+      name = "br-caddy-vw";
+      caddy = {
+        interface = "caddy-vw";
+        ip4 = "10.11.0.1";
+        ip6 = "fc00::b01";
+      };
+      vw = {
+        ip4 = "10.11.0.2";
+        ip6 = "fc00::b02";
+      };
+    };
+    vw-pg = {
+      name = "br-pg-vw";
+      vw = {
+        interface = "vw-pg";
+        ip4 = "10.11.1.1";
+        ip6 = "fc00::b11";
+      };
+      pg = {
+        interface = "pg-vw";
+        ip4 = "10.11.1.2";
+        ip6 = "fc00::b12";
+      };
+    };
   };
 
   # NOTE: Keys for containers **must** correspond to their short names.
@@ -254,6 +279,7 @@
     immich = 65536 * 16;
     tandoor = 65536 * 17;
     opencloud = 65536 * 18;
+    vaultwarden = 65536 * 19;
   };
 
   ports = {
@@ -268,6 +294,7 @@
     postgres = 5432;
     tandoor = 2113; # Don't use defaut of 8080, since it's not unique.
     wireguard = 51820;
+    vaultwarden = 6062; # Don't use default of 8000, since it's not unique.
   };
 
   # Constants related to my personal domain.
@@ -280,6 +307,7 @@
       jf = "media";
       oc = "cloud";
       tr = "recipes";
+      vw = "vault";
     };
     ldapBaseDn = "dc=rharish,dc=dev";
   };
@@ -324,6 +352,10 @@
       memory = 9;
     };
     opencloud = {
+      cpu = 1;
+      memory = 1;
+    };
+    vaultwarden = {
       cpu = 1;
       memory = 1;
     };

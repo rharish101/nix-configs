@@ -227,6 +227,26 @@
                           ];
                           pre_configured_consent_duration = "1 month";
                         }
+                        {
+                          client_id = "j-rWSHQpg-BvMn8f2y3NB367j2POzf9BBtwZCUVLgRKRmNHHqagmgVba11L2hyAPQwpcomzG";
+                          client_name = "Vaultwarden";
+                          client_secret = "$pbkdf2-sha512$310000$u0v8.klWtYVhOUEodryxHQ$DoRjnQcwLVN3jJkVrI6dClfaurYBQLIrCcf0vPguY7.fJJ7oyXffnnG.dvNTnjQIx5nx7brqZ4VnnDoTmNH9dg";
+                          redirect_uris = [
+                            "https://${subdomains.vw}.${domain}/identity/connect/oidc-signin"
+                          ];
+                          scopes = [
+                            "openid"
+                            "email"
+                            "profile"
+                            "offline_access"
+                          ];
+                          response_types = [ "code" ];
+                          grant_types = [
+                            "refresh_token"
+                            "authorization_code"
+                          ];
+                          pre_configured_consent_duration = "1 month";
+                        }
                       ];
                     };
                   };

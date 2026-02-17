@@ -37,11 +37,12 @@
               enableTCPIP = true;
               settings.port = constants.ports.postgres;
               authentication = with constants.bridges; ''
-                host sameuser authelia ${auth-pg.auth.ip4}/32 scram-sha-256
-                host sameuser crowdsec ${csec-pg.csec.ip4}/32 scram-sha-256
-                host sameuser immich   ${imm-pg.imm.ip4}/32   scram-sha-256
-                host sameuser lldap    ${ldap-pg.ldap.ip4}/32 scram-sha-256
-                host sameuser tandoor  ${tr-pg.tr.ip4}/32     scram-sha-256
+                host sameuser authelia     ${auth-pg.auth.ip4}/32 scram-sha-256
+                host sameuser crowdsec     ${csec-pg.csec.ip4}/32 scram-sha-256
+                host sameuser immich       ${imm-pg.imm.ip4}/32   scram-sha-256
+                host sameuser lldap        ${ldap-pg.ldap.ip4}/32 scram-sha-256
+                host sameuser tandoor      ${tr-pg.tr.ip4}/32     scram-sha-256
+                host sameuser vaultwarden  ${vw-pg.vw.ip4}/32     scram-sha-256
               '';
               ensureUsers = [
                 (lib.mkIf config.modules.authelia.enable {
@@ -64,6 +65,10 @@
                   name = "tandoor";
                   ensureDBOwnership = true;
                 })
+                (lib.mkIf config.modules.vaultwarden.enable {
+                  name = "vaultwarden";
+                  ensureDBOwnership = true;
+                })
               ];
               ensureDatabases = [
                 (lib.mkIf config.modules.authelia.enable "authelia")
@@ -71,6 +76,7 @@
                 (lib.mkIf config.modules.immich.enable "immich")
                 (lib.mkIf config.modules.lldap.enable "lldap")
                 (lib.mkIf config.modules.tandoor.enable "tandoor")
+                (lib.mkIf config.modules.vaultwarden.enable "vaultwarden")
               ];
 
               # Install VectorChord for Immich.
