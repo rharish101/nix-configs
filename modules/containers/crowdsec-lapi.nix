@@ -72,11 +72,11 @@
                       api.server = {
                         enable = true;
                         listen_uri = "0.0.0.0:${toString constants.ports.crowdsec}";
-                        console_path = "${credentialsDir}/console.yaml";
                       };
                     };
                     capi.credentialsFile = "${credentialsDir}/capi.yaml";
                     lapi.credentialsFile = "${credentialsDir}/lapi.yaml";
+                    console.tokenFile = "${credentialsDir}/console.yaml";
                   };
                 };
 
