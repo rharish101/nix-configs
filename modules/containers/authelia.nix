@@ -183,6 +183,7 @@
                             "groups"
                             "offline_access"
                           ];
+                          response_types = [ "code" ];
                           grant_types = [
                             "refresh_token"
                             "authorization_code"
@@ -202,6 +203,7 @@
                             "groups"
                             "offline_access"
                           ];
+                          response_types = [ "code" ];
                           grant_types = [
                             "refresh_token"
                             "authorization_code"
@@ -221,6 +223,7 @@
                             "groups"
                             "offline_access"
                           ];
+                          response_types = [ "code" ];
                           grant_types = [
                             "refresh_token"
                             "authorization_code"
