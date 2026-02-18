@@ -254,6 +254,12 @@ in
                       nftables.enable = mkDefault true;
                     };
 
+                  # Enable flakes so that we can debug inside containers.
+                  nix.settings.experimental-features = [
+                    "nix-command"
+                    "flakes"
+                  ];
+
                   services.redis.package = mkDefault pkgs.valkey;
 
                   # Set a low reload time, to account for crashes on init:
