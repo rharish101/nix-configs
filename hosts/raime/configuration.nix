@@ -95,7 +95,10 @@
     enable = true;
     dataDir = "/data/opencloud";
   };
-  modules.postgres.enable = true;
+  modules.postgres = {
+    enable = true;
+    backupDir = "/data/postgresql";
+  };
   modules.tandoor = {
     enable = true;
     dataDir = "/data/tandoor";

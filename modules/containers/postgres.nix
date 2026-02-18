@@ -11,6 +11,10 @@
       type = lib.types.str;
       default = "/var/lib/postgresql";
     };
+    backupDir = lib.mkOption {
+      description = "The path where to save PostgreSQL backups";
+      type = lib.types.str;
+    };
   };
   config =
     let
@@ -21,10 +25,17 @@
         shortName = "pg";
         username = "postgres";
 
-        bindMounts.dataDir = {
-          hostPath = config.modules.postgres.dataDir;
-          mountPoint = "/var/lib/postgresql";
-          isReadOnly = false;
+        bindMounts = with config.modules.postgres; {
+          dataDir = {
+            hostPath = dataDir;
+            mountPoint = "/var/lib/postgresql";
+            isReadOnly = false;
+          };
+          backupDir = {
+            hostPath = backupDir;
+            mountPoint = "/var/backup/postgresql";
+            isReadOnly = false;
+          };
         };
 
         config =
@@ -86,6 +97,12 @@
                   pgvector # VectorChord dependency
                 ];
               settings.shared_preload_libraries = [ "vchord" ];
+            };
+
+            services.postgresqlBackup = {
+              enable = true;
+              compression = "zstd";
+              compressionLevel = 3;
             };
 
             system.stateVersion = "25.05";
