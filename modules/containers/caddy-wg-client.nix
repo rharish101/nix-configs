@@ -63,12 +63,13 @@
             ];
             # Adjust MSS to fit the actual path MTU.
             # XXX: Fix for accessing Minecraft services over network bridge from other containers.
-            networking.firewall.extraCommands = "iptables -t mangle -A FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu";
+            networking.firewall.filterForward = true;
+            networking.firewall.extraForwardRules = "tcp flags syn tcp option maxseg size set rt mtu";
 
             # Allow internet access through the WireGuard tunnel for containers connected to this one.
             networking.nat = {
               enable = true;
-              internalInterfaces = [ "caddy-+" ];
+              internalInterfaces = [ "caddy-*" ];
               externalInterface = "wg0";
             };
 

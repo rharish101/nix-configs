@@ -27,10 +27,11 @@
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
+  networking.nftables.enable = true;
 
   networking.nat = {
     enable = true;
-    internalInterfaces = [ "ve-+" ];
+    internalInterfaces = [ "ve-*" ];
   };
 
   # Set up a wireguard tunnel to Shalquoir.

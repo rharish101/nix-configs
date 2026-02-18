@@ -6,12 +6,7 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ config, ... }:
 let
   mc_port = 26460;
   ssh_port = 8398;
@@ -44,25 +39,34 @@ in
       mc_port
       wg_port
     ];
-
-    # Hairpin NAT for the wireguard server.
-    extraCommands = ''
-      PUBIP=$(${lib.getExe' pkgs.iproute2 "ip"} -4 addr show dev ${config.networking.nat.externalInterface} | ${lib.getExe pkgs.gawk} '/inet /{print $2}' | ${lib.getExe' pkgs.coreutils-full "cut"} -d/ -f1)
-      iptables -t nat -A PREROUTING -s ${constants.veths.caddy.local.ip4} -d $PUBIP -j DNAT --to-destination ${constants.veths.caddy.local.ip4}
-      iptables -t nat -A POSTROUTING -s ${constants.veths.caddy.local.ip4} -d ${constants.veths.caddy.local.ip4} -j MASQUERADE
-    '';
-    extraStopCommands = ''
-      PUBIP=$(${lib.getExe' pkgs.iproute2 "ip"} -4 addr show dev ${config.networking.nat.externalInterface} | ${lib.getExe pkgs.gawk} '/inet /{print $2}' | ${lib.getExe' pkgs.coreutils-full "cut"} -d/ -f1)
-      iptables -t nat -D PREROUTING -s ${constants.veths.caddy.local.ip4} -d $PUBIP -j DNAT --to-destination ${constants.veths.caddy.local.ip4}
-      iptables -t nat -D POSTROUTING -s ${constants.veths.caddy.local.ip4} -d ${constants.veths.caddy.local.ip4} -j MASQUERADE
-    '';
   };
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
+  networking.nftables.enable = true;
+
+  # Hairpin NAT for the wireguard server.
+  networking.nftables.tables.hairpin-nat = {
+    name = "hairpin-nat";
+    family = "ip";
+    content =
+      let
+        caddyIp4 = constants.veths.caddy.local.ip4;
+      in
+      ''
+        chain prerouting {
+          type nat hook prerouting priority dstnat;
+          ip saddr ${caddyIp4} oifname ${config.networking.nat.externalInterface} dnat to ${caddyIp4}
+        }
+        chain postrouting {
+          type nat hook postrouting priority srcnat;
+          ip saddr ${caddyIp4} ip daddr ${caddyIp4} masquerade
+        }
+      '';
+  };
 
   networking.nat = {
     enable = true;
-    internalInterfaces = [ "ve-+" ];
+    internalInterfaces = [ "ve-*" ];
   };
 
   # Set up a wireguard server for Raime.

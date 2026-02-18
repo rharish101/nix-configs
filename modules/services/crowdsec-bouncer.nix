@@ -18,7 +18,11 @@
       package = pkgs.crowdsec-firewall-bouncer;
       configFmt = pkgs.formats.yaml { };
       configFile = configFmt.generate "crowdsec-firewall-bouncer.yaml" {
-        mode = "ipset";
+        mode = "nftables";
+        nftables = {
+          ipv4.set-only = true;
+          ipv6.set-only = true;
+        };
         log_mode = "stdout";
         api_url = "\${API_URL}";
         api_key = "\${API_KEY}";
@@ -27,20 +31,36 @@
       ip6List = "crowdsec6-blacklists";
     in
     lib.mkIf config.modules.crowdsec-bouncer.enable {
-      networking.firewall.extraPackages = [ pkgs.ipset ];
-      networking.firewall.extraCommands = ''
-        ipset -exist create ${ip4List} hash:net timeout 3600
-        ipset -exist create ${ip6List} hash:net family inet6 timeout 3600
-        iptables -A INPUT -m set --match-set ${ip4List} src -j DROP
-        iptables -A FORWARD -m set --match-set ${ip4List} src -j DROP
-        ip6tables -A INPUT -m set --match-set ${ip6List} src -j DROP
-        ip6tables -A FORWARD -m set --match-set ${ip6List} src -j DROP
-      '';
-
-      environment.systemPackages = [
-        package
-        pkgs.ipset
-      ];
+      networking.nftables.tables = {
+        crowdsec = {
+          name = "crowdsec";
+          family = "ip";
+          content = ''
+            set ${ip4List} {
+              type ipv4_addr
+              flags timeout
+            }
+            chain crowdsec-chain {
+              type filter hook input priority filter; policy accept;
+              ip saddr @${ip4List} drop
+            }
+          '';
+        };
+        crowdsec6 = {
+          name = "crowdsec6";
+          family = "ip6";
+          content = ''
+            set ${ip6List} {
+              type ipv6_addr
+              flags timeout
+            }
+            chain crowdsec6-chain {
+              type filter hook input priority filter; policy accept;
+              ip6 saddr @${ip6List} drop
+            }
+          '';
+        };
+      };
 
       sops.secrets."crowdsec/bouncer-env".restartUnits = [ "crowdsec-firewall-bouncer.service" ];
 
@@ -55,9 +75,9 @@
           "crowdsec.service"
         ];
         wantedBy = [ "multi-user.target" ];
-        path = with pkgs; [
-          iptables
-          ipset
+        path = [
+          package
+          pkgs.nftables
         ];
         serviceConfig = {
           Type = "notify";

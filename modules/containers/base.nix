@@ -249,6 +249,9 @@ in
                         "mv-${config.networking.nat.externalInterface}".useDHCP = mkDefault true;
                       };
                       useHostResolvConf = !cfg.useMacvlan;
+
+                      # Use nftables by default.
+                      nftables.enable = mkDefault true;
                     };
 
                   services.redis.package = mkDefault pkgs.valkey;
