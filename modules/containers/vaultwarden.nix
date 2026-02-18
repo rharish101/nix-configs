@@ -4,7 +4,14 @@
 
 { config, lib, ... }:
 {
-  options.modules.vaultwarden.enable = lib.mkEnableOption "Enable Vaultwarden";
+  options.modules.vaultwarden = {
+    enable = lib.mkEnableOption "Enable Vaultwarden";
+    dataDir = lib.mkOption {
+      description = "The Vaultwarden data directory path";
+      type = lib.types.str;
+    };
+  };
+
   config =
     let
       constants = import ../constants.nix;
@@ -15,6 +22,12 @@
         username = "vaultwarden";
         allowInternet = true;
         credentials.env.name = "vaultwarden";
+
+        bindMounts.dataDir = {
+          hostPath = config.modules.vaultwarden.dataDir;
+          mountPoint = "/var/lib/vaultwarden";
+          isReadOnly = false;
+        };
 
         config =
           { ... }:
