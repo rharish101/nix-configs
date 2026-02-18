@@ -21,10 +21,11 @@
       vimAlias = true;
     };
 
-    # Add LSP servers.
+    # Add LSP servers & other packages.
     users.users.rharish.packages =
       with pkgs;
-      lib.mkIf config.modules.editor.nixLsp.enable [
+      [ tree-sitter ]
+      ++ lib.optionals config.modules.editor.nixLsp.enable [
         nixd
         nixfmt
       ];
