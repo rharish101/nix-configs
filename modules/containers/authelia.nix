@@ -147,6 +147,7 @@
                             "email"
                           ];
                           authorization_policy = "tandoor";
+                          token_endpoint_auth_method = "client_secret_post";
                           pre_configured_consent_duration = "1 month";
                         }
                         {
