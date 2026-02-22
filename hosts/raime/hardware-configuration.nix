@@ -197,4 +197,23 @@
 
   # To monitor ECC errors
   hardware.rasdaemon.enable = true;
+
+  # NUT for UPS
+  power.ups = {
+    enable = true;
+    ups."shanalotte" = {
+      description = "Eaton Ellipse Pro 1120";
+      driver = "usbhid-ups";
+      port = "auto";
+    };
+    users."nut-admin" = {
+      passwordFile = config.sops.secrets."nut".path;
+      upsmon = "primary";
+    };
+    upsmon.monitor.main = {
+      system = "shanalotte";
+      user = "nut-admin";
+    };
+  };
+  sops.secrets."nut" = { };
 }
