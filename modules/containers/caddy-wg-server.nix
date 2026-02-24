@@ -127,7 +127,7 @@
                     "github.com/caddy-dns/cloudflare@v0.2.3"
                     "github.com/mholt/caddy-l4@v0.0.0-20260216070754-eca560d759c9"
                   ];
-                  hash = "sha256-EgbjruYYvZveD6a9dtEKrdeIZmOmklwCqMEtX6rnQJ4=";
+                  hash = "sha256-jupiF84rRfFdn12QtlXAXqK88Fss6c77nDwwsqwm7IU=";
                 };
                 environmentFile = "/run/credentials/@system/caddy-env";
                 email = "harish.rajagopals@gmail.com";
