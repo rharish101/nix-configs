@@ -161,6 +161,7 @@
                 virtualHosts.${domain}.extraConfig = proxyConfig;
                 virtualHosts."www.${domain}".extraConfig = "redir https://${domain} 301";
                 virtualHosts."${subdomains.auth}.${domain}".extraConfig = proxyConfig;
+                virtualHosts."${subdomains.bp}.${domain}".extraConfig = proxyConfig;
                 virtualHosts."${subdomains.cb}.${domain}".extraConfig = proxyConfig;
                 virtualHosts."${subdomains.imm}.${domain}".extraConfig = proxyConfig;
                 virtualHosts."${subdomains.jf}.${domain}".extraConfig = proxyConfig;

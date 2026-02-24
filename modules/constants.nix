@@ -302,6 +302,7 @@
     domain = "rharish.dev";
     subdomains = {
       auth = "auth";
+      bp = "pdf";
       cb = "office";
       imm = "photos";
       jf = "media";

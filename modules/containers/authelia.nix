@@ -57,7 +57,10 @@
                   {
                     default_2fa_method = "totp";
                     theme = "auto";
-                    server.address = "tcp://:${toString authelia}/";
+                    server = {
+                      address = "tcp://:${toString authelia}/";
+                      endpoints.authz.forward-auth.implementation = "ForwardAuth";
+                    };
                     authentication_backend.ldap = {
                       address = "ldap://${auth-ldap.ldap.ip4}:${toString lldap}";
                       implementation = "lldap";

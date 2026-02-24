@@ -28,13 +28,14 @@
       };
     };
   };
+  options.modules.bentopdf.enable = lib.mkEnableOption "Enable BentoPDF";
 
   config =
     let
       constants = import ../constants.nix;
       caddyDataDir = "/var/lib/containers/caddy";
     in
-    lib.mkIf (config.modules.caddy-wg-client.enable) {
+    lib.mkIf config.modules.caddy-wg-client.enable {
       modules.containers.caddy-wg-client = {
         shortName = "caddy";
         username = "caddywg";
@@ -164,6 +165,20 @@
                   reverse_proxy ${constants.bridges.vw-caddy.vw.ip4}:${toString constants.ports.vaultwarden}
                 '';
               };
+
+            services.bentopdf = lib.mkIf config.modules.bentopdf.enable {
+              enable = true;
+              domain = with constants.domain; "http://${subdomains.bp}.${domain}";
+              caddy = {
+                enable = true;
+                virtualHost.extraConfig = with constants; ''
+                  forward_auth ${bridges.auth-caddy.auth.ip4}:${toString ports.authelia} {
+                    uri /api/authz/forward-auth
+                    copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+                  }
+                '';
+              };
+            };
 
             system.stateVersion = "24.11";
           };
