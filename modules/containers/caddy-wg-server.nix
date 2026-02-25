@@ -117,7 +117,24 @@
             services.caddy =
               let
                 clientIp = constants.veths.tunnel.client.ip4;
-                proxyConfig = "reverse_proxy ${clientIp}:80";
+                rateLimitConfig = ''
+                  rate_limit {
+                    zone global {
+                      window 10s
+                      events 20000
+                    }
+                    zone per_host {
+                      key {remote_host}
+                      window 10s
+                      events 2000
+                    }
+                    jitter 0.2
+                  }
+                '';
+                proxyConfig = ''
+                  ${rateLimitConfig}
+                  reverse_proxy ${clientIp}:80
+                '';
               in
               with constants.domain;
               {
@@ -126,8 +143,9 @@
                   plugins = [
                     "github.com/caddy-dns/cloudflare@v0.2.3"
                     "github.com/mholt/caddy-l4@v0.0.0-20260216070754-eca560d759c9"
+                    "github.com/mholt/caddy-ratelimit@v0.1.1-0.20260116163719-b8d8c9a9d99e"
                   ];
-                  hash = "sha256-jupiF84rRfFdn12QtlXAXqK88Fss6c77nDwwsqwm7IU=";
+                  hash = "sha256-DfUx9HXNgroAzi4kWLv1xdReQwFrTLflVSYDSJDw2uU=";
                 };
                 environmentFile = "/run/credentials/@system/caddy-env";
                 email = "harish.rajagopals@gmail.com";
@@ -156,10 +174,15 @@
                     }
                   }
                 '';
-                virtualHosts.":${toString constants.ports.crowdsec}".extraConfig =
-                  "reverse_proxy ${clientIp}:${toString constants.ports.crowdsec}";
+                virtualHosts.":${toString constants.ports.crowdsec}".extraConfig = ''
+                  ${rateLimitConfig}
+                  reverse_proxy ${clientIp}:${toString constants.ports.crowdsec}
+                '';
                 virtualHosts.${domain}.extraConfig = proxyConfig;
-                virtualHosts."www.${domain}".extraConfig = "redir https://${domain} 301";
+                virtualHosts."www.${domain}".extraConfig = ''
+                  ${rateLimitConfig}
+                  redir https://${domain} 301
+                '';
                 virtualHosts."${subdomains.auth}.${domain}".extraConfig = proxyConfig;
                 virtualHosts."${subdomains.bp}.${domain}".extraConfig = proxyConfig;
                 virtualHosts."${subdomains.cb}.${domain}".extraConfig = proxyConfig;
