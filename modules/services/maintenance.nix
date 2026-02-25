@@ -20,6 +20,7 @@
         inp
       ]) (builtins.attrNames inputs);
       dates = "weekly";
+      allowReboot = true;
     };
     programs.git.config.safe.directory = "/etc/nixos";
 
