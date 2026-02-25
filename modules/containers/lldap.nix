@@ -46,12 +46,17 @@
                 LLDAP_LDAP_USER_PASS_FILE = "%d/user-pass";
               };
             };
-            systemd.services.lldap.serviceConfig.LoadCredential = [
-              "db-url:db-url"
-              "jwt:jwt"
-              "key-seed:key-seed"
-              "user-pass:user-pass"
-            ];
+
+            systemd.services.lldap.serviceConfig = {
+              LoadCredential = [
+                "db-url:db-url"
+                "jwt:jwt"
+                "key-seed:key-seed"
+                "user-pass:user-pass"
+              ];
+              Restart = "on-failure";
+              RestartSec = 5;
+            };
 
             system.stateVersion = "25.05";
           };
