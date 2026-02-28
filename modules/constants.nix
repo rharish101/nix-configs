@@ -239,4 +239,7 @@
       memory = 1;
     };
   };
+
+  # DNS provider.
+  nameserver = "1.1.1.1";
 }

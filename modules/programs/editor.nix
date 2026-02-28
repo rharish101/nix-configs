@@ -24,7 +24,10 @@
     # Add LSP servers & other packages.
     users.users.rharish.packages =
       with pkgs;
-      [ tree-sitter ]
+      [
+        gcc
+        tree-sitter
+      ]
       ++ lib.optionals config.modules.editor.nixLsp.enable [
         nixd
         nixfmt

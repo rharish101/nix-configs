@@ -11,7 +11,6 @@
 let
   inherit (builtins) attrNames filter hasAttr;
   inherit (lib)
-    concatMapStrings
     filterAttrs
     hasPrefix
     mapAttrsToList
@@ -73,9 +72,6 @@ let
       useMacvlan = mkEnableOption "Allow this container to access the local network through a macvlan interface";
     };
   };
-
-  # DNS provider.
-  nameserver = "1.1.1.1";
 in
 {
   options.modules.containers = mkOption {
@@ -216,7 +212,7 @@ in
                         address = mkDefault defaultGateway.ip6;
                         interface = mkDefault "eth0";
                       };
-                      nameservers = if allowInternet then [ nameserver ] else [ ];
+                      nameservers = if allowInternet then [ constants.nameserver ] else [ ];
 
                       # Use systemd-networkd to configure network access through the macvlan interface.
                       useNetworkd = mkDefault cfg.useMacvlan;
