@@ -9,23 +9,16 @@
   ...
 }:
 let
-  inherit (builtins)
-    attrNames
-    elemAt
-    hasAttr
-    length
-    mapAttrs
-    ;
+  inherit (builtins) attrNames filter hasAttr;
   inherit (lib)
-    escapeRegex
     filterAttrs
-    mapAttrs'
+    hasPrefix
     mapAttrsToList
     mkDefault
+    mkEnableOption
     mkIf
     mkMerge
     mkOption
-    nameValuePair
     pipe
     types
     ;
@@ -34,10 +27,6 @@ let
   containerOpts = {
     freeformType = types.attrs; # Allow using `containers.<name>` options automatically.
     options = {
-      shortName = mkOption {
-        description = "Short name for container, used for network/bridge interface names";
-        type = types.strMatching "^[a-z]{2,5}$";
-      };
       username = mkOption {
         description = "Username for the host user that is mapped to the container's root user";
         type = with types; nullOr str;
@@ -66,8 +55,8 @@ let
           });
         default = { };
       };
-      allowInternet = lib.mkEnableOption "Allow this container to access the internet";
-      useMacvlan = lib.mkEnableOption "Allow this container to access the local network through a macvlan interface";
+      allowInternet = mkEnableOption "Allow this container to access the internet";
+      useMacvlan = mkEnableOption "Allow this container to access the local network through a macvlan interface";
     };
   };
 
@@ -77,7 +66,7 @@ in
 {
   options.modules.containers = mkOption {
     description = "A set of NixOS container configurations with custom defaults";
-    type = with lib.types; attrsOf (submodule containerOpts);
+    type = with types; attrsOf (submodule containerOpts);
     default = { };
   };
 
@@ -85,18 +74,7 @@ in
     let
       constants = import ../constants.nix;
 
-      # Get the list of all bridges used by a container such that there is at least one other container in that bridge.
-      getBridges =
-        let
-          # Whether the key for a bridge matches the given container's short name and also another specified container's short name.
-          # This iterates over all specified containers to see if the key matches its short name.
-          isBridgeValid =
-            shortName: key: _:
-            builtins.any (
-              cfg: key == "${shortName}-${cfg.shortName}" || key == "${cfg.shortName}-${shortName}"
-            ) (lib.attrValues config.modules.containers);
-        in
-        cfg: if cfg ? "shortName" then filterAttrs (isBridgeValid cfg.shortName) constants.bridges else [ ];
+      bridgeName = "br-containers";
 
       # Map an attribute set and use `lib.mkMerge` to merge them.
       mergeMapAttrs = func: attr: mkMerge (mapAttrsToList func attr);
@@ -105,51 +83,32 @@ in
       containersWithUsernames = filterAttrs (_: cfg: cfg.username != null) config.modules.containers;
     in
     {
-      containers = mapAttrs (
+      containers = builtins.mapAttrs (
         name: cfg:
         # Merge such that the specified config can override defaults if needed.
         mkMerge [
           (
             # Calculate default container config.
             let
-              # List of valid bridges for this container.
-              bridges = getBridges cfg;
-
-              # The key in the bridge constants corresponding to the bridge to be used as this container's default network interface.
-              # This filters bridges by checking if the "interface" key is defined for each config.
-              # Then, it chooses the first element, but only if exactly one such bridge is found.
-              mainBridge =
-                let
-                  mainBridges = attrNames (filterAttrs (_: value: !(value.${cfg.shortName} ? "interface")) bridges);
-                in
-                if length mainBridges == 1 then elemAt mainBridges 0 else null;
-
               # The container's local IP addresses for this container's default network interface.
               # It also has a flag denoting whether to add the subnet mask.
               # This depends on whether the interface is a network bridge or not (IDK why).
               localAddresses =
-                if cfg.useMacvlan then
-                  null
-                else if cfg ? "shortName" && hasAttr cfg.shortName constants.veths then
-                  constants.veths.${cfg.shortName}.local // { subnet = false; }
-                else if cfg ? "shortName" && mainBridge != null then
-                  bridges.${mainBridge}.${cfg.shortName} // { subnet = true; }
+                if !hasAttr name constants.bridge then
+                  constants.veths.caddy.local // { subnet = false; }
                 else
-                  null;
+                  constants.bridge.${name} // { subnet = true; };
 
               # The host's IP addresses for this container's default network interface.
-              hostAddresses =
-                if !cfg.useMacvlan && cfg ? "shortName" && hasAttr cfg.shortName constants.veths then
-                  constants.veths.${cfg.shortName}.host
-                else
-                  null;
+              # Only for containers that aren't part of the bridge.
+              hostAddresses = if !hasAttr name constants.bridge then constants.veths.caddy.host else null;
             in
             {
               privateNetwork = mkDefault true;
               privateUsers = mkDefault (if isNull cfg.username then "pick" else constants.uids.${cfg.username});
               autoStart = mkDefault true;
 
-              hostBridge = mkIf (mainBridge != null) (mkDefault bridges.${mainBridge}.name);
+              hostBridge = mkIf (hasAttr name constants.bridge) (mkDefault bridgeName);
               hostAddress = mkIf (hostAddresses != null) (mkDefault hostAddresses.ip4);
               hostAddress6 = mkIf (hostAddresses != null) (mkDefault hostAddresses.ip6);
               localAddress = mkIf (localAddresses != null) (
@@ -158,17 +117,17 @@ in
               localAddress6 = mkIf (localAddresses != null) (
                 mkDefault (localAddresses.ip6 + (if localAddresses.subnet then "/112" else ""))
               );
-              macvlans = if cfg.useMacvlan then mkDefault [ config.networking.nat.externalInterface ] else [ ];
 
-              # Iterate over all valid bridges for this container (that aren't the main bridge) and form the interface config.
-              extraVeths = mapAttrs' (
-                _: value:
-                nameValuePair value.${cfg.shortName}.interface {
-                  hostBridge = mkDefault value.name;
-                  localAddress = mkDefault "${value.${cfg.shortName}.ip4}/24";
-                  localAddress6 = mkDefault "${value.${cfg.shortName}.ip6}/112";
-                }
-              ) (filterAttrs (key: _: key != mainBridge) bridges);
+              macvlans = if cfg.useMacvlan then mkDefault [ config.networking.nat.externalInterface ] else [ ];
+              # Add veth to host if macvlan isn't enabled.
+              extraVeths.eth1 =
+                mkIf (hasPrefix "caddy-wg-" name && hasAttr name constants.bridge && !cfg.useMacvlan)
+                  {
+                    hostAddress = constants.veths.caddy.host.ip4;
+                    hostAddress6 = constants.veths.caddy.host.ip6;
+                    localAddress = constants.veths.caddy.local.ip4;
+                    localAddress6 = constants.veths.caddy.local.ip6;
+                  };
 
               extraFlags =
                 let
@@ -222,28 +181,23 @@ in
                 {
                   networking =
                     let
-                      matches =
-                        if isNull mainBridge then
-                          [ ]
-                        else
-                          lib.remove null (
-                            builtins.match "${escapeRegex cfg.shortName}-(.+)|(.+)-${escapeRegex cfg.shortName}" mainBridge
-                          );
-                      gateway = if length matches == 1 then bridges.${mainBridge}.${elemAt matches 0} else null;
+                      gateways = filter (hasPrefix "caddy-wg-") constants.containerDeps.${name} or [ ];
+                      defaultGateway = lib.optionalAttrs (gateways != [ ]) constants.bridge.${builtins.head gateways};
+                      allowInternet = cfg.allowInternet && !hasPrefix "caddy-wg-" name && defaultGateway != { };
                     in
                     {
-                      # Config for allowing internet through the "main" bridge to another container
-                      defaultGateway = mkIf (cfg.allowInternet && !isNull mainBridge) {
-                        address = mkDefault gateway.ip4;
+                      # Config for allowing internet through the bridge to another container
+                      defaultGateway = mkIf allowInternet {
+                        address = mkDefault defaultGateway.ip4;
                         interface = mkDefault "eth0";
                       };
-                      defaultGateway6 = mkIf (cfg.allowInternet && !isNull mainBridge) {
-                        address = mkDefault gateway.ip6;
+                      defaultGateway6 = mkIf allowInternet {
+                        address = mkDefault defaultGateway.ip6;
                         interface = mkDefault "eth0";
                       };
-                      nameservers = if cfg.allowInternet && !isNull mainBridge then [ nameserver ] else [ ];
+                      nameservers = if allowInternet then [ nameserver ] else [ ];
 
-                      # Config for allowing internet through the macvlan
+                      # Use systemd-networkd to configure network access through the macvlan interface.
                       useNetworkd = mkDefault cfg.useMacvlan;
                       interfaces = mkIf cfg.useMacvlan {
                         "mv-${config.networking.nat.externalInterface}".useDHCP = mkDefault true;
@@ -274,21 +228,13 @@ in
         ]
       ) config.modules.containers;
 
-      networking.bridges =
-        let
-          # Get the configs for all network bridges used by a container.
-          getBridgesForContainer =
-            _: cfg:
-            mapAttrs' (_: bridge: {
-              name = bridge.name;
-              value.interfaces = mkDefault [ ];
-            }) (getBridges cfg);
-        in
-        mergeMapAttrs getBridgesForContainer config.modules.containers;
+      networking.bridges = mkIf (
+        filter (name: hasAttr name constants.bridge) (attrNames config.modules.containers) != [ ]
+      ) { ${bridgeName}.interfaces = [ ]; };
 
-      systemd.services = mapAttrs' (
+      systemd.services = lib.mapAttrs' (
         name: cfg:
-        nameValuePair "container@${name}" {
+        lib.nameValuePair "container@${name}" {
           serviceConfig = mkIf (hasAttr name constants.limits) (
             with constants.limits.${name};
             {
@@ -298,16 +244,8 @@ in
           );
 
           requires =
-            let
-              # Check if the given container is a dependency of the current container.
-              # The container whose short name is first depends on the container whose short name is second.
-              isContainerDep =
-                _: cfg': builtins.elem "${cfg.shortName}-${cfg'.shortName}" (attrNames constants.bridges);
-
-              # The attribute set of container configs of all containers that the current container depends on.
-              deps = filterAttrs isContainerDep config.modules.containers;
-            in
-            map (name: "container@${name}.service") (attrNames deps);
+            map (name: "container@${name}.service") constants.containerDeps.${name} or [ ]
+            ++ lib.optionals (hasAttr name constants.bridge) [ "${bridgeName}-netdev.service" ];
         }
       ) config.modules.containers;
 

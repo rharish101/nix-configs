@@ -3,248 +3,98 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 {
-  # NOTE: Keys **must** use corresponding container short names, such that the first one depends on the second.
-  bridges = {
-    auth-caddy = {
-      name = "br-auth-caddy";
-      auth = {
-        ip4 = "10.4.0.2";
-        ip6 = "fc00::402";
-      };
-      caddy = {
-        interface = "caddy-auth";
-        ip4 = "10.4.0.1";
-        ip6 = "fc00::401";
-      };
+  # IP addresses of containers inside the containers' bridge.
+  # NOTE: Keys for containers **must** correspond to their names.
+  bridge = {
+    caddy-wg-client = {
+      ip4 = "10.2.0.1";
+      ip6 = "fc00::1";
     };
-    auth-csec = {
-      name = "br-auth-csec";
-      auth = {
-        interface = "auth-csec";
-        ip4 = "10.4.4.1";
-        ip6 = "fc00::441";
-      };
-      csec = {
-        interface = "csec-auth";
-        ip4 = "10.4.4.2";
-        ip6 = "fc00::442";
-      };
+    minecraft = {
+      ip4 = "10.2.0.2";
+      ip6 = "fc00::2";
     };
-    auth-ldap = {
-      name = "br-auth-ldap";
-      auth = {
-        interface = "auth-ldap";
-        ip4 = "10.4.3.1";
-        ip6 = "fc00::431";
-      };
-      ldap = {
-        ip4 = "10.4.3.2";
-        ip6 = "fc00::432";
-      };
+    jellyfin = {
+      ip4 = "10.2.0.3";
+      ip6 = "fc00::3";
     };
-    auth-pg = {
-      name = "br-auth-pg";
-      auth = {
-        interface = "auth-pg";
-        ip4 = "10.4.2.1";
-        ip6 = "fc00::421";
-      };
-      pg = {
-        interface = "pg-auth";
-        ip4 = "10.4.2.2";
-        ip6 = "fc00::422";
-      };
+    authelia = {
+      ip4 = "10.2.0.4";
+      ip6 = "fc00::4";
     };
-    csec-caddy = {
-      name = "br-caddy-csec";
-      caddy = {
-        interface = "caddy-csec";
-        ip4 = "10.6.0.1";
-        ip6 = "fc00::601";
-      };
-      csec = {
-        ip4 = "10.6.0.2";
-        ip6 = "fc00::601";
-      };
+    lldap = {
+      ip4 = "10.2.0.5";
+      ip6 = "fc00::5";
     };
-    csec-pg = {
-      name = "br-csec-pg";
-      csec = {
-        interface = "csec-pg";
-        ip4 = "10.6.1.1";
-        ip6 = "fc00::611";
-      };
-      pg = {
-        interface = "pg-csec";
-        ip4 = "10.6.1.2";
-        ip6 = "fc00::612";
-      };
+    crowdsec-lapi = {
+      ip4 = "10.2.0.6";
+      ip6 = "fc00::6";
     };
-    imm-caddy = {
-      name = "br-caddy-imm";
-      caddy = {
-        interface = "caddy-imm";
-        ip4 = "10.7.0.1";
-        ip6 = "fc00::701";
-      };
-      imm = {
-        ip4 = "10.7.0.2";
-        ip6 = "fc00::702";
-      };
+    immich = {
+      ip4 = "10.2.0.7";
+      ip6 = "fc00::7";
     };
-    imm-pg = {
-      name = "br-imm-pg";
-      imm = {
-        interface = "imm-pg";
-        ip4 = "10.7.1.1";
-        ip6 = "fc00::711";
-      };
-      pg = {
-        interface = "pg-imm";
-        ip4 = "10.7.1.2";
-        ip6 = "fc00::712";
-      };
+    tandoor = {
+      ip4 = "10.2.0.8";
+      ip6 = "fc00::8";
     };
-    jf-caddy = {
-      name = "br-caddy-jf";
-      caddy = {
-        interface = "caddy-jf";
-        ip4 = "10.3.0.1";
-        ip6 = "fc00::301";
-      };
-      jf = {
-        ip4 = "10.3.0.2";
-        ip6 = "fc00::302";
-      };
+    opencloud = {
+      ip4 = "10.2.0.9";
+      ip6 = "fc00::9";
     };
-    jf-csec = {
-      name = "br-csec-jf";
-      jf = {
-        interface = "jf-csec";
-        ip4 = "10.3.1.1";
-        ip6 = "fc00::311";
-      };
-      csec = {
-        interface = "csec-jf";
-        ip4 = "10.3.1.2";
-        ip6 = "fc00::312";
-      };
+    collabora = {
+      ip4 = "10.2.0.10";
+      ip6 = "fc00::a";
     };
-    mc-caddy = {
-      name = "br-caddy-mc";
-      caddy = {
-        interface = "caddy-mc";
-        ip4 = "10.2.0.1";
-        ip6 = "fc00::201";
-      };
-      mc = {
-        ip4 = "10.2.0.2";
-        ip6 = "fc00::202";
-      };
+    vaultwarden = {
+      ip4 = "10.2.0.11";
+      ip6 = "fc00::b";
     };
-    mc-csec = {
-      name = "br-csec-mc";
-      csec = {
-        interface = "csec-mc";
-        ip4 = "10.2.1.1";
-        ip6 = "fc00::211";
-      };
-      mc = {
-        interface = "mc-csec";
-        ip4 = "10.2.1.2";
-        ip6 = "fc00::212";
-      };
-    };
-    ldap-pg = {
-      name = "br-ldap-pg";
-      ldap = {
-        interface = "ldap-pg";
-        ip4 = "10.5.0.1";
-        ip6 = "fc00::501";
-      };
-      pg = {
-        interface = "pg-ldap";
-        ip4 = "10.5.0.2";
-        ip6 = "fc00::502";
-      };
-    };
-    tr-caddy = {
-      name = "br-caddy-tr";
-      caddy = {
-        interface = "caddy-tr";
-        ip4 = "10.8.0.1";
-        ip6 = "fc00::801";
-      };
-      tr = {
-        ip4 = "10.8.0.2";
-        ip6 = "fc00::802";
-      };
-    };
-    tr-pg = {
-      name = "br-pg-tr";
-      tr = {
-        interface = "tr-pg";
-        ip4 = "10.8.1.1";
-        ip6 = "fc00::811";
-      };
-      pg = {
-        interface = "pg-tr";
-        ip4 = "10.8.1.2";
-        ip6 = "fc00::812";
-      };
-    };
-    oc-caddy = {
-      name = "br-caddy-oc";
-      caddy = {
-        interface = "caddy-oc";
-        ip4 = "10.9.0.1";
-        ip6 = "fc00::901";
-      };
-      oc = {
-        ip4 = "10.9.0.2";
-        ip6 = "fc00::902";
-      };
-    };
-    cb-caddy = {
-      name = "br-caddy-cb";
-      caddy = {
-        interface = "caddy-cb";
-        ip4 = "10.10.0.1";
-        ip6 = "fc00::a01";
-      };
-      cb = {
-        ip4 = "10.10.0.2";
-        ip6 = "fc00::a02";
-      };
-    };
-    vw-caddy = {
-      name = "br-caddy-vw";
-      caddy = {
-        interface = "caddy-vw";
-        ip4 = "10.11.0.1";
-        ip6 = "fc00::b01";
-      };
-      vw = {
-        ip4 = "10.11.0.2";
-        ip6 = "fc00::b02";
-      };
-    };
-    vw-pg = {
-      name = "br-pg-vw";
-      vw = {
-        interface = "vw-pg";
-        ip4 = "10.11.1.1";
-        ip6 = "fc00::b11";
-      };
-      pg = {
-        interface = "pg-vw";
-        ip4 = "10.11.1.2";
-        ip6 = "fc00::b12";
-      };
+    postgres = {
+      ip4 = "10.2.0.12";
+      ip6 = "fc00::c";
     };
   };
 
-  # NOTE: Keys for containers **must** correspond to their short names.
+  # Container dependencies.
+  # NOTE: Keys for containers **must** correspond to their names.
+  containerDeps = {
+    authelia = [
+      "caddy-wg-client"
+      "crowdsec-lapi"
+      "lldap"
+      "postgres"
+    ];
+    collabora = [ "caddy-wg-client" ];
+    crowdsec-lapi = [
+      "caddy-wg-client"
+      "postgres"
+    ];
+    immich = [
+      "caddy-wg-client"
+      "postgres"
+    ];
+    jellyfin = [
+      "caddy-wg-client"
+      "crowdsec-lapi"
+    ];
+    lldap = [ "postgres" ];
+    minecraft = [
+      "caddy-wg-client"
+      "crowdsec-lapi"
+    ];
+    opencloud = [ "caddy-wg-client" ];
+    tandoor = [
+      "caddy-wg-client"
+      "postgres"
+    ];
+    vaultwarden = [
+      "caddy-wg-client"
+      "postgres"
+    ];
+  };
+
+  # IP address pairs for various veth interfaces.
   veths = {
     caddy = {
       host = {

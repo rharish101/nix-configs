@@ -24,7 +24,6 @@
       )
       {
         modules.containers.authelia = {
-          shortName = "auth";
           allowInternet = true;
 
           credentials = {
@@ -50,213 +49,209 @@
               services.authelia.instances.main = with globalConfig.modules.authelia; {
                 enable = true;
                 secrets.manual = true;
-                settings =
-                  with constants.bridges;
-                  with constants.ports;
-                  with constants.domain;
-                  {
-                    default_2fa_method = "totp";
-                    theme = "auto";
-                    server = {
-                      address = "tcp://:${toString authelia}/";
-                      endpoints.authz.forward-auth.implementation = "ForwardAuth";
-                    };
-                    authentication_backend.ldap = {
-                      address = "ldap://${auth-ldap.ldap.ip4}:${toString lldap}";
-                      implementation = "lldap";
-                      base_dn = ldapBaseDn;
-                      user = "uid=authelia,ou=people,${ldapBaseDn}";
-                    };
-                    storage.postgres = {
-                      address = "tcp://${auth-pg.pg.ip4}:${toString postgres}";
-                      database = "authelia";
-                      username = "authelia";
-                    };
-                    session = {
-                      redis.host = config.services.redis.servers.authelia.unixSocket;
-                      cookies = [
-                        {
-                          domain = domain;
-                          authelia_url = "https://${subdomains.auth}.${domain}";
-                        }
-                      ];
-                    };
-                    notifier.smtp = with constants.smtp; {
-                      address = "submission://${host}:${toString port}";
-                      username = username;
-                      sender = "Authelia <${subdomains.auth}@${domain}>";
-                    };
-                    access_control.rules = [
+                settings = with constants.domain; {
+                  default_2fa_method = "totp";
+                  theme = "auto";
+                  server = {
+                    address = "tcp://:${toString constants.ports.authelia}/";
+                    endpoints.authz.forward-auth.implementation = "ForwardAuth";
+                  };
+                  authentication_backend.ldap = {
+                    address = "ldap://${constants.bridge.lldap.ip4}:${toString constants.ports.lldap}";
+                    implementation = "lldap";
+                    base_dn = ldapBaseDn;
+                    user = "uid=authelia,ou=people,${ldapBaseDn}";
+                  };
+                  storage.postgres = {
+                    address = "tcp://${constants.bridge.postgres.ip4}:${toString constants.ports.postgres}";
+                    database = "authelia";
+                    username = "authelia";
+                  };
+                  session = {
+                    redis.host = config.services.redis.servers.authelia.unixSocket;
+                    cookies = [
                       {
-                        domain = "*.${domain}";
-                        policy = "two_factor";
+                        domain = domain;
+                        authelia_url = "https://${subdomains.auth}.${domain}";
                       }
                     ];
-                    webauthn = {
-                      enable_passkey_login = true;
-                      experimental_enable_passkey_uv_two_factors = true;
-                    };
-                    identity_providers.oidc = {
-                      authorization_policies.tandoor = {
-                        default_policy = "deny";
-                        rules = [ { subject = "group:tandoor-users"; } ];
-                      };
-                      cors = {
-                        endpoints = [ "token" ];
-                        allowed_origins = [ "https://${subdomains.oc}.${domain}" ];
-                      };
-                      clients = [
-                        {
-                          client_id = "JuhCQHaHI65vm~.Oyw7F~X9nFiJpC1UsyxMzthVhDHwzjfcJhofhxV43Ezcs31Er";
-                          client_name = "Immich";
-                          client_secret = "$pbkdf2-sha512$310000$nKsIAFb7St17WH4uKLPH3A$O2/SqbuoeuDehSRkboSpfOS4DNXUn5ZDSWo.4DU3kKgUu3Qr0VkvZYgWsAWvYv2ywl/eJxyBOwwl3h68wm3/Kg";
-                          redirect_uris = [
-                            "https://${subdomains.imm}.${domain}/auth/login"
-                            "https://${subdomains.imm}.${domain}/user-settings"
-                            "app.immich:///oauth-callback"
-                          ];
-                          scopes = [
-                            "openid"
-                            "email"
-                            "profile"
-                          ];
-                          token_endpoint_auth_method = "client_secret_post";
-                          pre_configured_consent_duration = "1 month";
-                        }
-                        {
-                          client_id = "7Fmtx-TlskeuagWedosmtKublan0JgxbMRe5V.SZyWR-GeNcOc1ngXoXpZ8U5SeI";
-                          client_name = "Jellyfin";
-                          client_secret = "$pbkdf2-sha512$310000$K4ozS7erBqjatwrxo5Do4Q$fDvzpM4xiAluUfBU6iSZ2wrk/xiT2brt1ko2UgLdSKo88OYbi2QcXALLi7UqoQ2qGo3.E1ChUVG330jLJdWk.Q";
-                          redirect_uris = [
-                            "https://${subdomains.jf}.${domain}/sso/OID/redirect/authelia"
-                            "org.jellyfin.mobile://login-callback"
-                          ];
-                          scopes = [
-                            "openid"
-                            "profile"
-                            "groups"
-                          ];
-                          token_endpoint_auth_method = "client_secret_post";
-                          pre_configured_consent_duration = "1 month";
-                        }
-                        {
-                          client_id = "ze1RwDxg_zLBH40.D9eP3RPbXl.fa~c2Q99q8vbwIQVZqFcn37GtzP3Wbk-HhsBO";
-                          client_name = "Tandoor Recipes";
-                          client_secret = "$pbkdf2-sha512$310000$qbwXRo.OH3g8/C5/QSYX5A$9sUVtyen0XwJi4Ky88g6NWK/C6HcHPig6sIhGzr7llkeQrNh0bpklafz3jOJx7A9d632NSPVIaNDWBWAaONeMQ";
-                          redirect_uris = [ "https://${subdomains.tr}.${domain}/accounts/oidc/authelia/login/callback/" ];
-                          scopes = [
-                            "openid"
-                            "profile"
-                            "email"
-                          ];
-                          authorization_policy = "tandoor";
-                          token_endpoint_auth_method = "client_secret_post";
-                          pre_configured_consent_duration = "1 month";
-                        }
-                        {
-                          client_id = "9j4m5zcr5c51gJB6Qs50bChpQFWj3Htzc4wj3F2SMGVtIw-LhF3k8XpdXsWLP7YN";
-                          client_name = "OpenCloud (Web)";
-                          client_secret = "";
-                          public = true;
-                          redirect_uris = [
-                            "https://${subdomains.oc}.${domain}/"
-                            "https://${subdomains.oc}.${domain}/oidc-callback.html"
-                            "https://${subdomains.oc}.${domain}/oidc-silent-redirect.html"
-                          ];
-                          scopes = [
-                            "openid"
-                            "profile"
-                            "email"
-                            "groups"
-                          ];
-                          pre_configured_consent_duration = "1 month";
-                        }
-                        {
-                          client_id = "OpenCloudDesktop";
-                          client_name = "OpenCloud (Desktop)";
-                          client_secret = "";
-                          public = true;
-                          redirect_uris = [
-                            "http://127.0.0.1"
-                            "http://localhost"
-                          ];
-                          scopes = [
-                            "openid"
-                            "profile"
-                            "email"
-                            "groups"
-                            "offline_access"
-                          ];
-                          response_types = [ "code" ];
-                          grant_types = [
-                            "refresh_token"
-                            "authorization_code"
-                          ];
-                          pre_configured_consent_duration = "1 month";
-                        }
-                        {
-                          client_id = "OpenCloudAndroid";
-                          client_name = "OpenCloud (Android)";
-                          client_secret = "";
-                          public = true;
-                          redirect_uris = [ "oc://android.opencloud.eu" ];
-                          scopes = [
-                            "openid"
-                            "profile"
-                            "email"
-                            "groups"
-                            "offline_access"
-                          ];
-                          response_types = [ "code" ];
-                          grant_types = [
-                            "refresh_token"
-                            "authorization_code"
-                          ];
-                          pre_configured_consent_duration = "1 month";
-                        }
-                        {
-                          client_id = "OpenCloudIOS";
-                          client_name = "OpenCloud (iOS)";
-                          client_secret = "";
-                          public = true;
-                          redirect_uris = [ "oc://ios.opencloud.eu" ];
-                          scopes = [
-                            "openid"
-                            "profile"
-                            "email"
-                            "groups"
-                            "offline_access"
-                          ];
-                          response_types = [ "code" ];
-                          grant_types = [
-                            "refresh_token"
-                            "authorization_code"
-                          ];
-                          pre_configured_consent_duration = "1 month";
-                        }
-                        {
-                          client_id = "j-rWSHQpg-BvMn8f2y3NB367j2POzf9BBtwZCUVLgRKRmNHHqagmgVba11L2hyAPQwpcomzG";
-                          client_name = "Vaultwarden";
-                          client_secret = "$pbkdf2-sha512$310000$u0v8.klWtYVhOUEodryxHQ$DoRjnQcwLVN3jJkVrI6dClfaurYBQLIrCcf0vPguY7.fJJ7oyXffnnG.dvNTnjQIx5nx7brqZ4VnnDoTmNH9dg";
-                          redirect_uris = [
-                            "https://${subdomains.vw}.${domain}/identity/connect/oidc-signin"
-                          ];
-                          scopes = [
-                            "openid"
-                            "email"
-                            "profile"
-                            "offline_access"
-                          ];
-                          response_types = [ "code" ];
-                          grant_types = [
-                            "refresh_token"
-                            "authorization_code"
-                          ];
-                          pre_configured_consent_duration = "1 month";
-                        }
-                      ];
-                    };
                   };
+                  notifier.smtp = with constants.smtp; {
+                    address = "submission://${host}:${toString port}";
+                    username = username;
+                    sender = "Authelia <${subdomains.auth}@${domain}>";
+                  };
+                  access_control.rules = [
+                    {
+                      domain = "*.${domain}";
+                      policy = "two_factor";
+                    }
+                  ];
+                  webauthn = {
+                    enable_passkey_login = true;
+                    experimental_enable_passkey_uv_two_factors = true;
+                  };
+                  identity_providers.oidc = {
+                    authorization_policies.tandoor = {
+                      default_policy = "deny";
+                      rules = [ { subject = "group:tandoor-users"; } ];
+                    };
+                    cors = {
+                      endpoints = [ "token" ];
+                      allowed_origins = [ "https://${subdomains.oc}.${domain}" ];
+                    };
+                    clients = [
+                      {
+                        client_id = "JuhCQHaHI65vm~.Oyw7F~X9nFiJpC1UsyxMzthVhDHwzjfcJhofhxV43Ezcs31Er";
+                        client_name = "Immich";
+                        client_secret = "$pbkdf2-sha512$310000$nKsIAFb7St17WH4uKLPH3A$O2/SqbuoeuDehSRkboSpfOS4DNXUn5ZDSWo.4DU3kKgUu3Qr0VkvZYgWsAWvYv2ywl/eJxyBOwwl3h68wm3/Kg";
+                        redirect_uris = [
+                          "https://${subdomains.imm}.${domain}/auth/login"
+                          "https://${subdomains.imm}.${domain}/user-settings"
+                          "app.immich:///oauth-callback"
+                        ];
+                        scopes = [
+                          "openid"
+                          "email"
+                          "profile"
+                        ];
+                        token_endpoint_auth_method = "client_secret_post";
+                        pre_configured_consent_duration = "1 month";
+                      }
+                      {
+                        client_id = "7Fmtx-TlskeuagWedosmtKublan0JgxbMRe5V.SZyWR-GeNcOc1ngXoXpZ8U5SeI";
+                        client_name = "Jellyfin";
+                        client_secret = "$pbkdf2-sha512$310000$K4ozS7erBqjatwrxo5Do4Q$fDvzpM4xiAluUfBU6iSZ2wrk/xiT2brt1ko2UgLdSKo88OYbi2QcXALLi7UqoQ2qGo3.E1ChUVG330jLJdWk.Q";
+                        redirect_uris = [
+                          "https://${subdomains.jf}.${domain}/sso/OID/redirect/authelia"
+                          "org.jellyfin.mobile://login-callback"
+                        ];
+                        scopes = [
+                          "openid"
+                          "profile"
+                          "groups"
+                        ];
+                        token_endpoint_auth_method = "client_secret_post";
+                        pre_configured_consent_duration = "1 month";
+                      }
+                      {
+                        client_id = "ze1RwDxg_zLBH40.D9eP3RPbXl.fa~c2Q99q8vbwIQVZqFcn37GtzP3Wbk-HhsBO";
+                        client_name = "Tandoor Recipes";
+                        client_secret = "$pbkdf2-sha512$310000$qbwXRo.OH3g8/C5/QSYX5A$9sUVtyen0XwJi4Ky88g6NWK/C6HcHPig6sIhGzr7llkeQrNh0bpklafz3jOJx7A9d632NSPVIaNDWBWAaONeMQ";
+                        redirect_uris = [ "https://${subdomains.tr}.${domain}/accounts/oidc/authelia/login/callback/" ];
+                        scopes = [
+                          "openid"
+                          "profile"
+                          "email"
+                        ];
+                        authorization_policy = "tandoor";
+                        token_endpoint_auth_method = "client_secret_post";
+                        pre_configured_consent_duration = "1 month";
+                      }
+                      {
+                        client_id = "9j4m5zcr5c51gJB6Qs50bChpQFWj3Htzc4wj3F2SMGVtIw-LhF3k8XpdXsWLP7YN";
+                        client_name = "OpenCloud (Web)";
+                        client_secret = "";
+                        public = true;
+                        redirect_uris = [
+                          "https://${subdomains.oc}.${domain}/"
+                          "https://${subdomains.oc}.${domain}/oidc-callback.html"
+                          "https://${subdomains.oc}.${domain}/oidc-silent-redirect.html"
+                        ];
+                        scopes = [
+                          "openid"
+                          "profile"
+                          "email"
+                          "groups"
+                        ];
+                        pre_configured_consent_duration = "1 month";
+                      }
+                      {
+                        client_id = "OpenCloudDesktop";
+                        client_name = "OpenCloud (Desktop)";
+                        client_secret = "";
+                        public = true;
+                        redirect_uris = [
+                          "http://127.0.0.1"
+                          "http://localhost"
+                        ];
+                        scopes = [
+                          "openid"
+                          "profile"
+                          "email"
+                          "groups"
+                          "offline_access"
+                        ];
+                        response_types = [ "code" ];
+                        grant_types = [
+                          "refresh_token"
+                          "authorization_code"
+                        ];
+                        pre_configured_consent_duration = "1 month";
+                      }
+                      {
+                        client_id = "OpenCloudAndroid";
+                        client_name = "OpenCloud (Android)";
+                        client_secret = "";
+                        public = true;
+                        redirect_uris = [ "oc://android.opencloud.eu" ];
+                        scopes = [
+                          "openid"
+                          "profile"
+                          "email"
+                          "groups"
+                          "offline_access"
+                        ];
+                        response_types = [ "code" ];
+                        grant_types = [
+                          "refresh_token"
+                          "authorization_code"
+                        ];
+                        pre_configured_consent_duration = "1 month";
+                      }
+                      {
+                        client_id = "OpenCloudIOS";
+                        client_name = "OpenCloud (iOS)";
+                        client_secret = "";
+                        public = true;
+                        redirect_uris = [ "oc://ios.opencloud.eu" ];
+                        scopes = [
+                          "openid"
+                          "profile"
+                          "email"
+                          "groups"
+                          "offline_access"
+                        ];
+                        response_types = [ "code" ];
+                        grant_types = [
+                          "refresh_token"
+                          "authorization_code"
+                        ];
+                        pre_configured_consent_duration = "1 month";
+                      }
+                      {
+                        client_id = "j-rWSHQpg-BvMn8f2y3NB367j2POzf9BBtwZCUVLgRKRmNHHqagmgVba11L2hyAPQwpcomzG";
+                        client_name = "Vaultwarden";
+                        client_secret = "$pbkdf2-sha512$310000$u0v8.klWtYVhOUEodryxHQ$DoRjnQcwLVN3jJkVrI6dClfaurYBQLIrCcf0vPguY7.fJJ7oyXffnnG.dvNTnjQIx5nx7brqZ4VnnDoTmNH9dg";
+                        redirect_uris = [
+                          "https://${subdomains.vw}.${domain}/identity/connect/oidc-signin"
+                        ];
+                        scopes = [
+                          "openid"
+                          "email"
+                          "profile"
+                          "offline_access"
+                        ];
+                        response_types = [ "code" ];
+                        grant_types = [
+                          "refresh_token"
+                          "authorization_code"
+                        ];
+                        pre_configured_consent_duration = "1 month";
+                      }
+                    ];
+                  };
+                };
                 settingsFiles = [
                   # Use separate YAML file to preserve newlines in the private key.
                   (pkgs.writeText "oidc-jwks.yaml" ''

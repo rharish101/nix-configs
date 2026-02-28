@@ -18,7 +18,6 @@
     in
     lib.mkIf (config.modules.vaultwarden.enable && config.modules.caddy-wg-client.enable) {
       modules.containers.vaultwarden = {
-        shortName = "vw";
         username = "vaultwarden";
         allowInternet = true;
         credentials.env.name = "vaultwarden";

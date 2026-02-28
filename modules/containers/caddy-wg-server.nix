@@ -32,7 +32,6 @@
     in
     lib.mkIf config.modules.caddy-wg-server.enable {
       modules.containers.caddy-wg-server = {
-        shortName = "caddy";
         username = "caddywg";
         credentials = {
           priv-key.name = "wireguard/server";

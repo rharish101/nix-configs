@@ -16,7 +16,6 @@
     in
     lib.mkIf (config.modules.lldap.enable && config.modules.postgres.enable) {
       modules.containers.lldap = {
-        shortName = "ldap";
         credentials = {
           db-url.name = "lldap/db";
           jwt.name = "lldap/jwt";

@@ -18,7 +18,6 @@
     in
     lib.mkIf (config.modules.opencloud.enable && config.modules.caddy-wg-client.enable) {
       modules.containers.opencloud = {
-        shortName = "oc";
         username = "opencloud";
         allowInternet = true;
         credentials.env.name = "opencloud";

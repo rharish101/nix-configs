@@ -28,7 +28,6 @@
       )
       {
         modules.containers.crowdsec-lapi = {
-          shortName = "csec";
           username = "crowdsec";
           allowInternet = true;
           credentials.env.name = "crowdsec/lapi-env";
@@ -72,7 +71,7 @@
                         user = "crowdsec";
                         password = "\${DB_PASSWORD}";
                         db_name = "crowdsec";
-                        host = constants.bridges.csec-pg.pg.ip4;
+                        host = constants.bridge.postgres.ip4;
                         port = constants.ports.postgres;
                       };
                       api.server = {

@@ -37,9 +37,9 @@
     in
     lib.mkIf config.modules.caddy-wg-client.enable {
       modules.containers.caddy-wg-client = {
-        shortName = "caddy";
         username = "caddywg";
         useMacvlan = true;
+
         credentials = {
           priv-key.name = "wireguard/client";
           psk.name = "wireguard/psk";
@@ -62,6 +62,7 @@
             networking.firewall.interfaces.wg0.allowedUDPPorts = with constants.ports; [
               minecraft # Minecraft Bedrock
             ];
+
             # Adjust MSS to fit the actual path MTU.
             # XXX: Fix for accessing Minecraft services over network bridge from other containers.
             networking.firewall.filterForward = true;
@@ -70,7 +71,7 @@
             # Allow internet access through the WireGuard tunnel for containers connected to this one.
             networking.nat = {
               enable = true;
-              internalInterfaces = [ "caddy-*" ];
+              internalInterfaces = [ "eth0" ];
               externalInterface = "wg0";
             };
 
@@ -110,25 +111,27 @@
                   hash = "sha256-f5t6fhKijbY82G7RdqExtoCjkq56AALmCxKlRFXkGg8=";
                 };
                 globalConfig =
-                  with constants.bridges.mc-caddy.mc;
-                  with constants.ports;
+                  let
+                    mcAddr = constants.bridge.minecraft.ip4;
+                    mcPort = constants.ports.minecraft;
+                  in
                   ''
                     layer4 {
-                      tcp/:${toString minecraft} {
+                      tcp/:${toString mcPort} {
                         route {
                           proxy_protocol
                           proxy {
                             proxy_protocol v2
-                            upstream tcp/${ip4}:${toString minecraft}
+                            upstream tcp/${mcAddr}:${toString mcPort}
                           }
                         }
                       }
-                      udp/:${toString minecraft} {
+                      udp/:${toString mcPort} {
                         route {
                           proxy_protocol
                           proxy {
                             proxy_protocol v2
-                            upstream udp/${ip4}:${toString minecraft}
+                            upstream udp/${mcAddr}:${toString mcPort}
                           }
                         }
                       }
@@ -141,28 +144,28 @@
                   respond "hello world"
                 '';
                 virtualHosts.":${toString constants.ports.crowdsec}".extraConfig = ''
-                  reverse_proxy ${constants.bridges.csec-caddy.csec.ip4}:${toString constants.ports.crowdsec}
+                  reverse_proxy ${constants.bridge.crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
                 '';
                 virtualHosts."http://${subdomains.auth}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridges.auth-caddy.auth.ip4}:${toString constants.ports.authelia}
+                  reverse_proxy ${constants.bridge.authelia.ip4}:${toString constants.ports.authelia}
                 '';
                 virtualHosts."http://${subdomains.cb}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridges.cb-caddy.cb.ip4}:${toString constants.ports.collabora}
+                  reverse_proxy ${constants.bridge.collabora.ip4}:${toString constants.ports.collabora}
                 '';
                 virtualHosts."http://${subdomains.imm}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridges.imm-caddy.imm.ip4}:${toString constants.ports.immich}
+                  reverse_proxy ${constants.bridge.immich.ip4}:${toString constants.ports.immich}
                 '';
                 virtualHosts."http://${subdomains.jf}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridges.jf-caddy.jf.ip4}:${toString constants.ports.jellyfin}
+                  reverse_proxy ${constants.bridge.jellyfin.ip4}:${toString constants.ports.jellyfin}
                 '';
                 virtualHosts."http://${subdomains.oc}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridges.oc-caddy.oc.ip4}:${toString constants.ports.opencloud}
+                  reverse_proxy ${constants.bridge.opencloud.ip4}:${toString constants.ports.opencloud}
                 '';
                 virtualHosts."http://${subdomains.tr}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridges.tr-caddy.tr.ip4}:${toString constants.ports.tandoor}
+                  reverse_proxy ${constants.bridge.tandoor.ip4}:${toString constants.ports.tandoor}
                 '';
                 virtualHosts."http://${subdomains.vw}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridges.vw-caddy.vw.ip4}:${toString constants.ports.vaultwarden}
+                  reverse_proxy ${constants.bridge.vaultwarden.ip4}:${toString constants.ports.vaultwarden}
                 '';
               };
 
@@ -172,7 +175,7 @@
               caddy = {
                 enable = true;
                 virtualHost.extraConfig = with constants; ''
-                  forward_auth ${bridges.auth-caddy.auth.ip4}:${toString ports.authelia} {
+                  forward_auth ${bridge.authelia.ip4}:${toString ports.authelia} {
                     uri /api/authz/forward-auth
                     copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
                   }

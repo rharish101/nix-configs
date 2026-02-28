@@ -23,7 +23,6 @@
     in
     lib.mkIf (config.modules.jellyfin.enable && config.modules.caddy-wg-client.enable) {
       modules.containers.jellyfin = {
-        shortName = "jf";
         username = "jellyfin";
         allowInternet = true;
         credentials.csec-creds.name = "jellyfin/crowdsec";

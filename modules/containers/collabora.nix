@@ -11,7 +11,6 @@
     in
     lib.mkIf (config.modules.collabora.enable && config.modules.caddy-wg-client.enable) {
       modules.containers.collabora = {
-        shortName = "cb";
         allowInternet = true;
 
         config =

@@ -22,7 +22,6 @@
     in
     lib.mkIf config.modules.postgres.enable {
       modules.containers.postgres = {
-        shortName = "pg";
         username = "postgres";
 
         bindMounts = with config.modules.postgres; {
@@ -47,13 +46,13 @@
               enable = true;
               enableTCPIP = true;
               settings.port = constants.ports.postgres;
-              authentication = with constants.bridges; ''
-                host sameuser authelia     ${auth-pg.auth.ip4}/32 scram-sha-256
-                host sameuser crowdsec     ${csec-pg.csec.ip4}/32 scram-sha-256
-                host sameuser immich       ${imm-pg.imm.ip4}/32   scram-sha-256
-                host sameuser lldap        ${ldap-pg.ldap.ip4}/32 scram-sha-256
-                host sameuser tandoor      ${tr-pg.tr.ip4}/32     scram-sha-256
-                host sameuser vaultwarden  ${vw-pg.vw.ip4}/32     scram-sha-256
+              authentication = with constants.bridge; ''
+                host sameuser authelia    ${authelia.ip4}/32      scram-sha-256
+                host sameuser crowdsec    ${crowdsec-lapi.ip4}/32 scram-sha-256
+                host sameuser immich      ${immich.ip4}/32        scram-sha-256
+                host sameuser lldap       ${lldap.ip4}/32         scram-sha-256
+                host sameuser tandoor     ${tandoor.ip4}/32       scram-sha-256
+                host sameuser vaultwarden ${vaultwarden.ip4}/32   scram-sha-256
               '';
               ensureUsers = [
                 (lib.mkIf config.modules.authelia.enable {

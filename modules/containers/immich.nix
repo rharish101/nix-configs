@@ -29,7 +29,6 @@
       )
       {
         modules.containers.immich = {
-          shortName = "imm";
           username = "immich";
           allowInternet = true;
 
@@ -74,7 +73,7 @@
                 secretsFile = "/run/credentials/@system/env";
                 database = {
                   enable = false;
-                  host = constants.bridges.imm-pg.pg.ip4;
+                  host = constants.bridge.postgres.ip4;
                   port = constants.ports.postgres;
                 };
                 accelerationDevices = [ gpuDevice ];

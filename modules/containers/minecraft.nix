@@ -30,7 +30,6 @@
       '';
 
       modules.containers.minecraft = {
-        shortName = "mc";
         username = "minecraft";
         allowInternet = true;
 
