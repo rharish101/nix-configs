@@ -7,11 +7,6 @@
   options.modules.caddy-wg-client = {
     enable = lib.mkEnableOption "Enable Caddy reverse proxy with a WireGuard client";
     wireguard = {
-      dns = lib.mkOption {
-        description = "IP address for the DNS server";
-        type = lib.types.str;
-        default = "1.1.1.1";
-      };
       server = {
         publicKey = lib.mkOption {
           description = "The public key for the server";
@@ -86,7 +81,7 @@
               privateKeyFile = "$CREDENTIALS_DIRECTORY/priv-key";
               # Use external DNS, since all traffic is routed through the tunnel, and any default
               # nameserver would be outside this tunnel (thereby unreachable).
-              dns = [ dns ];
+              dns = constants.nameservers;
               peers = [
                 {
                   publicKey = server.publicKey;
