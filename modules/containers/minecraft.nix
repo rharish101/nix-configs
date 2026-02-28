@@ -48,6 +48,11 @@
           isReadOnly = false;
         };
 
+        allowedPorts = {
+          Tcp = [ constants.ports.minecraft ];
+          Udp = [ constants.ports.minecraft ];
+        };
+
         config =
           { pkgs, ... }:
           {
@@ -58,9 +63,6 @@
               builtins.elem (lib.getName pkg) [
                 "minecraft-server"
               ];
-
-            networking.firewall.allowedTCPPorts = [ constants.ports.minecraft ];
-            networking.firewall.allowedUDPPorts = [ constants.ports.minecraft ];
 
             services.minecraft-servers = {
               enable = true;

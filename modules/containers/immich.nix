@@ -31,6 +31,7 @@
         modules.containers.immich = {
           username = "immich";
           allowInternet = true;
+          allowedPorts.Tcp = [ constants.ports.immich ];
 
           credentials = {
             env.name = "immich/env";
@@ -69,7 +70,6 @@
                 enable = true;
                 host = "0.0.0.0";
                 port = constants.ports.immich;
-                openFirewall = true;
                 secretsFile = "/run/credentials/@system/env";
                 database = {
                   enable = false;

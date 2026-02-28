@@ -23,6 +23,7 @@
     lib.mkIf config.modules.postgres.enable {
       modules.containers.postgres = {
         username = "postgres";
+        allowedPorts.Tcp = [ constants.ports.postgres ];
 
         bindMounts = with config.modules.postgres; {
           dataDir = {
@@ -40,8 +41,6 @@
         config =
           { ... }:
           {
-            networking.firewall.allowedTCPPorts = [ constants.ports.postgres ];
-
             services.postgresql = {
               enable = true;
               enableTCPIP = true;

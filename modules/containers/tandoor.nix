@@ -54,6 +54,7 @@
         modules.containers.tandoor = {
           username = "tandoor";
           allowInternet = true;
+          allowedPorts.Tcp = [ constants.ports.tandoor ];
 
           credentials.env = {
             name = "tandoor/env";
@@ -69,8 +70,6 @@
           config =
             { ... }:
             {
-              networking.firewall.allowedTCPPorts = [ constants.ports.tandoor ];
-
               services.tandoor-recipes = {
                 enable = true;
                 address = "0.0.0.0";

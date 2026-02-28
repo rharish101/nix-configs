@@ -16,6 +16,8 @@
     in
     lib.mkIf (config.modules.lldap.enable && config.modules.postgres.enable) {
       modules.containers.lldap = {
+        allowedPorts.Tcp = [ constants.ports.lldap ];
+
         credentials = {
           db-url.name = "lldap/db";
           jwt.name = "lldap/jwt";
@@ -26,8 +28,6 @@
         config =
           { ... }:
           {
-            networking.firewall.allowedTCPPorts = [ constants.ports.lldap ];
-
             environment.defaultPackages = with pkgs; [ lldap-cli ];
 
             services.lldap = {

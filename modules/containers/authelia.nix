@@ -25,6 +25,7 @@
       {
         modules.containers.authelia = {
           allowInternet = true;
+          allowedPorts.Tcp = [ constants.ports.authelia ];
 
           credentials = {
             csec-creds.name = "authelia/crowdsec";
@@ -44,8 +45,6 @@
             in
             { config, ... }:
             {
-              networking.firewall.allowedTCPPorts = [ constants.ports.authelia ];
-
               services.authelia.instances.main = with globalConfig.modules.authelia; {
                 enable = true;
                 secrets.manual = true;

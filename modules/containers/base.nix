@@ -11,6 +11,7 @@
 let
   inherit (builtins) attrNames filter hasAttr;
   inherit (lib)
+    concatMapStrings
     filterAttrs
     hasPrefix
     mapAttrsToList
@@ -19,6 +20,7 @@ let
     mkIf
     mkMerge
     mkOption
+    optionalString
     pipe
     types
     ;
@@ -56,6 +58,18 @@ let
         default = { };
       };
       allowInternet = mkEnableOption "Allow this container to access the internet";
+      allowedPorts = {
+        Tcp = mkOption {
+          description = "List of TCP ports to which incoming connections are only allowed from certain containers";
+          type = with types; listOf port;
+          default = [ ];
+        };
+        Udp = mkOption {
+          description = "List of UDP ports to which incoming connections are only allowed from certain containers";
+          type = with types; listOf port;
+          default = [ ];
+        };
+      };
       useMacvlan = mkEnableOption "Allow this container to access the local network through a macvlan interface";
     };
   };
@@ -184,6 +198,13 @@ in
                       gateways = filter (hasPrefix "caddy-wg-") constants.containerDeps.${name} or [ ];
                       defaultGateway = lib.optionalAttrs (gateways != [ ]) constants.bridge.${builtins.head gateways};
                       allowInternet = cfg.allowInternet && !hasPrefix "caddy-wg-" name && defaultGateway != { };
+                      listToSet = values: lib.concatStringsSep "," (map toString values);
+                      getIpAddrs =
+                        ipType: map (value: constants.bridge.${value}.${ipType}) constants.firewallOpen.${name};
+                      ip4Addrs = listToSet (getIpAddrs "ip4");
+                      ip6Addrs = listToSet (getIpAddrs "ip6");
+                      tcpPorts = listToSet cfg.allowedPorts.Tcp;
+                      udpPorts = listToSet cfg.allowedPorts.Udp;
                     in
                     {
                       # Config for allowing internet through the bridge to another container
@@ -206,6 +227,25 @@ in
 
                       # Use nftables by default.
                       nftables.enable = mkDefault true;
+
+                      firewall.extraCommands =
+                        optionalString (!config.networking.nftables.enable && udpPorts != "") ''
+                          iptables -A nixos-fw -p tcp -s ${ip4Addrs} -m multiport --dports ${tcpPorts} -j nixos-fw-accept
+                          ip6tables -A nixos-fw -p tcp -s ${ip6Addrs} -m multiport --dports ${tcpPorts} -j nixos-fw-accept
+                        ''
+                        + optionalString (!config.networking.nftables.enable && udpPorts != "") ''
+                          iptables -A nixos-fw -p udp -s ${ip4Addrs} -m multiport --dports ${udpPorts} -j nixos-fw-accept
+                          ip6tables -A nixos-fw -p udp -s ${ip6Addrs} -m multiport --dports ${udpPorts} -j nixos-fw-accept
+                        '';
+                      firewall.extraInputRules =
+                        optionalString (config.networking.nftables.enable && tcpPorts != "") ''
+                          ip saddr { ${ip4Addrs} } tcp dport { ${tcpPorts} } accept
+                          ip6 saddr { ${ip6Addrs} } tcp dport { ${tcpPorts} } accept
+                        ''
+                        + optionalString (config.networking.nftables.enable && udpPorts != "") ''
+                          ip saddr { ${ip4Addrs} } udp dport { ${udpPorts} } accept
+                          ip6 saddr { ${ip6Addrs} } udp dport { ${udpPorts} } accept
+                        '';
                     };
 
                   # Enable flakes so that we can debug inside containers.

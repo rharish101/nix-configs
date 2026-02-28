@@ -57,7 +57,7 @@
   };
 
   # Container dependencies.
-  # NOTE: Keys for containers **must** correspond to their names.
+  # NOTE: Keys and values for containers **must** correspond to their names.
   containerDeps = {
     authelia = [
       "caddy-wg-client"
@@ -92,6 +92,34 @@
       "caddy-wg-client"
       "postgres"
     ];
+  };
+
+  # Containers to which firewall must be open.
+  # NOTE: Keys and values for containers **must** correspond to their names.
+  firewallOpen = {
+    authelia = [ "caddy-wg-client" ];
+    collabora = [ "caddy-wg-client" ];
+    crowdsec-lapi = [
+      "authelia"
+      "caddy-wg-client"
+      "jellyfin"
+      "minecraft"
+    ];
+    immich = [ "caddy-wg-client" ];
+    jellyfin = [ "caddy-wg-client" ];
+    lldap = [ "authelia" ];
+    minecraft = [ "caddy-wg-client" ];
+    opencloud = [ "caddy-wg-client" ];
+    postgres = [
+      "authelia"
+      "crowdsec-lapi"
+      "immich"
+      "lldap"
+      "tandoor"
+      "vaultwarden"
+    ];
+    tandoor = [ "caddy-wg-client" ];
+    vaultwarden = [ "caddy-wg-client" ];
   };
 
   # IP address pairs for various veth interfaces.

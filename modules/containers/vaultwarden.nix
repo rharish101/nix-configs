@@ -21,6 +21,7 @@
         username = "vaultwarden";
         allowInternet = true;
         credentials.env.name = "vaultwarden";
+        allowedPorts.Tcp = [ constants.ports.vaultwarden ];
 
         bindMounts.dataDir = {
           hostPath = config.modules.vaultwarden.dataDir;
@@ -31,8 +32,6 @@
         config =
           { ... }:
           {
-            networking.firewall.allowedTCPPorts = [ constants.ports.vaultwarden ];
-
             services.vaultwarden = {
               enable = true;
               domain = with constants.domain; "${subdomains.vaultwarden}.${domain}";

@@ -21,6 +21,7 @@
         username = "opencloud";
         allowInternet = true;
         credentials.env.name = "opencloud";
+        allowedPorts.Tcp = [ constants.ports.opencloud ];
 
         bindMounts.data = with config.modules.opencloud; {
           hostPath = dataDir;
@@ -31,8 +32,6 @@
         config =
           { config, ... }:
           {
-            networking.firewall.allowedTCPPorts = [ constants.ports.opencloud ];
-
             services.opencloud = {
               enable = true;
               address = "0.0.0.0";

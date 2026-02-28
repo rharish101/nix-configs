@@ -72,12 +72,12 @@
         config =
           { pkgs, ... }:
           {
-            networking.firewall.allowedTCPPorts = with constants.ports; [
+            networking.firewall.interfaces.eth0.allowedTCPPorts = with constants.ports; [
               443 # HTTPS
               minecraft # Minecraft Java
               crowdsec # CrowdSec LAPI
             ];
-            networking.firewall.allowedUDPPorts = with constants.ports; [
+            networking.firewall.interfaces.eth0.allowedUDPPorts = with constants.ports; [
               443 # QUIC
               minecraft # Minecraft Bedrock
               wireguard # WireGuard tunnel

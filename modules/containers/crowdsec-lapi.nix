@@ -31,6 +31,7 @@
           username = "crowdsec";
           allowInternet = true;
           credentials.env.name = "crowdsec/lapi-env";
+          allowedPorts.Tcp = [ constants.ports.crowdsec ];
 
           bindMounts.dataDir = {
             hostPath = config.modules.crowdsec-lapi.dataDir;
@@ -52,7 +53,6 @@
                 {
                   enable = true;
                   autoUpdateService = true;
-                  openFirewall = true;
                   name = "${config.networking.hostName}-lapi";
 
                   # XXX: CrowdSec refuses to start unless some acquisitions are specified.

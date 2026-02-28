@@ -26,6 +26,7 @@
         username = "jellyfin";
         allowInternet = true;
         credentials.csec-creds.name = "jellyfin/crowdsec";
+        allowedPorts.Tcp = [ constants.ports.jellyfin ];
 
         bindMounts = with config.modules.jellyfin; {
           data = {
@@ -54,8 +55,6 @@
           in
           { ... }:
           {
-            networking.firewall.allowedTCPPorts = [ constants.ports.jellyfin ];
-
             hardware.graphics = {
               enable = true;
               extraPackages = with pkgs; [

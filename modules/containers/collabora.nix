@@ -12,12 +12,11 @@
     lib.mkIf (config.modules.collabora.enable && config.modules.caddy-wg-client.enable) {
       modules.containers.collabora = {
         allowInternet = true;
+        allowedPorts.Tcp = [ constants.ports.collabora ];
 
         config =
           { pkgs, ... }:
           {
-            networking.firewall.allowedTCPPorts = [ constants.ports.collabora ];
-
             services.collabora-online = {
               enable = true;
               port = constants.ports.collabora;
