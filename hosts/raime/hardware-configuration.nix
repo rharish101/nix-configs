@@ -23,11 +23,11 @@
     "sd_mod"
   ];
   boot.initrd.kernelModules = [ ];
-  boot.initrd.systemd.enable = true; # Required for TPM2 unlock
+  boot.initrd.systemd.enable = true; # Required for TPM2-based full-disk encryption unlock
   boot.extraModulePackages = with config.boot.kernelPackages; [ ryzen-smu ];
   boot.kernelParams = [
-    "pcie_aspm.policy=powersave"
-    "microcode.amd_sha_check=off"
+    "pcie_aspm.policy=powersave" # Power management for PCIe devices
+    "microcode.amd_sha_check=off" # AMD microcode SHA check workaround (see: https://github.com/e-tho/ucodenix)
   ];
 
   fileSystems."/" = {
@@ -42,8 +42,8 @@
 
   boot.initrd.luks.devices.root = {
     device = "/dev/disk/by-uuid/fd6a423c-fb03-4963-a8bb-45309c99c34e";
-    allowDiscards = true;
-    bypassWorkqueues = true;
+    allowDiscards = true; # Enable TRIM for SSD
+    bypassWorkqueues = true; # Performance optimization
   };
 
   environment.etc.crypttab = {
@@ -187,6 +187,7 @@
   # networking.interfaces.enp6s0.useDHCP = lib.mkDefault true;
 
   # Set the default interface for NAT.
+  # Used for containers that need internet access.
   networking.nat.externalInterface = "enp6s0";
 
   # Enable Wake-on-LAN
@@ -204,8 +205,9 @@
     ups."shanalotte" = {
       description = "Eaton Ellipse Pro 1120";
       driver = "usbhid-ups";
-      port = "auto";
+      port = "auto"; # Needed for "usbhid-ups"
     };
+    # Keep admin permissions minimal, as I don't plan on manually messing with NUT.
     users."nut-admin" = {
       passwordFile = config.sops.secrets."nut".path;
       upsmon = "primary";

@@ -23,16 +23,16 @@
       hideMounts = true;
       directories = [
         "/etc/NetworkManager/system-connections"
-        "/etc/ssh/ssh_config.d"
-        "/var/lib/containers"
+        "/etc/ssh/ssh_config.d" # Custom/sensitive SSH configs
+        "/var/lib/containers" # Container runtime state
         "/var/lib/nixos"
-        "/var/lib/postgresql"
-        "/var/lib/sbctl"
+        "/var/lib/postgresql" # Database files
+        "/var/lib/sbctl" # Secure boot keys
         "/var/lib/systemd/coredump"
         "/var/log"
       ];
       files = [
-        "/etc/machine-id"
+        "/etc/machine-id" # Keep the same machine ID for journals
         "/etc/ssh/ssh_host_ed25519_key"
         "/etc/ssh/ssh_host_ed25519_key.pub"
         "/etc/ssh/ssh_host_rsa_key"

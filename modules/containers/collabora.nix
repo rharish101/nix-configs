@@ -20,6 +20,9 @@
             services.collabora-online = {
               enable = true;
               port = constants.ports.collabora;
+              # Collabora needs an SSH key pair INSIDE the package directories. So manually
+              # generate them in the build process. See:
+              # https://github.com/NixOS/nixpkgs/issues/459596
               package = pkgs.collabora-online.overrideAttrs (old: {
                 postInstall = old.postInstall + ''
                   ${lib.getExe' pkgs.openssh "ssh-keygen"} -t rsa -N "" -m PEM -f $out/etc/coolwsd/proof_key

@@ -4,7 +4,7 @@
 
 {
   name = "rharish101/minecraft-dos";
-  description = "Detect Minecraft login DoS";
+  description = "Detect Minecraft login DoS: repeated failed login attempts from the same IP";
   filter = "evt.Meta.service == 'minecraft' && evt.Meta.log_type == 'minecraft_auth_failed'";
   type = "leaky";
   groupby = "evt.Meta.source_ip";

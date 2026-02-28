@@ -78,6 +78,7 @@
                 };
                 accelerationDevices = [ gpuDevice ];
                 # XXX: Workaround for: https://github.com/NixOS/nixpkgs/issues/418799
+                # TODO: Remove this workaround (issue was fixed)
                 machine-learning.environment =
                   let
                     cacheDir = "/var/cache/immich";

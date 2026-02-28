@@ -68,10 +68,12 @@
             networking.firewall.filterForward = true;
             networking.firewall.extraForwardRules = "tcp flags syn tcp option maxseg size set rt mtu";
 
-            # Allow internet access through the WireGuard tunnel for containers connected to this one.
+            # Allow internet access through the WireGuard tunnel for containers connected to this.
+            # NAT translates internal container IPs to the WG client's public IP for external
+            # replies.
             networking.nat = {
               enable = true;
-              internalInterfaces = [ "eth0" ];
+              internalInterfaces = [ "eth0" ]; # Should be the bridge for all containers
               externalInterface = "wg0";
             };
 
@@ -82,7 +84,9 @@
                 "${constants.veths.tunnel.client.ip6}/112"
               ];
               privateKeyFile = "$CREDENTIALS_DIRECTORY/priv-key";
-              dns = [ dns ]; # Use external DNS, since traffic is routed through the tunnel.
+              # Use external DNS, since all traffic is routed through the tunnel, and any default
+              # nameserver would be outside this tunnel (thereby unreachable).
+              dns = [ dns ];
               peers = [
                 {
                   publicKey = server.publicKey;
@@ -116,6 +120,8 @@
                     mcPort = constants.ports.minecraft;
                   in
                   ''
+                    # Reverse proxy for Minecraft with proxy protocol v2 for logging source IPs
+                    # (used by CrowdSec for blocking bad actors)
                     layer4 {
                       tcp/:${toString mcPort} {
                         route {
@@ -136,6 +142,8 @@
                         }
                       }
                     }
+                    # Trust the WireGuard server, which is also a reverse proxy, so that we use the
+                    # source IPs it reports (used by CrowdSec for blocking bad actors)
                     servers {
                       trusted_proxies static ${constants.veths.tunnel.server.ip4}/24 ${constants.veths.tunnel.server.ip6}/112 ${server.address}
                     }

@@ -28,7 +28,8 @@
         sops.secrets."tandoor/secret-key" = secretConfig;
 
         # Tandoor doesn't support loading secrets from a file natively (only through a helper
-        # script, which NixOS doesn't use...).
+        # script, which NixOS doesn't use...). Thus, use sops-nix templates to hide the OIDC
+        # secret.
         sops.templates."tandoor/env".content =
           let
             oidcConfig = builtins.toJSON {

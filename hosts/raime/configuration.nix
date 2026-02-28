@@ -29,9 +29,10 @@
   # networking.firewall.enable = false;
   networking.nftables.enable = true;
 
+  # NAT for internal containers with internal IPs to access external resources
   networking.nat = {
     enable = true;
-    internalInterfaces = [ "ve-*" ];
+    internalInterfaces = [ "ve-*" ]; # NOTE: nftables uses `*`, iptables uses `+`
   };
 
   # Set up a wireguard tunnel to Shalquoir.

@@ -3,7 +3,9 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 {
-  # IP addresses of containers inside the containers' bridge.
+  # IPv4/IPv6 private addressing for container-to-container communication in the containers' bridge
+  # Addresses are kept static to avoid running a DHCP server.
+  # Single bridge for all containers simplifies networking and firewall management.
   # NOTE: Keys for containers **must** correspond to their names.
   bridge = {
     caddy-wg-client = {
@@ -56,8 +58,9 @@
     };
   };
 
-  # Container dependencies.
-  # NOTE: Keys and values for containers **must** correspond to their names.
+  # Container dependencies for a container's systemd unit.
+  # Also used for determining the default gateway, for containers who need internet access.
+  # NOTE: Keys and list values for containers **must** correspond to their names.
   containerDeps = {
     authelia = [
       "caddy-wg-client"
@@ -94,8 +97,9 @@
     ];
   };
 
-  # Containers to which firewall must be open.
-  # NOTE: Keys and values for containers **must** correspond to their names.
+  # List of containers to which a container's firewall must be open.
+  # Used to determine which IPs can access which ports (via firewallOpen in base.nix)
+  # NOTE: Keys and list values for containers **must** correspond to their names.
   firewallOpen = {
     authelia = [ "caddy-wg-client" ];
     collabora = [ "caddy-wg-client" ];
@@ -122,7 +126,8 @@
     vaultwarden = [ "caddy-wg-client" ];
   };
 
-  # IP address pairs for various veth interfaces.
+  # IPv4/IPv6 private addresses for host and container veth pairs for reverse proxy container
+  # networking
   veths = {
     caddy = {
       host = {
@@ -146,7 +151,10 @@
     };
   };
 
-  # UIDs/GIDs that are multiples of 65536 are chosen a/c to how systemd-nspawn chooses one for user namespacing.
+  # UIDs/GIDs that are multiples of 65536 are chosen a/c to how systemd-nspawn chooses one for user
+  # namespacing.
+  # Only used for containers who need to access the filesystem, as the file/directory owner in the
+  # host must be fixed. Containers without these UIDs use "pick" for private user namespace mapping
   # NOTE: Keys for containers **must** correspond to their usernames.
   uids = {
     minecraft = 65536 * 9;
@@ -163,16 +171,16 @@
   ports = {
     authelia = 9091;
     collabora = 9980;
-    crowdsec = 20546; # Don't use defaut of 8080, since it's not unique.
+    crowdsec = 20546; # Avoid default 8080 to prevent conflicts
     immich = 2283;
     jellyfin = 8096;
     lldap = 3890;
     minecraft = 25565; # Used for both Java (TCP) & Bedrock (UDP) editions
     opencloud = 9200;
     postgres = 5432;
-    tandoor = 2113; # Don't use defaut of 8080, since it's not unique.
+    tandoor = 2113; # Avoid default 8080 to prevent conflicts
     wireguard = 51820;
-    vaultwarden = 6062; # Don't use default of 8000, since it's not unique.
+    vaultwarden = 6062; # Avoid default 8000 to prevent conflicts
   };
 
   # Constants related to my personal domain.
@@ -199,6 +207,7 @@
   };
 
   # Resource limits
+  # These are initialized from the minimum requirements in their docs.
   # CPU: #(virtual) threads, memory: GiB
   # NOTE: Keys for containers **must** correspond to their names.
   limits = {

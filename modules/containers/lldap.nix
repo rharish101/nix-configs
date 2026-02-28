@@ -53,6 +53,8 @@
                 "key-seed:key-seed"
                 "user-pass:user-pass"
               ];
+              # LLDAP sometimes fails on start, because it started too soon (before PostgreSQL).
+              # Unfortunately, this module doesn't add restarts, so add them manually.
               Restart = "on-failure";
               RestartSec = 5;
             };

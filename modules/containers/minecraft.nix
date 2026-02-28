@@ -181,7 +181,7 @@
                       labels.type = "minecraft";
                       use_time_machine = true;
                     }
-                  ];
+                  ]; # CrowdSec only parses the latest log to avoid day-based collisions
                   scenarios = [ mcScenario ];
                   parsers.s01Parse = [ mcParser ];
                 };

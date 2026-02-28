@@ -45,6 +45,7 @@ in
   networking.nftables.enable = true;
 
   # Hairpin NAT for the wireguard server.
+  # Required for OIDC flows where services need to send requests to other services using public URLs
   networking.nftables.tables.hairpin-nat = {
     name = "hairpin-nat";
     family = "ip";
@@ -66,7 +67,7 @@ in
 
   networking.nat = {
     enable = true;
-    internalInterfaces = [ "ve-*" ];
+    internalInterfaces = [ "ve-*" ]; # NOTE: nftables uses `*`, iptables uses `+`
   };
 
   # Set up a wireguard server for Raime.
@@ -118,7 +119,7 @@ in
   modules.impermanence.path = "/persist";
   modules.snapshots.enable = false;
 
-  # Needed for remote deployment.
+  # Needed for remote deployment via SSH from raime: nixos-rebuild switch --target-host shalquoir
   nix.settings.trusted-users = [
     "root"
     "rharish"

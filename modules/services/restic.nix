@@ -11,6 +11,8 @@ in
   config = lib.mkIf config.modules.restic.enable {
     sops.secrets."restic/${hostName}" = { };
 
+    # Keep SSH connection alive to prevent timeout during backup.
+    # NOTE: SSH config is incomplete - remote server IP is in /etc/ssh/ssh_config.d.
     programs.ssh.extraConfig = "
       Host restic-remote
         IdentityFile /etc/ssh/ssh_host_ed25519_key
@@ -21,6 +23,8 @@ in
     services.restic.backups.${hostName} = {
       repository = "sftp:restic-remote:restic";
       passwordFile = config.sops.secrets."restic/${hostName}".path;
+      # Should cover all subvolumes with persistent data except DB subvolumes, but they're backed up
+      # to /data.
       paths = [
         config.modules.impermanence.path
         "/home"

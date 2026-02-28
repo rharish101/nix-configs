@@ -104,6 +104,7 @@
   # networking.interfaces.enp1s0.useDHCP = lib.mkDefault true;
 
   # Set the default interface for NAT.
+  # Used for containers that need internet access.
   networking.nat.externalInterface = "enp1s0";
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";

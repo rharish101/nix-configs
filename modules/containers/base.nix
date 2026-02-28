@@ -83,13 +83,14 @@ in
   config =
     let
       constants = import ../constants.nix;
-
       bridgeName = "br-containers";
 
       # Map an attribute set and use `lib.mkMerge` to merge them.
+      # Useful for merging configs from multiple sources
       mergeMapAttrs = func: attr: mkMerge (mapAttrsToList func attr);
 
       # Containers that have set a username.
+      # Used to create host users/groups mapped to container root users
       containersWithUsernames = filterAttrs (_: cfg: cfg.username != null) config.modules.containers;
     in
     {
@@ -130,6 +131,7 @@ in
 
               macvlans = if cfg.useMacvlan then mkDefault [ config.networking.nat.externalInterface ] else [ ];
               # Add veth to host if macvlan isn't enabled.
+              # Only useful for the reverse proxy containers.
               extraVeths.eth1 =
                 mkIf (hasPrefix "caddy-wg-" name && hasAttr name constants.bridge && !cfg.useMacvlan)
                   {
@@ -141,8 +143,9 @@ in
 
               extraFlags =
                 let
-                  # Convert a single hex character at a given index to the corresponding character in the UUID.
-                  # This adds the UUID version or the UUID variant depending on the index.
+                  # Convert a single hex character at a given index to the corresponding character
+                  # in the UUID.
+                  # This adds the UUID version (4) or the UUID variant depending on the index.
                   uuidImap =
                     i: char:
                     if i == 12 then
@@ -159,7 +162,8 @@ in
                       char;
 
                   # Convert a container name (arbitrary string) deterministically to UUIDv4.
-                  # This just hashes it with MD5 (since the hash is 128 bits, same as UUIDv4) and formats it to look like UUIDv4.
+                  # This just hashes it with MD5 (since the hash is 128 bits, same as UUIDv4) and
+                  # formats it to look like UUIDv4.
                   nameToUuid =
                     name:
                     pipe name [
@@ -174,7 +178,8 @@ in
                   "--link-journal=host"
                   "--uuid=${nameToUuid name}" # Make the machine ID deterministic.
                 ]
-                # Get the corresponding systemd-nspawn CLI flags for loading each SOPS secret as a systemd credential.
+                # Get the corresponding systemd-nspawn CLI flags for loading each SOPS secret as a
+                # systemd credential.
                 ++ mapAttrsToList (
                   credentialName: secret:
                   "--load-credential=${credentialName}:"
@@ -214,7 +219,8 @@ in
                       };
                       nameservers = if allowInternet then [ constants.nameserver ] else [ ];
 
-                      # Use systemd-networkd to configure network access through the macvlan interface.
+                      # Use systemd-networkd to configure network access through the macvlan
+                      # interface.
                       useNetworkd = mkDefault cfg.useMacvlan;
                       interfaces = mkIf cfg.useMacvlan {
                         "mv-${config.networking.nat.externalInterface}".useDHCP = mkDefault true;
@@ -224,6 +230,7 @@ in
                       # Use nftables by default.
                       nftables.enable = mkDefault true;
 
+                      # Allow incoming traffic only from containers listed in firewallOpen.
                       firewall.extraCommands =
                         optionalString (!config.networking.nftables.enable && udpPorts != "") ''
                           iptables -A nixos-fw -p tcp -s ${ip4Addrs} -m multiport --dports ${tcpPorts} -j nixos-fw-accept
@@ -244,7 +251,7 @@ in
                         '';
                     };
 
-                  # Enable flakes so that we can debug inside containers.
+                  # Enable flakes so that we can debug inside containers via nix shell, nix run, etc.
                   nix.settings.experimental-features = [
                     "nix-command"
                     "flakes"
@@ -254,7 +261,8 @@ in
 
                   # Set a low reload time, to account for crashes on init:
                   # 1. The local API server crashes due to temporary networking issues.
-                  # 2. The log processor crashes because it wants us to reload the config (after a hub update).
+                  # 2. The log processor crashes because it wants us to reload the config (after a
+                  #    hub update).
                   systemd.services.crowdsec.serviceConfig.RestartSec = lib.mkForce 5;
                 };
             }
@@ -264,6 +272,7 @@ in
         ]
       ) config.modules.containers;
 
+      # Only create bridge for containers if any containers use it.
       networking.bridges = mkIf (
         filter (name: hasAttr name constants.bridge) (attrNames config.modules.containers) != [ ]
       ) { ${bridgeName}.interfaces = [ ]; };
@@ -279,6 +288,7 @@ in
             }
           );
 
+          # Include dependencies from containerDeps, including the bridge for bridge containers.
           requires =
             map (name: "container@${name}.service") constants.containerDeps.${name} or [ ]
             ++ lib.optionals (hasAttr name constants.bridge) [ "${bridgeName}-netdev.service" ];
@@ -301,7 +311,8 @@ in
           name: cfg: mergeMapAttrs (getSopsConfig name) cfg.credentials
         ) config.modules.containers;
 
-      # Define users and their corresponding groups for containers that define the host username for their root users.
+      # Define users and their corresponding groups for containers that define the host username for
+      # their root users.
       users.users = mergeMapAttrs (_: cfg: {
         ${cfg.username} = {
           uid = constants.uids.${cfg.username};
@@ -312,6 +323,6 @@ in
 
       users.groups = mergeMapAttrs (_: cfg: {
         ${cfg.username}.gid = constants.uids.${cfg.username};
-      }) containersWithUsernames;
+      }) containersWithUsernames; # Create groups with same names as users.
     };
 }

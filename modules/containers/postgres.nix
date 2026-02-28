@@ -45,6 +45,7 @@
               enable = true;
               enableTCPIP = true;
               settings.port = constants.ports.postgres;
+              # Have to manually allow these hosts to connect.
               authentication = with constants.bridge; ''
                 host sameuser authelia    ${authelia.ip4}/32      scram-sha-256
                 host sameuser crowdsec    ${crowdsec-lapi.ip4}/32 scram-sha-256
@@ -87,12 +88,13 @@
                 (lib.mkIf config.modules.tandoor.enable "tandoor")
                 (lib.mkIf config.modules.vaultwarden.enable "vaultwarden")
               ];
+              # NOTE: Passwords have to be manually enrolled.
 
-              # Install VectorChord for Immich.
+              # Install VectorChord, which is necessary for Immich.
               extensions =
                 ps: with ps; [
                   vectorchord
-                  pgvector # VectorChord dependency
+                  pgvector
                 ];
               settings.shared_preload_libraries = [ "vchord" ];
             };

@@ -84,6 +84,7 @@
             ];
 
             # Allow internet access for clients through the WireGuard tunnel.
+            # NAT translates internal client IPs to the server's public IP for external replies
             networking.nat = {
               enable = true;
               internalInterfaces = [ "wg0" ];
@@ -130,11 +131,16 @@
                 environmentFile = "/run/credentials/@system/caddy-env";
                 email = "harish.rajagopals@gmail.com";
                 globalConfig = with constants.ports; ''
+                  # Configure DNS provider for getting TLS certs from LetsEncrypt through ACME.
                   dns cloudflare {
                     zone_token {env.ZONE_TOKEN}
                     api_token {env.DNS_TOKEN}
                   }
+                  # Enable ECH for the main domain (as it's the only one I control directly with the
+                  # DNS provider)
                   ech ${constants.domain.domain}
+                  # Reverse proxy for Minecraft with proxy protocol v2 for logging source IPs (used
+                  # by CrowdSec for blocking bad actors)
                   layer4 {
                     tcp/:${toString minecraft} {
                       route {
@@ -157,6 +163,9 @@
                 virtualHosts =
                   let
                     inherit (constants.domain) domain;
+                    # NOTE: Make sure that this isn't too low.
+                    # For reference, one load of the Jellyfin homepage takes ~180 requests (as of
+                    # 2026-02-25).
                     rateLimitConfig = ''
                       rate_limit {
                         zone global {

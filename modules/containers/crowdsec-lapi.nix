@@ -57,6 +57,7 @@
 
                   # XXX: CrowdSec refuses to start unless some acquisitions are specified.
                   localConfig.acquisitions = [
+                    # Minimal acquisition for journalctl
                     {
                       source = "journalctl";
                       journalctl_filter = [ "_SYSTEMD_UNIT=ssh.service" ];

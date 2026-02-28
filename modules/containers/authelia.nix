@@ -88,6 +88,7 @@
                   ];
                   webauthn = {
                     enable_passkey_login = true;
+                    # XXX: Needed to mark passkeys as two factors.
                     experimental_enable_passkey_uv_two_factors = true;
                   };
                   identity_providers.oidc = {
@@ -274,6 +275,7 @@
                 };
               };
               systemd.services.authelia-main.serviceConfig = {
+                # To allow access to Redis's unix socket.
                 SupplementaryGroups = config.services.redis.servers.authelia.group;
                 LoadCredential = [
                   "jwt:jwt"
@@ -308,6 +310,7 @@
               };
               systemd.services.crowdsec.serviceConfig.LoadCredential = [ "csec-creds:csec-creds" ];
 
+              # Local Redis container over a unix socket for simplicity.
               services.redis.servers.authelia.enable = true;
 
               system.stateVersion = "25.05";

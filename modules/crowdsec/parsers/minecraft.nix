@@ -45,6 +45,7 @@
     }
     {
       name = "Possibly offline account user";
+      description = "Either a user with an offline account, or one with an online account who was disconnected due to a flaky connection";
       grok = {
         pattern = "^\\[%{TIME:time}\\] \\[Netty epoll Worker #%{POSINT}/INFO\\] [com.velocitypowered.proxy.connection.MinecraftConnection]: [initial connection] /%{IP:source_ip}:%{POSINT} has disconnected$";
         apply_on = "message";
