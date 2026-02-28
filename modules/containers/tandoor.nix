@@ -40,7 +40,7 @@
                   secret = config.sops.placeholder."tandoor/oidc";
                   settings.server_url =
                     with constants.domain;
-                    "https://${subdomains.auth}.${domain}/.well-known/openid-configuration";
+                    "https://${subdomains.authelia}.${domain}/.well-known/openid-configuration";
                 }
               ];
             };
@@ -76,7 +76,7 @@
                 address = "0.0.0.0";
                 port = constants.ports.tandoor;
                 extraConfig = {
-                  ALLOWED_HOSTS = with constants.domain; "${subdomains.tr}.${domain}";
+                  ALLOWED_HOSTS = with constants.domain; "${subdomains.tandoor}.${domain}";
                   DB_ENGINE = "django.db.backends.postgresql";
                   POSTGRES_HOST = constants.bridge.postgres.ip4;
                   POSTGRES_PORT = constants.ports.postgres;

@@ -87,7 +87,7 @@
                     HF_XET_CACHE = "${cacheDir}/huggingface-xet";
                   };
                 settings = {
-                  server.externalDomain = with constants.domain; "https://${subdomains.imm}.${domain}";
+                  server.externalDomain = with constants.domain; "https://${subdomains.immich}.${domain}";
                   passwordLogin.enabled = false;
                   ffmpeg = {
                     accel = "qsv";
@@ -103,7 +103,7 @@
                     enabled = true;
                     issuerUrl =
                       with constants.domain;
-                      "https://${subdomains.auth}.${domain}/.well-known/openid-configuration";
+                      "https://${subdomains.authelia}.${domain}/.well-known/openid-configuration";
                     clientId = "JuhCQHaHI65vm~.Oyw7F~X9nFiJpC1UsyxMzthVhDHwzjfcJhofhxV43Ezcs31Er";
                     clientSecret._secret = "oidc";
                     buttonText = "Login with Authelia";

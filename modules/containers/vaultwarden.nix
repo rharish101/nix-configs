@@ -35,7 +35,7 @@
 
             services.vaultwarden = {
               enable = true;
-              domain = with constants.domain; "${subdomains.vw}.${domain}";
+              domain = with constants.domain; "${subdomains.vaultwarden}.${domain}";
               dbBackend = "postgresql";
               environmentFile = "/run/credentials/@system/env";
               config = {
@@ -44,10 +44,10 @@
                 SMTP_HOST = constants.smtp.host;
                 SMTP_PORT = constants.smtp.port;
                 SMTP_USERNAME = constants.smtp.username;
-                SMTP_FROM = with constants.domain; "${subdomains.vw}@${domain}";
+                SMTP_FROM = with constants.domain; "${subdomains.vaultwarden}@${domain}";
                 SSO_ENABLED = "true";
                 SSO_ONLY = "true";
-                SSO_AUTHORITY = with constants.domain; "https://${subdomains.auth}.${domain}";
+                SSO_AUTHORITY = with constants.domain; "https://${subdomains.authelia}.${domain}";
                 SSO_CLIENT_ID = "j-rWSHQpg-BvMn8f2y3NB367j2POzf9BBtwZCUVLgRKRmNHHqagmgVba11L2hyAPQwpcomzG";
                 SSO_SCOPES = "email profile offline_access";
                 SSO_AUTH_ONLY_NOT_SESSION = "true";

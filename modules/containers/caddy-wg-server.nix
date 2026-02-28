@@ -116,26 +116,7 @@
             services.caddy =
               let
                 clientIp = constants.veths.tunnel.client.ip4;
-                rateLimitConfig = ''
-                  rate_limit {
-                    zone global {
-                      window 10s
-                      events 20000
-                    }
-                    zone per_host {
-                      key {remote_host}
-                      window 10s
-                      events 2000
-                    }
-                    jitter 0.2
-                  }
-                '';
-                proxyConfig = ''
-                  ${rateLimitConfig}
-                  reverse_proxy ${clientIp}:80
-                '';
               in
-              with constants.domain;
               {
                 enable = true;
                 package = pkgs.caddy.withPlugins {
@@ -173,23 +154,43 @@
                     }
                   }
                 '';
-                virtualHosts.":${toString constants.ports.crowdsec}".extraConfig = ''
-                  ${rateLimitConfig}
-                  reverse_proxy ${clientIp}:${toString constants.ports.crowdsec}
-                '';
-                virtualHosts.${domain}.extraConfig = proxyConfig;
-                virtualHosts."www.${domain}".extraConfig = ''
-                  ${rateLimitConfig}
-                  redir https://${domain} 301
-                '';
-                virtualHosts."${subdomains.auth}.${domain}".extraConfig = proxyConfig;
-                virtualHosts."${subdomains.bp}.${domain}".extraConfig = proxyConfig;
-                virtualHosts."${subdomains.cb}.${domain}".extraConfig = proxyConfig;
-                virtualHosts."${subdomains.imm}.${domain}".extraConfig = proxyConfig;
-                virtualHosts."${subdomains.jf}.${domain}".extraConfig = proxyConfig;
-                virtualHosts."${subdomains.oc}.${domain}".extraConfig = proxyConfig;
-                virtualHosts."${subdomains.tr}.${domain}".extraConfig = proxyConfig;
-                virtualHosts."${subdomains.vw}.${domain}".extraConfig = proxyConfig;
+                virtualHosts =
+                  let
+                    inherit (constants.domain) domain;
+                    rateLimitConfig = ''
+                      rate_limit {
+                        zone global {
+                          window 10s
+                          events 20000
+                        }
+                        zone per_host {
+                          key {remote_host}
+                          window 10s
+                          events 2000
+                        }
+                        jitter 0.2
+                      }
+                    '';
+                    proxyConfig = ''
+                      ${rateLimitConfig}
+                      reverse_proxy ${clientIp}:80
+                    '';
+                  in
+                  {
+                    ":${toString constants.ports.crowdsec}".extraConfig = ''
+                      ${rateLimitConfig}
+                      reverse_proxy ${clientIp}:${toString constants.ports.crowdsec}
+                    '';
+                    ${domain}.extraConfig = proxyConfig;
+                    "www.${domain}".extraConfig = ''
+                      ${rateLimitConfig}
+                      redir https://${domain} 301
+                    '';
+                  }
+                  // lib.mapAttrs' (_: subdomain: {
+                    name = "${subdomain}.${constants.domain.domain}";
+                    value.extraConfig = proxyConfig;
+                  }) constants.domain.subdomains;
               };
 
             services.crowdsec = lib.mkIf config.modules.caddy-wg-server.crowdsec.enable {

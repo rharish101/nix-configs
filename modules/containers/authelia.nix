@@ -72,14 +72,14 @@
                     cookies = [
                       {
                         domain = domain;
-                        authelia_url = "https://${subdomains.auth}.${domain}";
+                        authelia_url = "https://${subdomains.authelia}.${domain}";
                       }
                     ];
                   };
                   notifier.smtp = with constants.smtp; {
                     address = "submission://${host}:${toString port}";
                     username = username;
-                    sender = "Authelia <${subdomains.auth}@${domain}>";
+                    sender = "Authelia <${subdomains.authelia}@${domain}>";
                   };
                   access_control.rules = [
                     {
@@ -98,7 +98,7 @@
                     };
                     cors = {
                       endpoints = [ "token" ];
-                      allowed_origins = [ "https://${subdomains.oc}.${domain}" ];
+                      allowed_origins = [ "https://${subdomains.opencloud}.${domain}" ];
                     };
                     clients = [
                       {
@@ -106,8 +106,8 @@
                         client_name = "Immich";
                         client_secret = "$pbkdf2-sha512$310000$nKsIAFb7St17WH4uKLPH3A$O2/SqbuoeuDehSRkboSpfOS4DNXUn5ZDSWo.4DU3kKgUu3Qr0VkvZYgWsAWvYv2ywl/eJxyBOwwl3h68wm3/Kg";
                         redirect_uris = [
-                          "https://${subdomains.imm}.${domain}/auth/login"
-                          "https://${subdomains.imm}.${domain}/user-settings"
+                          "https://${subdomains.immich}.${domain}/auth/login"
+                          "https://${subdomains.immich}.${domain}/user-settings"
                           "app.immich:///oauth-callback"
                         ];
                         scopes = [
@@ -123,7 +123,7 @@
                         client_name = "Jellyfin";
                         client_secret = "$pbkdf2-sha512$310000$K4ozS7erBqjatwrxo5Do4Q$fDvzpM4xiAluUfBU6iSZ2wrk/xiT2brt1ko2UgLdSKo88OYbi2QcXALLi7UqoQ2qGo3.E1ChUVG330jLJdWk.Q";
                         redirect_uris = [
-                          "https://${subdomains.jf}.${domain}/sso/OID/redirect/authelia"
+                          "https://${subdomains.jellyfin}.${domain}/sso/OID/redirect/authelia"
                           "org.jellyfin.mobile://login-callback"
                         ];
                         scopes = [
@@ -138,7 +138,9 @@
                         client_id = "ze1RwDxg_zLBH40.D9eP3RPbXl.fa~c2Q99q8vbwIQVZqFcn37GtzP3Wbk-HhsBO";
                         client_name = "Tandoor Recipes";
                         client_secret = "$pbkdf2-sha512$310000$qbwXRo.OH3g8/C5/QSYX5A$9sUVtyen0XwJi4Ky88g6NWK/C6HcHPig6sIhGzr7llkeQrNh0bpklafz3jOJx7A9d632NSPVIaNDWBWAaONeMQ";
-                        redirect_uris = [ "https://${subdomains.tr}.${domain}/accounts/oidc/authelia/login/callback/" ];
+                        redirect_uris = [
+                          "https://${subdomains.tandoor}.${domain}/accounts/oidc/authelia/login/callback/"
+                        ];
                         scopes = [
                           "openid"
                           "profile"
@@ -154,9 +156,9 @@
                         client_secret = "";
                         public = true;
                         redirect_uris = [
-                          "https://${subdomains.oc}.${domain}/"
-                          "https://${subdomains.oc}.${domain}/oidc-callback.html"
-                          "https://${subdomains.oc}.${domain}/oidc-silent-redirect.html"
+                          "https://${subdomains.opencloud}.${domain}/"
+                          "https://${subdomains.opencloud}.${domain}/oidc-callback.html"
+                          "https://${subdomains.opencloud}.${domain}/oidc-silent-redirect.html"
                         ];
                         scopes = [
                           "openid"
@@ -234,7 +236,7 @@
                         client_name = "Vaultwarden";
                         client_secret = "$pbkdf2-sha512$310000$u0v8.klWtYVhOUEodryxHQ$DoRjnQcwLVN3jJkVrI6dClfaurYBQLIrCcf0vPguY7.fJJ7oyXffnnG.dvNTnjQIx5nx7brqZ4VnnDoTmNH9dg";
                         redirect_uris = [
-                          "https://${subdomains.vw}.${domain}/identity/connect/oidc-signin"
+                          "https://${subdomains.vaultwarden}.${domain}/identity/connect/oidc-signin"
                         ];
                         scopes = [
                           "openid"

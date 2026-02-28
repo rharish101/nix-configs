@@ -32,7 +32,7 @@
                   enable = false;
                   termination = true;
                 };
-                storage.wopi.host = with constants.domain; "https://${subdomains.oc}.${domain}";
+                storage.wopi.host = with constants.domain; "https://${subdomains.opencloud}.${domain}";
                 per_document.max_concurrency = constants.limits.collabora.cpu;
               };
             };

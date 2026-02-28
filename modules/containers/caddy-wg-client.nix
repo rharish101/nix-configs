@@ -146,32 +146,32 @@
                 virtualHosts.":${toString constants.ports.crowdsec}".extraConfig = ''
                   reverse_proxy ${constants.bridge.crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
                 '';
-                virtualHosts."http://${subdomains.auth}.${domain}".extraConfig = ''
+                virtualHosts."http://${subdomains.authelia}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridge.authelia.ip4}:${toString constants.ports.authelia}
                 '';
-                virtualHosts."http://${subdomains.cb}.${domain}".extraConfig = ''
+                virtualHosts."http://${subdomains.collabora}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridge.collabora.ip4}:${toString constants.ports.collabora}
                 '';
-                virtualHosts."http://${subdomains.imm}.${domain}".extraConfig = ''
+                virtualHosts."http://${subdomains.immich}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridge.immich.ip4}:${toString constants.ports.immich}
                 '';
-                virtualHosts."http://${subdomains.jf}.${domain}".extraConfig = ''
+                virtualHosts."http://${subdomains.jellyfin}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridge.jellyfin.ip4}:${toString constants.ports.jellyfin}
                 '';
-                virtualHosts."http://${subdomains.oc}.${domain}".extraConfig = ''
+                virtualHosts."http://${subdomains.opencloud}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridge.opencloud.ip4}:${toString constants.ports.opencloud}
                 '';
-                virtualHosts."http://${subdomains.tr}.${domain}".extraConfig = ''
+                virtualHosts."http://${subdomains.tandoor}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridge.tandoor.ip4}:${toString constants.ports.tandoor}
                 '';
-                virtualHosts."http://${subdomains.vw}.${domain}".extraConfig = ''
+                virtualHosts."http://${subdomains.vaultwarden}.${domain}".extraConfig = ''
                   reverse_proxy ${constants.bridge.vaultwarden.ip4}:${toString constants.ports.vaultwarden}
                 '';
               };
 
             services.bentopdf = lib.mkIf config.modules.bentopdf.enable {
               enable = true;
-              domain = with constants.domain; "http://${subdomains.bp}.${domain}";
+              domain = with constants.domain; "http://${subdomains.bentopdf}.${domain}";
               caddy = {
                 enable = true;
                 virtualHost.extraConfig = with constants; ''

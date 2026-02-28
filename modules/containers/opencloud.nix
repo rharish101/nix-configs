@@ -37,18 +37,18 @@
               enable = true;
               address = "0.0.0.0";
               port = constants.ports.opencloud;
-              url = with constants.domain; "https://${subdomains.oc}.${domain}";
+              url = with constants.domain; "https://${subdomains.opencloud}.${domain}";
               environmentFile = "/run/credentials/@system/env";
               environment = {
                 OC_INSECURE = "true";
                 PROXY_TLS = "false";
                 SMTP_HOST = constants.smtp.host;
                 SMTP_PORT = toString constants.smtp.port;
-                SMTP_SENDER = with constants.domain; "OpenCloud <${subdomains.oc}@${domain}>";
+                SMTP_SENDER = with constants.domain; "OpenCloud <${subdomains.opencloud}@${domain}>";
                 SMTP_USERNAME = constants.smtp.username;
                 SMTP_TRANSPORT_ENCRYPTION = "true";
                 SMTP_INSECURE = "false";
-                OC_OIDC_ISSUER = with constants.domain; "https://${subdomains.auth}.${domain}";
+                OC_OIDC_ISSUER = with constants.domain; "https://${subdomains.authelia}.${domain}";
                 WEB_OIDC_CLIENT_ID = "9j4m5zcr5c51gJB6Qs50bChpQFWj3Htzc4wj3F2SMGVtIw-LhF3k8XpdXsWLP7YN";
                 WEB_OIDC_SCOPE = "openid profile email groups";
                 OC_EXCLUDE_RUN_SERVICES = "idp";
@@ -58,8 +58,8 @@
               // lib.optionalAttrs useCollabora {
                 OC_ADD_RUN_SERVICES = "collaboration";
                 COLLABORATION_APP_PRODUCT = "Collabora";
-                COLLABORATION_APP_ADDR = with constants.domain; "https://${subdomains.cb}.${domain}";
-                COLLABORATION_WOPI_SRC = with constants.domain; "https://${subdomains.oc}.${domain}";
+                COLLABORATION_APP_ADDR = with constants.domain; "https://${subdomains.collabora}.${domain}";
+                COLLABORATION_WOPI_SRC = with constants.domain; "https://${subdomains.opencloud}.${domain}";
               };
               settings.csp.directives = {
                 child-src = [ "'self'" ];
@@ -67,7 +67,7 @@
                   "'self'"
                   "blob:"
                   "https://raw.githubusercontent.com/opencloud-eu/awesome-apps/"
-                  (with constants.domain; "https://${subdomains.auth}.${domain}/")
+                  (with constants.domain; "https://${subdomains.authelia}.${domain}/")
                 ];
                 default-src = [ "'none'" ];
                 font-src = [ "'self'" ];
@@ -76,7 +76,7 @@
                   "'self'"
                   "blob:"
                   "https://embed.diagrams.net"
-                  (with constants.domain; "https://${subdomains.cb}.${domain}/")
+                  (with constants.domain; "https://${subdomains.collabora}.${domain}/")
                   "https://docs.opencloud.eu"
                 ];
                 img-src = [
@@ -84,7 +84,7 @@
                   "data:"
                   "blob:"
                   "https://raw.githubusercontent.com/opencloud-eu/awesome-apps/"
-                  (with constants.domain; "https://${subdomains.cb}.${domain}/")
+                  (with constants.domain; "https://${subdomains.collabora}.${domain}/")
                 ];
                 manifest-src = [ "'self'" ];
                 media-src = [ "'self'" ];

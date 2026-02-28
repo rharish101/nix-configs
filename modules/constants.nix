@@ -151,14 +151,14 @@
   domain = {
     domain = "rharish.dev";
     subdomains = {
-      auth = "auth";
-      bp = "pdf";
-      cb = "office";
-      imm = "photos";
-      jf = "media";
-      oc = "cloud";
-      tr = "recipes";
-      vw = "vault";
+      authelia = "auth";
+      bentopdf = "pdf";
+      collabora = "office";
+      immich = "photos";
+      jellyfin = "media";
+      opencloud = "cloud";
+      tandoor = "recipes";
+      vaultwarden = "vault";
     };
     ldapBaseDn = "dc=rharish,dc=dev";
   };
