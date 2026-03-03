@@ -206,6 +206,9 @@
       description = "Eaton Ellipse Pro 1120";
       driver = "usbhid-ups";
       port = "auto"; # Needed for "usbhid-ups"
+      # Kill power to server on shutdown. Otherwise, if the power is back on before the UPS runs out
+      # of battery, the server won't wake up. It only wakes up when power returns from zero.
+      directives = [ "allow_killpower" ];
     };
     # Keep admin permissions minimal, as I don't plan on manually messing with NUT.
     users."nut-admin" = {
