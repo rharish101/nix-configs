@@ -33,7 +33,6 @@
     lib.mkIf config.modules.caddy-wg-client.enable {
       modules.containers.caddy-wg-client = {
         username = "caddywg";
-        useMacvlan = true;
 
         credentials = {
           priv-key.name = "wireguard/client";

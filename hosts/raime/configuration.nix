@@ -7,6 +7,9 @@
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
 { pkgs, ... }:
+let
+  shalquoirIp = "91.99.59.38";
+in
 {
   imports = [
     ./hardware-configuration.nix # Include the results of the hardware scan.
@@ -35,11 +38,29 @@
     internalInterfaces = [ "ve-*" ]; # NOTE: nftables uses `*`, iptables uses `+`
   };
 
+  # Limit containers to only reach shalquoir.
+  networking.nftables.tables.block = {
+    enable = true;
+    name = "block-containers";
+    family = "inet";
+    content = ''
+      chain block-input {
+        type filter hook input priority filter
+        iifname "ve-*" drop
+      }
+      chain block-filter {
+        type filter hook forward priority filter
+        iifname "ve-*" ip daddr ${shalquoirIp} accept
+        iifname "ve-*" drop
+      }
+    '';
+  };
+
   # Set up a wireguard tunnel to Shalquoir.
   modules.caddy-wg-client.enable = true;
   modules.caddy-wg-client.wireguard.server = {
     publicKey = "XbJDoKyhl3dHS002Oa/Fm3rkWZ+NP/LipiYAoMILahU=";
-    address = "91.99.59.38";
+    address = shalquoirIp;
     port = 34104;
   };
 
