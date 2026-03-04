@@ -105,21 +105,26 @@ in
               # It also has a flag denoting whether to add the subnet mask.
               # This depends on whether the interface is a network bridge or not (IDK why).
               localAddresses =
-                if !hasAttr name constants.bridge then
-                  constants.veths.caddy.local // { subnet = false; }
+                if hasPrefix "caddy-wg-" name then
+                  if cfg.useMacvlan then null else constants.veths.caddy.local // { subnet = false; }
+                else if hasAttr name constants.bridge then
+                  constants.bridge.${name} // { subnet = true; }
                 else
-                  constants.bridge.${name} // { subnet = true; };
+                  null;
 
               # The host's IP addresses for this container's default network interface.
               # Only for containers that aren't part of the bridge.
-              hostAddresses = if !hasAttr name constants.bridge then constants.veths.caddy.host else null;
+              hostAddresses =
+                if hasPrefix "caddy-wg-" name && !cfg.useMacvlan then constants.veths.caddy.host else null;
             in
             {
               privateNetwork = mkDefault true;
               privateUsers = mkDefault (if isNull cfg.username then "pick" else constants.uids.${cfg.username});
               autoStart = mkDefault true;
 
-              hostBridge = mkIf (hasAttr name constants.bridge) (mkDefault bridgeName);
+              hostBridge = mkIf (hasAttr name constants.bridge && !hasPrefix "caddy-wg-" name) (
+                mkDefault bridgeName
+              );
               hostAddress = mkIf (hostAddresses != null) (mkDefault hostAddresses.ip4);
               hostAddress6 = mkIf (hostAddresses != null) (mkDefault hostAddresses.ip6);
               localAddress = mkIf (localAddresses != null) (
@@ -130,16 +135,13 @@ in
               );
 
               macvlans = if cfg.useMacvlan then mkDefault [ config.networking.nat.externalInterface ] else [ ];
-              # Add veth to host if macvlan isn't enabled.
-              # Only useful for the reverse proxy containers.
-              extraVeths.eth1 =
-                mkIf (hasPrefix "caddy-wg-" name && hasAttr name constants.bridge && !cfg.useMacvlan)
-                  {
-                    hostAddress = constants.veths.caddy.host.ip4;
-                    hostAddress6 = constants.veths.caddy.host.ip6;
-                    localAddress = constants.veths.caddy.local.ip4;
-                    localAddress6 = constants.veths.caddy.local.ip6;
-                  };
+
+              # Add bridge for reverse proxy containers.
+              extraVeths.vb-caddy = mkIf (hasPrefix "caddy-wg-" name && hasAttr name constants.bridge) {
+                hostBridge = bridgeName;
+                localAddress = constants.bridge.${name}.ip4 + "/24";
+                localAddress6 = constants.bridge.${name}.ip6 + "/112";
+              };
 
               extraFlags =
                 let

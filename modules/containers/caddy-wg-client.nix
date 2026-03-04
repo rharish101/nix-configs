@@ -68,7 +68,7 @@
             # replies.
             networking.nat = {
               enable = true;
-              internalInterfaces = [ "eth0" ]; # Should be the bridge for all containers
+              internalInterfaces = [ "vb-caddy" ];
               externalInterface = "wg0";
             };
 
