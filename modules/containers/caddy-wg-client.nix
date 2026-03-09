@@ -106,7 +106,7 @@
                 enable = true;
                 package = pkgs.caddy.withPlugins {
                   plugins = [ "github.com/mholt/caddy-l4@v0.0.0-20260216070754-eca560d759c9" ];
-                  hash = "sha256-f5t6fhKijbY82G7RdqExtoCjkq56AALmCxKlRFXkGg8=";
+                  hash = "sha256-mUEXAxhcigalxbct8Fy64+AM4navqnEimPiaicaUlhw=";
                 };
                 globalConfig =
                   let

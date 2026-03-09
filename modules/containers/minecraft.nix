@@ -88,7 +88,7 @@
                   "plugins/Geyser.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/velocity";
                     name = "Geyser";
-                    hash = "sha256-yXd0Zr2/C00MA2plmdXEOBikuypu8E7OOuTPJPMyvs8=";
+                    hash = "sha256-n205tMFRynboSRoVSH2aEcQKuq4s9o6orGfpTq+8WNw=";
                   };
                   "plugins/Floodgate.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/velocity";
