@@ -85,6 +85,7 @@
                   MEDIA_ROOT = "/var/lib/tandoor-recipes/mediafiles";
                   GUNICORN_MEDIA = 1;
                   SOCIAL_PROVIDERS = "allauth.socialaccount.providers.openid_connect";
+                  HIDE_LOGIN_FORM = 1;
                 };
               };
               systemd.services.tandoor-recipes.serviceConfig.EnvironmentFile = "/run/credentials/@system/env";
