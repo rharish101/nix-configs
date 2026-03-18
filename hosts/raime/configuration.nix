@@ -89,6 +89,7 @@ in
   services.openssh.enable = true;
   services.ucodenix.enable = true;
   services.fwupd.enable = true;
+  services.btrfs.autoScrub.enable = true;
 
   modules.git.dev = true;
   modules.impermanence.path = "/persist";
