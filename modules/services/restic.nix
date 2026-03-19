@@ -7,18 +7,38 @@ let
   hostName = config.networking.hostName;
 in
 {
-  options.modules.restic.enable = lib.mkEnableOption "Enable remote backups with Restic";
+  options.modules.restic = {
+    enable = lib.mkEnableOption "Enable remote backups with Restic";
+    ssh = {
+      config = lib.mkOption {
+        description = "SSH host config for the restic SFTP remote";
+        type = lib.types.str;
+      };
+      hostName = lib.mkOption {
+        description = "The hostname to be used in the SSH known hosts for th restic SFTP remote";
+        type = lib.types.str;
+      };
+      publicKey = lib.mkOption {
+        description = "Public key for the restic SFTP remote";
+        type = lib.types.str;
+      };
+    };
+  };
+
   config = lib.mkIf config.modules.restic.enable {
     sops.secrets."restic/${hostName}" = { };
 
-    # Keep SSH connection alive to prevent timeout during backup.
-    # NOTE: SSH config is incomplete - remote server IP is in /etc/ssh/ssh_config.d.
-    programs.ssh.extraConfig = "
-      Host restic-remote
-        IdentityFile /etc/ssh/ssh_host_ed25519_key
-        ServerAliveInterval 60
-        ServerAliveCountMax 240
-    ";
+    programs.ssh = with config.modules.restic; {
+      # Keep SSH connection alive to prevent timeout during backup.
+      extraConfig = ''
+        Host restic-remote
+          ${ssh.config}
+          IdentityFile /etc/ssh/ssh_host_ed25519_key
+          ServerAliveInterval 60
+          ServerAliveCountMax 240
+      '';
+      knownHosts.${ssh.hostName}.publicKey = ssh.publicKey;
+    };
 
     services.restic.backups.${hostName} = {
       repository = "sftp:restic-remote:restic";

@@ -93,7 +93,18 @@ in
 
   modules.git.dev = true;
   modules.impermanence.path = "/persist";
-  modules.restic.enable = true;
+  modules.restic = {
+    enable = true;
+    ssh = {
+      config = ''
+        Hostname u543526-sub1.your-storagebox.de
+        Port 23
+        User u543526-sub1
+      '';
+      hostName = "[u543526-sub1.your-storagebox.de]:23";
+      publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIICf9svRenC/PLKIL9nk6K/pxQgoiFC41wTNvoIncOxs";
+    };
+  };
   modules.secure-boot.enable = true;
 
   modules.authelia.enable = true;
