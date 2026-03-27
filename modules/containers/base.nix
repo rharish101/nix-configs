@@ -266,11 +266,6 @@ in
                   # 2. The log processor crashes because it wants us to reload the config (after a
                   #    hub update).
                   systemd.services.crowdsec.serviceConfig.RestartSec = lib.mkForce 5;
-
-                  # XXX: Woraround for https://github.com/NixOS/nixpkgs/issues/493934.
-                  # TODO: Remove when https://github.com/NixOS/nixpkgs/pull/495347 lands in `nixos-unstable`,
-                  # or util-linux is updated to v2.42.
-                  security.pam.services.login.updateWtmp = lib.mkForce false;
                 };
             }
           )

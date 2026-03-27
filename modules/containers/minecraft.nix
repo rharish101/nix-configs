@@ -88,12 +88,12 @@
                   "plugins/Geyser.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/velocity";
                     name = "Geyser";
-                    hash = "sha256-xH8SJl0oDjysPkQvOJ7RDlK1CwYPK3ebwLTNM+oZlLg=";
+                    hash = "sha256-tUpwF6hsjkNuQ/PrV0Xcx3w1Nsy+TVC1YBjnf1o2VhU=";
                   };
                   "plugins/Floodgate.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/velocity";
                     name = "Floodgate";
-                    hash = "sha256-CCbcfylrdmQaYhUtJZRlWhhjuppSe/OW4oYhhUEJWbs=";
+                    hash = "sha256-LvibdRJkrnZUR9Nmiy8NqDnY5BYAgPBqIucVxSV+yVE=";
                   };
                 };
                 files."velocity.toml".value = {
