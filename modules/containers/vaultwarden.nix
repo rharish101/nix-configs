@@ -49,7 +49,6 @@
                 SSO_AUTHORITY = with constants.domain; "https://${subdomains.authelia}.${domain}";
                 SSO_CLIENT_ID = "j-rWSHQpg-BvMn8f2y3NB367j2POzf9BBtwZCUVLgRKRmNHHqagmgVba11L2hyAPQwpcomzG";
                 SSO_SCOPES = "email profile offline_access";
-                SSO_AUTH_ONLY_NOT_SESSION = "true";
                 PUSH_ENABLED = "true";
                 PUSH_RELAY_URI = "https://api.bitwarden.eu";
                 PUSH_IDENTITY_URI = "https://identity.bitwarden.eu";

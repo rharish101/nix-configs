@@ -92,6 +92,7 @@
                     experimental_enable_passkey_uv_two_factors = true;
                   };
                   identity_providers.oidc = {
+                    lifespans.refresh_token = "1 week";
                     authorization_policies.tandoor = {
                       default_policy = "deny";
                       rules = [ { subject = "group:tandoor-users"; } ];
