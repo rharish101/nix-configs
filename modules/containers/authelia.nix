@@ -82,8 +82,9 @@
                   };
                   access_control.rules = [
                     {
-                      domain = "*.${domain}";
+                      domain = "${subdomains.bentopdf}.${domain}";
                       policy = "two_factor";
+                      subject = [ "group:bentopdf" ];
                     }
                   ];
                   webauthn = {
