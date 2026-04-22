@@ -122,6 +122,7 @@
 
   fileSystems."/etc/nixos" = {
     device = "/home/rharish/nix-configs";
+    fsType = "none";
     options = [
       "bind"
       "x-gvfs-hide"
