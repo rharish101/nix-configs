@@ -19,7 +19,7 @@
         "--update-input"
         inp
       ]) (builtins.attrNames inputs);
-      dates = "weekly";
+      dates = "Tue *-*-* 03:00:00";
       runGarbageCollection = true;
       allowReboot = true;
     };
