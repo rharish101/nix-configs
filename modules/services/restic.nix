@@ -50,6 +50,7 @@ in
         "/home"
         "/data"
       ];
+      extraBackupArgs = [ "--one-file-system" ];
       timerConfig = {
         OnCalendar = "weekly";
         Persistent = true;
