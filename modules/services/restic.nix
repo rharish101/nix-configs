@@ -55,6 +55,10 @@ in
         OnCalendar = "weekly";
         Persistent = true;
       };
+      checkOpts = [
+        "--with-cache"
+        "--read-data-subset=5G"
+      ];
       pruneOpts = [
         "--keep-weekly 5"
         "--keep-monthly 5"
