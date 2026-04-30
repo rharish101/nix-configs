@@ -83,6 +83,8 @@
               wireguard # WireGuard tunnel
             ];
 
+            networking.nameservers = constants.nameservers;
+
             # Allow internet access for clients through the WireGuard tunnel.
             # NAT translates internal client IPs to the server's public IP for external replies
             networking.nat = {
