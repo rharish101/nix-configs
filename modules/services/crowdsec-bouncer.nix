@@ -20,5 +20,12 @@
         secrets.apiKeyPath = config.sops.secrets."crowdsec/bouncer".path;
         registerBouncer.enable = false;
       };
+
+      # The bouncer sometimes fails on start, because it started too soon (before network connectivity to the local API).
+      # Unfortunately, this module doesn't add restarts, so add them manually.
+      systemd.services.crowdsec-firewall-bouncer.serviceConfig = {
+        Restart = "on-failure";
+        RestartSec = 10;
+      };
     };
 }
