@@ -70,7 +70,10 @@
         };
 
         config =
-          { pkgs, ... }:
+          let
+            globalConfig = config;
+          in
+          { config, pkgs, ... }:
           {
             networking.firewall.interfaces.eth0.allowedTCPPorts = with constants.ports; [
               443 # HTTPS
@@ -93,7 +96,7 @@
               externalInterface = "eth0";
             };
 
-            networking.wg-quick.interfaces.wg0 = with config.modules.caddy-wg-server.wireguard; {
+            networking.wg-quick.interfaces.wg0 = with globalConfig.modules.caddy-wg-server.wireguard; {
               address = [
                 "${constants.veths.tunnel.server.ip4}/24"
                 "${constants.veths.tunnel.server.ip6}/112"
@@ -182,38 +185,58 @@
                         jitter 0.2
                       }
                     '';
+                    addLogFormat =
+                      name: value:
+                      {
+                        logFormat = ''
+                          output file ${config.services.caddy.logDir}/access-${
+                            lib.replaceStrings [ "/" " " ] [ "_" "_" ] name
+                          }.log {
+                            mode 640
+                          }
+                        '';
+                      }
+                      // value;
                     proxyConfig = ''
                       ${rateLimitConfig}
                       reverse_proxy ${clientIp}:80
                     '';
                   in
-                  {
-                    ":${toString constants.ports.crowdsec}".extraConfig = ''
-                      ${rateLimitConfig}
-                      reverse_proxy ${clientIp}:${toString constants.ports.crowdsec}
-                    '';
-                    ${domain}.extraConfig = proxyConfig;
-                    "www.${domain}".extraConfig = ''
-                      ${rateLimitConfig}
-                      redir https://${domain} 301
-                    '';
-                  }
-                  // lib.mapAttrs' (_: subdomain: {
-                    name = "${subdomain}.${constants.domain.domain}";
-                    value.extraConfig = proxyConfig;
-                  }) constants.domain.subdomains;
+                  builtins.mapAttrs addLogFormat (
+                    {
+                      ":${toString constants.ports.crowdsec}".extraConfig = ''
+                            ${rateLimitConfig}
+                        reverse_proxy ${clientIp}:${toString constants.ports.crowdsec}
+                      '';
+                      ${domain}.extraConfig = proxyConfig;
+                      "www.${domain}".extraConfig = ''
+                            ${rateLimitConfig}
+                        redir https://${domain} 301
+                      '';
+                    }
+                    // lib.mapAttrs' (_: subdomain: {
+                      name = "${subdomain}.${constants.domain.domain}";
+                      value.extraConfig = proxyConfig;
+                    }) constants.domain.subdomains
+                  );
               };
 
-            services.crowdsec = lib.mkIf config.modules.caddy-wg-server.crowdsec.enable {
+            services.crowdsec = lib.mkIf globalConfig.modules.caddy-wg-server.crowdsec.enable {
               enable = true;
               autoUpdateService = true;
-              name = "${config.networking.hostName}-caddy";
+              name = "${globalConfig.networking.hostName}-caddy";
 
               localConfig.acquisitions = [
                 {
                   source = "journalctl";
                   journalctl_filter = [ "_SYSTEMD_UNIT=caddy.service" ];
                   labels.type = "syslog";
+                  use_time_machine = true;
+                }
+                {
+                  source = "file";
+                  filenames = [ "/var/log/caddy/*.log" ];
+                  labels.type = "caddy";
                   use_time_machine = true;
                 }
               ];
@@ -224,6 +247,7 @@
               settings.general.api.client.credentials_path = lib.mkForce "\${CREDENTIALS_DIRECTORY}/csec-creds";
             };
             systemd.services.crowdsec.serviceConfig.LoadCredential = [ "csec-creds:csec-creds" ];
+            users.users.crowdsec.extraGroups = [ "caddy" ];
 
             system.stateVersion = "25.05";
           };
