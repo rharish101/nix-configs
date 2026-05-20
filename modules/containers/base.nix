@@ -224,9 +224,28 @@ in
                       # Use systemd-networkd to configure network access through the macvlan
                       # interface.
                       useNetworkd = mkDefault cfg.useMacvlan;
-                      interfaces = mkIf cfg.useMacvlan {
-                        "mv-${config.networking.nat.externalInterface}".useDHCP = mkDefault true;
-                      };
+                      interfaces =
+                        mkIf cfg.useMacvlan {
+                          "mv-${config.networking.nat.externalInterface}".useDHCP = mkDefault true;
+                        }
+                        // mkIf allowInternet {
+                          eth0 = {
+                            ipv4.routes = [
+                              {
+                                address = "0.0.0.0";
+                                via = mkDefault defaultGateway.ip4;
+                                prefixLength = 32;
+                              }
+                            ];
+                            ipv6.routes = [
+                              {
+                                address = "::0";
+                                via = mkDefault defaultGateway.ip6;
+                                prefixLength = 128;
+                              }
+                            ];
+                          };
+                        };
                       useHostResolvConf = !cfg.useMacvlan;
 
                       # Use nftables by default.
