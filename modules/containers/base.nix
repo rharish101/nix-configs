@@ -228,24 +228,7 @@ in
                         mkIf cfg.useMacvlan {
                           "mv-${config.networking.nat.externalInterface}".useDHCP = mkDefault true;
                         }
-                        // mkIf allowInternet {
-                          eth0 = {
-                            ipv4.routes = [
-                              {
-                                address = "0.0.0.0";
-                                via = mkDefault defaultGateway.ip4;
-                                prefixLength = 32;
-                              }
-                            ];
-                            ipv6.routes = [
-                              {
-                                address = "::0";
-                                via = mkDefault defaultGateway.ip6;
-                                prefixLength = 128;
-                              }
-                            ];
-                          };
-                        };
+                        // mkIf allowInternet { eth0 = { }; };
                       useHostResolvConf = !cfg.useMacvlan;
 
                       # Use nftables by default.
