@@ -131,7 +131,7 @@
                     "github.com/mholt/caddy-l4@v0.1.1"
                     "github.com/mholt/caddy-ratelimit@v0.1.1-0.20260514184501-6cc6d952a591"
                   ];
-                  hash = "sha256-w+q0iAGMakFp4kE3cO7uAWPl3Ou+Q0yoPbX0fBaaNW4=";
+                  hash = "sha256-EvLEyMJA2k0USWFFlarO9VDAnP5lrB0FUlq2lOd4Zow=";
                 };
                 environmentFile = "/run/credentials/@system/caddy-env";
                 email = "harish.rajagopals@gmail.com";
