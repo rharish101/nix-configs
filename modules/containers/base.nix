@@ -102,20 +102,19 @@ in
             # Calculate default container config.
             let
               # The container's local IP addresses for this container's default network interface.
-              # It also has a flag denoting whether to add the subnet mask.
               # This depends on whether the interface is a network bridge or not (IDK why).
               localAddresses =
                 if hasPrefix "caddy-wg-" name then
-                  if cfg.useMacvlan then null else constants.veths.caddy.local // { subnet = false; }
+                  if cfg.useMacvlan then null else constants.veths.${name}.local
                 else if hasAttr name constants.bridge then
-                  constants.bridge.${name} // { subnet = true; }
+                  constants.bridge.${name}
                 else
                   null;
 
               # The host's IP addresses for this container's default network interface.
               # Only for containers that aren't part of the bridge.
               hostAddresses =
-                if hasPrefix "caddy-wg-" name && !cfg.useMacvlan then constants.veths.caddy.host else null;
+                if hasPrefix "caddy-wg-" name && !cfg.useMacvlan then constants.veths.${name}.host else null;
             in
             {
               privateNetwork = mkDefault true;
@@ -126,12 +125,12 @@ in
                 mkDefault bridgeName
               );
               hostAddress = mkIf (hostAddresses != null) (mkDefault hostAddresses.ip4);
-              hostAddress6 = mkIf (hostAddresses != null) (mkDefault hostAddresses.ip6);
+              hostAddress6 = mkIf (hostAddresses != null && hostAddresses ? "ip6") (mkDefault hostAddresses.ip6);
               localAddress = mkIf (localAddresses != null) (
-                mkDefault (localAddresses.ip4 + (if localAddresses.subnet then "/24" else ""))
+                mkDefault (localAddresses.ip4 + (if hasPrefix "caddy-wg-" name then "" else "/24"))
               );
-              localAddress6 = mkIf (localAddresses != null) (
-                mkDefault (localAddresses.ip6 + (if localAddresses.subnet then "/112" else ""))
+              localAddress6 = mkIf (localAddresses != null && localAddresses ? "ip6") (
+                mkDefault "${localAddresses.ip6}/80"
               );
 
               macvlans = if cfg.useMacvlan then mkDefault [ config.networking.nat.externalInterface ] else [ ];
@@ -202,10 +201,7 @@ in
                       defaultGateway = lib.optionalAttrs (gateways != [ ]) constants.bridge.${builtins.head gateways};
                       allowInternet = cfg.allowInternet && !hasPrefix "caddy-wg-" name && defaultGateway != { };
                       listToSet = values: lib.concatStringsSep "," (map toString values);
-                      getIpAddrs =
-                        ipType: map (value: constants.bridge.${value}.${ipType}) constants.firewallOpen.${name};
-                      ip4Addrs = listToSet (getIpAddrs "ip4");
-                      ip6Addrs = listToSet (getIpAddrs "ip6");
+                      ip4Addrs = listToSet (map (value: constants.bridge.${value}.ip4) constants.firewallOpen.${name});
                       tcpPorts = listToSet cfg.allowedPorts.Tcp;
                       udpPorts = listToSet cfg.allowedPorts.Udp;
                     in
@@ -238,20 +234,16 @@ in
                       firewall.extraCommands =
                         optionalString (!config.networking.nftables.enable && udpPorts != "") ''
                           iptables -A nixos-fw -p tcp -s ${ip4Addrs} -m multiport --dports ${tcpPorts} -j nixos-fw-accept
-                          ip6tables -A nixos-fw -p tcp -s ${ip6Addrs} -m multiport --dports ${tcpPorts} -j nixos-fw-accept
                         ''
                         + optionalString (!config.networking.nftables.enable && udpPorts != "") ''
                           iptables -A nixos-fw -p udp -s ${ip4Addrs} -m multiport --dports ${udpPorts} -j nixos-fw-accept
-                          ip6tables -A nixos-fw -p udp -s ${ip6Addrs} -m multiport --dports ${udpPorts} -j nixos-fw-accept
                         '';
                       firewall.extraInputRules =
                         optionalString (config.networking.nftables.enable && tcpPorts != "") ''
                           ip saddr { ${ip4Addrs} } tcp dport { ${tcpPorts} } accept
-                          ip6 saddr { ${ip6Addrs} } tcp dport { ${tcpPorts} } accept
                         ''
                         + optionalString (config.networking.nftables.enable && udpPorts != "") ''
                           ip saddr { ${ip4Addrs} } udp dport { ${udpPorts} } accept
-                          ip6 saddr { ${ip6Addrs} } udp dport { ${udpPorts} } accept
                         '';
                     };
 
@@ -260,6 +252,11 @@ in
                     "nix-command"
                     "flakes"
                   ];
+
+                  # Allow IPv6 forwarding in proxy containers for IPv6 GUAs.
+                  boot.kernel.sysctl."net.ipv6.conf.all.forwarding" = mkIf (hasPrefix "caddy-wg-" name) (
+                    mkDefault true
+                  );
 
                   services.redis.package = mkDefault pkgs.valkey;
 

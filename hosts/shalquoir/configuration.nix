@@ -51,7 +51,7 @@ in
     family = "ip";
     content =
       let
-        caddyIp4 = constants.veths.caddy.local.ip4;
+        caddyIp4 = constants.veths.caddy-wg-server.local.ip4;
       in
       ''
         chain prerouting {

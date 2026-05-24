@@ -16,7 +16,9 @@
       sops.secrets."crowdsec/bouncer".restartUnits = [ "crowdsec-firewall-bouncer.service" ];
       services.crowdsec-firewall-bouncer = {
         enable = true;
-        settings.api_url = with constants; "http://${veths.caddy.local.ip4}:${toString ports.crowdsec}";
+        settings.api_url =
+          with constants;
+          "http://${veths.caddy-wg-server.local.ip4}:${toString ports.crowdsec}";
         secrets.apiKeyPath = config.sops.secrets."crowdsec/bouncer".path;
         registerBouncer.enable = false;
       };

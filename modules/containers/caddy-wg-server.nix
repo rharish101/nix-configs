@@ -110,6 +110,7 @@
                   allowedIPs = [
                     "${constants.veths.tunnel.client.ip4}/24"
                     "${constants.veths.tunnel.client.ip6}/112"
+                    "${constants.ip6Subnets.caddy-wg-client}/112"
                   ];
                 }
               ];
@@ -252,5 +253,14 @@
             system.stateVersion = "25.05";
           };
       };
+
+      systemd.services."container@caddy-wg-server".postStart =
+        let
+          selfIp6 = constants.veths.caddy-wg-server.local.ip6;
+        in
+        ''
+          ip -6 route replace ${constants.ip6Subnets.tunnel}/112 via ${selfIp6}
+          ip -6 route replace ${constants.ip6Subnets.caddy-wg-client}/112 via ${selfIp6}
+        '';
     };
 }

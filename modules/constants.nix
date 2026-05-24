@@ -2,61 +2,74 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{
-  # IPv4/IPv6 private addressing for container-to-container communication in the containers' bridge
+rec {
+  ip6Subnets =
+    let
+      global = "2a01:4f8:1c1e:d4ed:";
+    in
+    {
+      caddy-wg-client = "${global}2::";
+      caddy-wg-server = "${global}1::";
+      tunnel = "${global}10::";
+    };
+
+  # IPv4 private addressing for container-to-container communication in the containers' bridge
+  # Includes IPv6 GUAs for containers that need to connect to the internet.
   # Addresses are kept static to avoid running a DHCP server.
   # Single bridge for all containers simplifies networking and firewall management.
   # NOTE: Keys for containers **must** correspond to their names.
-  bridge = {
-    caddy-wg-client = {
-      ip4 = "10.2.0.1";
-      ip6 = "fc00::1";
+  bridge =
+    let
+      ip6Prefix = ip6Subnets.caddy-wg-client;
+    in
+    {
+      caddy-wg-client = {
+        ip4 = "10.2.0.1";
+        ip6 = "${ip6Prefix}1";
+      };
+      minecraft = {
+        ip4 = "10.2.0.2";
+        ip6 = "${ip6Prefix}2";
+      };
+      jellyfin = {
+        ip4 = "10.2.0.3";
+        ip6 = "${ip6Prefix}3";
+      };
+      authelia = {
+        ip4 = "10.2.0.4";
+        ip6 = "${ip6Prefix}4";
+      };
+      lldap = {
+        ip4 = "10.2.0.5";
+      };
+      crowdsec-lapi = {
+        ip4 = "10.2.0.6";
+        ip6 = "${ip6Prefix}6";
+      };
+      immich = {
+        ip4 = "10.2.0.7";
+        ip6 = "${ip6Prefix}7";
+      };
+      tandoor = {
+        ip4 = "10.2.0.8";
+        ip6 = "${ip6Prefix}8";
+      };
+      opencloud = {
+        ip4 = "10.2.0.9";
+        ip6 = "${ip6Prefix}9";
+      };
+      collabora = {
+        ip4 = "10.2.0.10";
+        ip6 = "${ip6Prefix}a";
+      };
+      vaultwarden = {
+        ip4 = "10.2.0.11";
+        ip6 = "${ip6Prefix}b";
+      };
+      postgres = {
+        ip4 = "10.2.0.12";
+      };
     };
-    minecraft = {
-      ip4 = "10.2.0.2";
-      ip6 = "fc00::2";
-    };
-    jellyfin = {
-      ip4 = "10.2.0.3";
-      ip6 = "fc00::3";
-    };
-    authelia = {
-      ip4 = "10.2.0.4";
-      ip6 = "fc00::4";
-    };
-    lldap = {
-      ip4 = "10.2.0.5";
-      ip6 = "fc00::5";
-    };
-    crowdsec-lapi = {
-      ip4 = "10.2.0.6";
-      ip6 = "fc00::6";
-    };
-    immich = {
-      ip4 = "10.2.0.7";
-      ip6 = "fc00::7";
-    };
-    tandoor = {
-      ip4 = "10.2.0.8";
-      ip6 = "fc00::8";
-    };
-    opencloud = {
-      ip4 = "10.2.0.9";
-      ip6 = "fc00::9";
-    };
-    collabora = {
-      ip4 = "10.2.0.10";
-      ip6 = "fc00::a";
-    };
-    vaultwarden = {
-      ip4 = "10.2.0.11";
-      ip6 = "fc00::b";
-    };
-    postgres = {
-      ip4 = "10.2.0.12";
-      ip6 = "fc00::c";
-    };
-  };
 
   # Container dependencies for a container's systemd unit.
   # Also used for determining the default gateway, for containers who need internet access.
@@ -126,27 +139,32 @@
     vaultwarden = [ "caddy-wg-client" ];
   };
 
-  # IPv4/IPv6 private addresses for host and container veth pairs for reverse proxy container
+  # IPv4 private addresses for host and container veth pairs for reverse proxy container
   # networking
+  # Includes IPv6 GUAs for containers that need to connect to the internet.
   veths = {
-    caddy = {
+    caddy-wg-client = {
+      host.ip4 = "10.1.0.1";
+      local.ip4 = "10.1.0.2";
+    };
+    caddy-wg-server = {
       host = {
         ip4 = "10.1.0.1";
-        ip6 = "fc00::0";
+        ip6 = "${ip6Subnets.caddy-wg-server}1";
       };
       local = {
         ip4 = "10.1.0.2";
-        ip6 = "fc00::1";
+        ip6 = "${ip6Subnets.caddy-wg-server}2";
       };
     };
     tunnel = {
       server = {
         ip4 = "10.100.0.1";
-        ip6 = "fc10::0";
+        ip6 = "${ip6Subnets.tunnel}1";
       };
       client = {
         ip4 = "10.100.0.2";
-        ip6 = "fc10::1";
+        ip6 = "${ip6Subnets.tunnel}2";
       };
     };
   };

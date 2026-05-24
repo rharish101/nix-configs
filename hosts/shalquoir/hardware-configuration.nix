@@ -20,6 +20,7 @@
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
+  boot.kernel.sysctl."net.ipv6.conf.all.forwarding" = true;
 
   fileSystems."/" = {
     device = "none";
