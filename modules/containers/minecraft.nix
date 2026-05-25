@@ -108,6 +108,13 @@
                   forced-hosts = { }; # Unset the existing example hosts.
                   advanced.haproxy-protocol = true;
                 };
+                files."plugins/Geyser-Velocity/config.yml".value = {
+                  java.auth-type = "floodgate";
+                  advanced = {
+                    java.use-haproxy-protocol = true;
+                    bedrock.use-haproxy-protocol = true;
+                  };
+                };
               };
 
               servers.original = {
