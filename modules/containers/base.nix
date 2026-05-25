@@ -130,7 +130,7 @@ in
                 mkDefault (localAddresses.ip4 + (if hasPrefix "caddy-wg-" name then "" else "/24"))
               );
               localAddress6 = mkIf (localAddresses != null && localAddresses ? "ip6") (
-                mkDefault "${localAddresses.ip6}/80"
+                mkDefault "${localAddresses.ip6}/112"
               );
 
               macvlans = if cfg.useMacvlan then mkDefault [ config.networking.nat.externalInterface ] else [ ];

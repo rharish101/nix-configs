@@ -6,7 +6,7 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, ... }:
+{ config, lib, ... }:
 let
   mc_port = 26460;
   ssh_port = 8398;
@@ -67,11 +67,9 @@ in
 
   # Block all inbound IPv6 traffic to IPv6 GUA subnets.
   networking.firewall.filterForward = true;
-  networking.firewall.extraForwardRules = ''
-    ip6 daddr ${constants.ip6Subnets.caddy-wg-client}/80 drop
-    ip6 daddr ${constants.ip6Subnets.caddy-wg-client}/80 drop
-    ip6 daddr ${constants.ip6Subnets.tunnel}::/112 drop
-  '';
+  networking.firewall.extraForwardRules = lib.concatMapAttrsStringSep "\n" (
+    _: subnet: "ip6 daddr ${subnet}/112 drop"
+  ) constants.ip6Subnets;
 
   networking.nat = {
     enable = true;
