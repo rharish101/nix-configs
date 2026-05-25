@@ -113,7 +113,10 @@ in
     };
   };
 
-  modules.crowdsec-bouncer.enable = true;
+  modules.crowdsec-bouncer = {
+    enable = true;
+    apiUrl = with constants; "http://${veths.caddy-wg-server.local.ip4}:${toString ports.crowdsec}";
+  };
   modules.crowdsec-sshd.enable = true;
   modules.editor.nixLsp.enable = false;
   modules.impermanence.path = "/persist";
