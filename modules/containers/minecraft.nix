@@ -36,6 +36,7 @@
         credentials = {
           csec-creds.name = "crowdsec/mc-creds";
           velocity-secret.name = "minecraft/velocity";
+          floodgate-secret.name = "minecraft/floodgate";
           env = {
             name = "minecraft/env";
             sopsType = "template";
@@ -115,6 +116,9 @@
                     bedrock.use-haproxy-protocol = true;
                   };
                 };
+                files."plugins/floodgate/config.yml".value = {
+                  send-floodgate-data = true;
+                };
               };
 
               servers.original = {
@@ -156,15 +160,32 @@
                   server-port = serverPorts.original;
                   online-mode = false; # Velocity does this for us.
                 };
+                symlinks = {
+                  "plugins/Floodgate.jar" = pkgs.fetchurl {
+                    url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot";
+                    name = "Floodgate";
+                    hash = "sha256-ZR31ephvY1BqEcLyxrJxR+3snFkJT6ffzCGhMdqKEDA=";
+                  };
+                };
                 files."config/paper-global.yml".value.proxies.velocity = {
                   enabled = true;
                   secret = "@VELOCITY_SECRET@";
                 };
               };
             };
-            systemd.services.minecraft-server-proxy.serviceConfig.LoadCredential = [
-              "velocity-secret:velocity-secret"
-            ];
+            systemd.services = {
+              minecraft-server-proxy = {
+                preStart = "ln -sfn $CREDENTIALS_DIRECTORY/floodgate-secret /srv/minecraft/proxy/plugins/floodgate/key.pem";
+                serviceConfig.LoadCredential = [
+                  "velocity-secret:velocity-secret"
+                  "floodgate-secret:floodgate-secret"
+                ];
+              };
+              minecraft-server-original = {
+                serviceConfig.LoadCredential = [ "floodgate-secret:floodgate-secret" ];
+                preStart = "ln -sfn $CREDENTIALS_DIRECTORY/floodgate-secret /srv/minecraft/original/plugins/floodgate/key.pem";
+              };
+            };
 
             services.crowdsec = lib.mkIf config.modules.crowdsec-lapi.enable {
               enable = true;
