@@ -220,11 +220,9 @@ in
                       # Use systemd-networkd to configure network access through the macvlan
                       # interface.
                       useNetworkd = mkDefault cfg.useMacvlan;
-                      interfaces =
-                        mkIf cfg.useMacvlan {
-                          "mv-${config.networking.nat.externalInterface}".useDHCP = mkDefault true;
-                        }
-                        // mkIf allowInternet { eth0 = { }; };
+                      interfaces = mkIf cfg.useMacvlan {
+                        "mv-${config.networking.nat.externalInterface}".useDHCP = mkDefault true;
+                      };
                       useHostResolvConf = !cfg.useMacvlan;
 
                       # Use nftables by default.
