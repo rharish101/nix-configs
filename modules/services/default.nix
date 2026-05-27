@@ -5,6 +5,7 @@
 { lib, ... }:
 {
   imports = [
+    ./clamav.nix
     ./crowdsec-bouncer.nix
     ./crowdsec-sshd.nix
     ./locate.nix
@@ -12,8 +13,8 @@
     ./podman.nix
     ./power-management.nix
     ./restic.nix
-    ./ssh-agent.nix
     ./snapper.nix
+    ./ssh-agent.nix
   ];
 
   modules.autoUpdate = lib.mkDefault true;

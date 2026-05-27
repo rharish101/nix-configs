@@ -91,6 +91,10 @@ in
   services.fwupd.enable = true;
   services.btrfs.autoScrub.enable = true;
 
+  modules.clamav = {
+    enable = true;
+    extraScanDirs = [ "/data" ];
+  };
   modules.git.dev = true;
   modules.impermanence.path = "/persist";
   modules.restic = {
