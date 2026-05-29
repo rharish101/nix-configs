@@ -60,6 +60,7 @@
                 COLLABORATION_APP_ADDR = with constants.domain; "https://${subdomains.collabora}.${domain}";
                 COLLABORATION_WOPI_SRC = with constants.domain; "https://${subdomains.opencloud}.${domain}";
               };
+              settings.sharing.service_account.service_account_id = "968fede2-60db-449d-9d27-d3b829d538cc";
               settings.csp.directives = {
                 child-src = [ "'self'" ];
                 connect-src = [
