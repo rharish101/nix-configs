@@ -124,7 +124,10 @@ rec {
     ];
     immich = [ "caddy-wg-client" ];
     jellyfin = [ "caddy-wg-client" ];
-    lldap = [ "authelia" ];
+    lldap = [
+      "authelia"
+      "jellyfin"
+    ];
     minecraft = [ "caddy-wg-client" ];
     opencloud = [ "caddy-wg-client" ];
     postgres = [
