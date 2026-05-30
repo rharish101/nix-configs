@@ -65,12 +65,6 @@ in
       '';
   };
 
-  # Block all inbound IPv6 traffic to IPv6 GUA subnets.
-  networking.firewall.filterForward = true;
-  networking.firewall.extraForwardRules = lib.concatMapAttrsStringSep "\n" (
-    _: subnet: "ip6 daddr ${subnet}/112 drop"
-  ) constants.ip6Subnets;
-
   networking.nat = {
     enable = true;
     internalInterfaces = [ "ve-*" ]; # NOTE: nftables uses `*`, iptables uses `+`

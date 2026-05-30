@@ -125,12 +125,8 @@ in
                 mkDefault bridgeName
               );
               hostAddress = mkIf (hostAddresses != null) (mkDefault hostAddresses.ip4);
-              hostAddress6 = mkIf (hostAddresses != null && hostAddresses ? "ip6") (mkDefault hostAddresses.ip6);
               localAddress = mkIf (localAddresses != null) (
                 mkDefault (localAddresses.ip4 + (if hasPrefix "caddy-wg-" name then "" else "/24"))
-              );
-              localAddress6 = mkIf (localAddresses != null && localAddresses ? "ip6") (
-                mkDefault "${localAddresses.ip6}/112"
               );
 
               macvlans = if cfg.useMacvlan then mkDefault [ config.networking.nat.externalInterface ] else [ ];
@@ -139,7 +135,6 @@ in
               extraVeths.vb-caddy = mkIf (hasPrefix "caddy-wg-" name && hasAttr name constants.bridge) {
                 hostBridge = bridgeName;
                 localAddress = constants.bridge.${name}.ip4 + "/24";
-                localAddress6 = constants.bridge.${name}.ip6 + "/112";
               };
 
               extraFlags =
@@ -211,10 +206,6 @@ in
                         address = mkDefault defaultGateway.ip4;
                         interface = mkDefault "eth0";
                       };
-                      defaultGateway6 = mkIf allowInternet {
-                        address = mkDefault defaultGateway.ip6;
-                        interface = mkDefault "eth0";
-                      };
                       nameservers = if allowInternet then constants.nameservers else [ ];
 
                       # Use systemd-networkd to configure network access through the macvlan
@@ -250,11 +241,6 @@ in
                     "nix-command"
                     "flakes"
                   ];
-
-                  # Allow IPv6 forwarding in proxy containers for IPv6 GUAs.
-                  boot.kernel.sysctl."net.ipv6.conf.all.forwarding" = mkIf (hasPrefix "caddy-wg-" name) (
-                    mkDefault true
-                  );
 
                   services.redis.package = mkDefault pkgs.valkey;
 

@@ -97,21 +97,14 @@
             };
 
             networking.wg-quick.interfaces.wg0 = with globalConfig.modules.caddy-wg-server.wireguard; {
-              address = [
-                "${constants.veths.tunnel.server.ip4}/24"
-                "${constants.veths.tunnel.server.ip6}/112"
-              ];
+              address = [ "${constants.veths.tunnel.server.ip4}/24" ];
               listenPort = constants.ports.wireguard;
               privateKeyFile = "$CREDENTIALS_DIRECTORY/priv-key";
               peers = [
                 {
                   publicKey = client.publicKey;
                   presharedKeyFile = "$CREDENTIALS_DIRECTORY/psk";
-                  allowedIPs = [
-                    "${constants.veths.tunnel.client.ip4}/24"
-                    "${constants.veths.tunnel.client.ip6}/112"
-                    "${constants.ip6Subnets.caddy-wg-client}/112"
-                  ];
+                  allowedIPs = [ "${constants.veths.tunnel.client.ip4}/24" ];
                 }
               ];
             };
@@ -253,14 +246,5 @@
             system.stateVersion = "25.05";
           };
       };
-
-      systemd.services."container@caddy-wg-server".postStart =
-        let
-          selfIp6 = constants.veths.caddy-wg-server.local.ip6;
-        in
-        ''
-          ip -6 route replace ${constants.ip6Subnets.tunnel}/112 via ${selfIp6}
-          ip -6 route replace ${constants.ip6Subnets.caddy-wg-client}/112 via ${selfIp6}
-        '';
     };
 }

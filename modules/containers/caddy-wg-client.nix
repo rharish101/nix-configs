@@ -73,10 +73,7 @@
 
             # Set up a WireGuard tunnel to the server.
             networking.wg-quick.interfaces.wg0 = with config.modules.caddy-wg-client.wireguard; {
-              address = [
-                "${constants.veths.tunnel.client.ip4}/24"
-                "${constants.veths.tunnel.client.ip6}/112"
-              ];
+              address = [ "${constants.veths.tunnel.client.ip4}/24" ];
               privateKeyFile = "$CREDENTIALS_DIRECTORY/priv-key";
               # Use external DNS, since all traffic is routed through the tunnel, and any default
               # nameserver would be outside this tunnel (thereby unreachable).
@@ -139,7 +136,7 @@
                     # Trust the WireGuard server, which is also a reverse proxy, so that we use the
                     # source IPs it reports (used by CrowdSec for blocking bad actors)
                     servers {
-                      trusted_proxies static ${constants.veths.tunnel.server.ip4}/24 ${constants.veths.tunnel.server.ip6}/112 ${server.address}
+                      trusted_proxies static ${constants.veths.tunnel.server.ip4}/24 ${server.address}
                     }
                   '';
                 virtualHosts.":80".extraConfig = ''
