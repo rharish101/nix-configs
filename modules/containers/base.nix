@@ -128,7 +128,7 @@ in
 
               macvlans = if cfg.useMacvlan then mkDefault [ config.networking.nat.externalInterface ] else [ ];
 
-              # Add bridge for reverse proxy containers.
+              # Add bridge for containers with veths.
               extraVeths.vb-containers = mkIf (hasVeth && hasAttr name constants.bridge) {
                 hostBridge = bridgeName;
                 localAddress = constants.bridge.${name}.ip4 + "/24";
