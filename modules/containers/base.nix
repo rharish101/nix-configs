@@ -12,7 +12,6 @@ let
   inherit (builtins) attrNames filter hasAttr;
   inherit (lib)
     filterAttrs
-    hasPrefix
     mapAttrsToList
     mkDefault
     mkEnableOption
@@ -101,10 +100,11 @@ in
           (
             # Calculate default container config.
             let
+              hasVeth = hasAttr name constants.veths;
+
               # The container's local IP addresses for this container's default network interface.
-              # This depends on whether the interface is a network bridge or not (IDK why).
               localAddresses =
-                if hasPrefix "caddy-wg-" name then
+                if hasVeth then
                   if cfg.useMacvlan then null else constants.veths.${name}.local
                 else if hasAttr name constants.bridge then
                   constants.bridge.${name}
@@ -113,26 +113,23 @@ in
 
               # The host's IP addresses for this container's default network interface.
               # Only for containers that aren't part of the bridge.
-              hostAddresses =
-                if hasPrefix "caddy-wg-" name && !cfg.useMacvlan then constants.veths.${name}.host else null;
+              hostAddresses = if hasVeth && !cfg.useMacvlan then constants.veths.${name}.host else null;
             in
             {
               privateNetwork = mkDefault true;
               privateUsers = mkDefault (if isNull cfg.username then "pick" else constants.uids.${cfg.username});
               autoStart = mkDefault true;
 
-              hostBridge = mkIf (hasAttr name constants.bridge && !hasPrefix "caddy-wg-" name) (
-                mkDefault bridgeName
-              );
+              hostBridge = mkIf (hasAttr name constants.bridge && !hasVeth) (mkDefault bridgeName);
               hostAddress = mkIf (hostAddresses != null) (mkDefault hostAddresses.ip4);
               localAddress = mkIf (localAddresses != null) (
-                mkDefault (localAddresses.ip4 + (if hasPrefix "caddy-wg-" name then "" else "/24"))
+                mkDefault (localAddresses.ip4 + (if hasVeth then "" else "/24"))
               );
 
               macvlans = if cfg.useMacvlan then mkDefault [ config.networking.nat.externalInterface ] else [ ];
 
               # Add bridge for reverse proxy containers.
-              extraVeths.vb-caddy = mkIf (hasPrefix "caddy-wg-" name && hasAttr name constants.bridge) {
+              extraVeths.vb-containers = mkIf (hasVeth && hasAttr name constants.bridge) {
                 hostBridge = bridgeName;
                 localAddress = constants.bridge.${name}.ip4 + "/24";
               };
@@ -192,9 +189,9 @@ in
                 {
                   networking =
                     let
-                      gateways = filter (hasPrefix "caddy-wg-") constants.containerDeps.${name} or [ ];
+                      gateways = filter (lib.hasPrefix "caddy-wg-") constants.containerDeps.${name} or [ ];
                       defaultGateway = lib.optionalAttrs (gateways != [ ]) constants.bridge.${builtins.head gateways};
-                      allowInternet = cfg.allowInternet && !hasPrefix "caddy-wg-" name && defaultGateway != { };
+                      allowInternet = cfg.allowInternet && !hasVeth && defaultGateway != { };
                       listToSet = values: lib.concatStringsSep "," (map toString values);
                       ip4Addrs = listToSet (map (value: constants.bridge.${value}.ip4) constants.firewallOpen.${name});
                       tcpPorts = listToSet cfg.allowedPorts.Tcp;

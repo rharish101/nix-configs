@@ -160,6 +160,10 @@ rec {
         ip6 = "${ip6Subnets.caddy-wg-server}2";
       };
     };
+    qbittorrent = {
+      host.ip4 = "10.1.1.1";
+      local.ip4 = "10.1.1.2";
+    };
     tunnel = {
       server = {
         ip4 = "10.100.0.1";
@@ -187,6 +191,7 @@ rec {
     tandoor = 65536 * 17;
     opencloud = 65536 * 18;
     vaultwarden = 65536 * 19;
+    qbittorrent = 65536 * 20;
   };
 
   ports = {

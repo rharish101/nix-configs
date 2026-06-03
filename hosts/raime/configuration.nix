@@ -9,6 +9,7 @@
 { ... }:
 let
   shalquoirIp = "91.99.59.38";
+  qbPort = 36252;
 in
 {
   imports = [
@@ -23,7 +24,10 @@ in
   networking.networkmanager.enable = true; # Easiest to use and most distros use this by default.
 
   # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 22 ];
+  networking.firewall.allowedTCPPorts = [
+    22
+    qbPort
+  ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
@@ -47,8 +51,8 @@ in
       }
       chain block-filter {
         type filter hook forward priority filter
-        iifname "ve-*" ip daddr ${shalquoirIp} accept
-        iifname "ve-*" drop
+        iifname "ve-caddy-*" ip daddr ${shalquoirIp} accept
+        iifname "ve-caddy-*" drop
       }
     '';
   };
@@ -135,6 +139,11 @@ in
   modules.postgres = {
     enable = true;
     backupDir = "/data/postgresql";
+  };
+  modules.qbittorrent = {
+    enable = true;
+    port = qbPort;
+    profileDir = "/data/qbittorrent";
   };
   modules.tandoor = {
     enable = true;

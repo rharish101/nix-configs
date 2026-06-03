@@ -67,7 +67,7 @@
             # replies.
             networking.nat = {
               enable = true;
-              internalInterfaces = [ "vb-caddy" ];
+              internalInterfaces = [ "vb-*" ];
               externalInterface = "wg0";
             };
 
