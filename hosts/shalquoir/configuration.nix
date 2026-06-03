@@ -6,11 +6,11 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, lib, ... }:
+{ config, ... }:
 let
-  mc_port = 26460;
-  ssh_port = 8398;
-  wg_port = 34104;
+  mcPort = 26460;
+  sshPort = 8398;
+  wgPort = 34104;
   constants = import ../../modules/constants.nix;
 in
 {
@@ -31,13 +31,13 @@ in
   networking.firewall = {
     allowedTCPPorts = [
       443
-      mc_port
-      ssh_port
+      mcPort
+      sshPort
     ];
     allowedUDPPorts = [
       443
-      mc_port
-      wg_port
+      mcPort
+      wgPort
     ];
   };
   # Or disable the firewall altogether.
@@ -74,10 +74,10 @@ in
   modules.caddy-wg-server = {
     enable = true;
     wireguard = {
-      port = wg_port;
+      port = wgPort;
       client.publicKey = "+lFv4mihO8w3eho26ebsrwU+NA5DlqgJPHTvYxINnS4=";
     };
-    caddy.minecraftPort = mc_port;
+    caddy.minecraftPort = mcPort;
     crowdsec.enable = true;
   };
 
@@ -104,7 +104,7 @@ in
   # Enable the OpenSSH daemon with strict security.
   services.openssh = {
     enable = true;
-    ports = [ ssh_port ];
+    ports = [ sshPort ];
     settings = {
       AllowUsers = [ "rharish" ];
       KbdInteractiveAuthentication = false;
