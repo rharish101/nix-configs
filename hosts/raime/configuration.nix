@@ -9,7 +9,7 @@
 { ... }:
 let
   shalquoirIp = "91.99.59.38";
-  qbPort = 36252;
+  qbPort = 7476;
 in
 {
   imports = [
@@ -142,6 +142,7 @@ in
   };
   modules.qbittorrent = {
     enable = true;
+    publicHost = "http://192.168.1.200";
     port = qbPort;
     dataDir = "/data/qbittorrent";
   };
