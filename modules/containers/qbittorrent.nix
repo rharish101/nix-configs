@@ -80,6 +80,7 @@
                   host = "0.0.0.0";
                   port = config.modules.qbittorrent.port;
                   corsAllowedOrigins = [ origin ];
+                  checkForUpdates = false;
                   oidcEnabled = true;
                   oidcIssuer = with constants.domain; "https://${subdomains.authelia}.${domain}";
                   oidcClientId = "VPSq_HeaAKSxNyC87AojNrNP11G4z-4uC-P_Tf4iTYL.cHfQSQ6-LRwg4mTAWodyZeRzwAaJ";
