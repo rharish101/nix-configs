@@ -11,8 +11,8 @@
       type = lib.types.int;
       default = 8080;
     };
-    profileDir = lib.mkOption {
-      description = "The qBittorrent profile directory path";
+    dataDir = lib.mkOption {
+      description = "The data directory path for qBittorrent and qui";
       type = lib.types.str;
     };
     allowedDirs = lib.mkOption {
@@ -24,6 +24,7 @@
   config = lib.mkIf config.modules.qbittorrent.enable {
     modules.containers.qbittorrent = {
       username = "qbittorrent";
+      credentials.qui.name = "qui";
       forwardPorts = [ { hostPort = config.modules.qbittorrent.port; } ];
 
       bindMounts =
@@ -33,9 +34,14 @@
           isReadOnly = false;
         }) config.modules.qbittorrent.allowedDirs
         // {
-          profile = {
-            hostPath = config.modules.qbittorrent.profileDir;
-            mountPoint = "/var/lib/qBittorrent";
+          qbProfile = {
+            hostPath = "${config.modules.qbittorrent.dataDir}/qBittorrent";
+            mountPoint = "/var/lib/qBittorrent/qBittorrent";
+            isReadOnly = false;
+          };
+          qui = {
+            hostPath = "${config.modules.qbittorrent.dataDir}/qui";
+            mountPoint = "/var/lib/qui";
             isReadOnly = false;
           };
         };
@@ -47,8 +53,17 @@
 
           services.qbittorrent = {
             enable = true;
-            webuiPort = config.modules.qbittorrent.port;
             extraArgs = [ "--confirm-legal-notice" ];
+            serverConfig.Preferences.WebUI.LocalHostAuth = false;
+          };
+
+          services.qui = {
+            enable = true;
+            secretFile = "/run/credentials/@system/qui";
+            settings = {
+              host = "0.0.0.0";
+              port = config.modules.qbittorrent.port;
+            };
           };
 
           system.stateVersion = "26.05";

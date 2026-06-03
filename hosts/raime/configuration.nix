@@ -143,7 +143,7 @@ in
   modules.qbittorrent = {
     enable = true;
     port = qbPort;
-    profileDir = "/data/qbittorrent";
+    dataDir = "/data/qbittorrent";
   };
   modules.tandoor = {
     enable = true;
