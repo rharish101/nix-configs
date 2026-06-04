@@ -100,6 +100,8 @@ in
 
       # Get all used bridges of a container.
       getBridges = name: filterAttrs (bridge: bridgeCfg: hasAttr name bridgeCfg) constants.bridges;
+
+      mkIfDefault = cond: value: mkIf cond (mkDefault value);
     in
     {
       containers = mapAttrs (
@@ -128,16 +130,15 @@ in
             in
             {
               privateNetwork = mkDefault true;
-              privateUsers = mkDefault (if isNull cfg.username then "pick" else constants.uids.${cfg.username});
+              privateUsers = mkDefault (if cfg.username == null then "pick" else constants.uids.${cfg.username});
               autoStart = mkDefault true;
 
-              hostBridge = mkIf (mainBridge != null && !hasVeth) (mkDefault "br-${mainBridge}");
-              hostAddress = mkIf (hostAddresses != null) (mkDefault hostAddresses.ip4);
-              localAddress = mkIf (localAddresses != null) (
-                mkDefault (localAddresses.ip4 + (if hasVeth then "" else "/24"))
+              hostBridge = mkIfDefault (mainBridge != null && !hasVeth) "br-${mainBridge}";
+              hostAddress = mkIfDefault (hostAddresses != null) hostAddresses.ip4;
+              localAddress = mkIfDefault (localAddresses != null) (
+                localAddresses.ip4 + (if hasVeth then "" else "/24")
               );
-
-              macvlans = if cfg.useMacvlan then mkDefault [ config.networking.nat.externalInterface ] else [ ];
+              macvlans = mkIfDefault cfg.useMacvlan [ config.networking.nat.externalInterface ];
 
               extraVeths =
                 let
