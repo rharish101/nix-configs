@@ -301,10 +301,12 @@ in
         name: cfg:
         lib.nameValuePair "container@${name}" {
           serviceConfig = mkIf (hasAttr name constants.limits) (
-            with constants.limits.${name};
+            let
+              limits = constants.limits.${name};
+            in
             {
-              MemoryHigh = mkDefault "${toString memory}G";
-              CPUQuota = mkDefault "${toString (cpu * 100)}%";
+              MemoryHigh = mkIfDefault (limits ? memory) "${toString limits.memory}G";
+              CPUQuota = mkIfDefault (limits ? cpu) "${toString (limits.cpu * 100)}%";
             }
           );
 
