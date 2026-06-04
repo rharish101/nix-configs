@@ -13,63 +13,69 @@ rec {
       tunnel = "${global}10::";
     };
 
-  # IPv4 private addressing for container-to-container communication in the containers' bridge
+  # IPv4 private addressing for container-to-container communication in each containers' bridge
   # Includes IPv6 GUAs for containers that need to connect to the internet.
   # Addresses are kept static to avoid running a DHCP server.
-  # Single bridge for all containers simplifies networking and firewall management.
   # NOTE: Keys for containers **must** correspond to their names.
-  bridge =
-    let
-      ip6Prefix = ip6Subnets.caddy-wg-client;
-    in
-    {
-      caddy-wg-client = {
-        ip4 = "10.2.0.1";
-        ip6 = "${ip6Prefix}1";
+  bridges = {
+    caddy =
+      let
+        ip6Prefix = ip6Subnets.caddy-wg-client;
+      in
+      {
+        caddy-wg-client = {
+          ip4 = "10.2.0.1";
+          ip6 = "${ip6Prefix}1";
+        };
+        minecraft = {
+          ip4 = "10.2.0.2";
+          ip6 = "${ip6Prefix}2";
+        };
+        jellyfin = {
+          ip4 = "10.2.0.3";
+          ip6 = "${ip6Prefix}3";
+        };
+        authelia = {
+          ip4 = "10.2.0.4";
+          ip6 = "${ip6Prefix}4";
+        };
+        lldap = {
+          ip4 = "10.2.0.5";
+        };
+        crowdsec-lapi = {
+          ip4 = "10.2.0.6";
+          ip6 = "${ip6Prefix}6";
+        };
+        immich = {
+          ip4 = "10.2.0.7";
+          ip6 = "${ip6Prefix}7";
+        };
+        tandoor = {
+          ip4 = "10.2.0.8";
+          ip6 = "${ip6Prefix}8";
+        };
+        opencloud = {
+          ip4 = "10.2.0.9";
+          ip6 = "${ip6Prefix}9";
+        };
+        collabora = {
+          ip4 = "10.2.0.10";
+          ip6 = "${ip6Prefix}a";
+        };
+        vaultwarden = {
+          ip4 = "10.2.0.11";
+          ip6 = "${ip6Prefix}b";
+        };
+        postgres = {
+          ip4 = "10.2.0.12";
+        };
       };
-      minecraft = {
-        ip4 = "10.2.0.2";
-        ip6 = "${ip6Prefix}2";
-      };
-      jellyfin = {
-        ip4 = "10.2.0.3";
-        ip6 = "${ip6Prefix}3";
-      };
-      authelia = {
-        ip4 = "10.2.0.4";
-        ip6 = "${ip6Prefix}4";
-      };
-      lldap = {
-        ip4 = "10.2.0.5";
-      };
-      crowdsec-lapi = {
-        ip4 = "10.2.0.6";
-        ip6 = "${ip6Prefix}6";
-      };
-      immich = {
-        ip4 = "10.2.0.7";
-        ip6 = "${ip6Prefix}7";
-      };
-      tandoor = {
-        ip4 = "10.2.0.8";
-        ip6 = "${ip6Prefix}8";
-      };
-      opencloud = {
-        ip4 = "10.2.0.9";
-        ip6 = "${ip6Prefix}9";
-      };
-      collabora = {
-        ip4 = "10.2.0.10";
-        ip6 = "${ip6Prefix}a";
-      };
-      vaultwarden = {
-        ip4 = "10.2.0.11";
-        ip6 = "${ip6Prefix}b";
-      };
-      postgres = {
-        ip4 = "10.2.0.12";
-      };
+
+    qb = {
+      qbittorrent.ip4 = "10.2.1.1";
+      postgres.ip4 = "10.2.1.2";
     };
+  };
 
   # Container dependencies for a container's systemd unit.
   # Also used for determining the default gateway, for containers who need internet access.
@@ -108,6 +114,7 @@ rec {
       "caddy-wg-client"
       "postgres"
     ];
+    qbittorrent = [ "postgres" ];
   };
 
   # List of containers to which a container's firewall must be open.
@@ -135,6 +142,7 @@ rec {
       "crowdsec-lapi"
       "immich"
       "lldap"
+      "qbittorrent"
       "tandoor"
       "vaultwarden"
     ];
@@ -147,12 +155,10 @@ rec {
   # Includes IPv6 GUAs for containers that need to connect to the internet.
   veths = {
     caddy-wg-client = {
-      shortName = "caddy";
       host.ip4 = "10.1.0.1";
       local.ip4 = "10.1.0.2";
     };
     caddy-wg-server = {
-      shortName = "caddy";
       host = {
         ip4 = "10.1.0.1";
         ip6 = "${ip6Subnets.caddy-wg-server}1";
@@ -163,7 +169,6 @@ rec {
       };
     };
     qbittorrent = {
-      shortName = "qb";
       host.ip4 = "10.1.1.1";
       local.ip4 = "10.1.1.2";
     };

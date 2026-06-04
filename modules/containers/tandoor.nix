@@ -78,7 +78,7 @@
                 extraConfig = {
                   ALLOWED_HOSTS = with constants.domain; "${subdomains.tandoor}.${domain}";
                   DB_ENGINE = "django.db.backends.postgresql";
-                  POSTGRES_HOST = constants.bridge.postgres.ip4;
+                  POSTGRES_HOST = constants.bridges.caddy.postgres.ip4;
                   POSTGRES_PORT = constants.ports.postgres;
                   POSTGRES_USER = "tandoor";
                   POSTGRES_DB = "tandoor";

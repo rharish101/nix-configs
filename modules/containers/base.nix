@@ -9,9 +9,16 @@
   ...
 }:
 let
-  inherit (builtins) attrNames filter hasAttr;
+  inherit (builtins)
+    attrNames
+    filter
+    hasAttr
+    head
+    mapAttrs
+    ;
   inherit (lib)
     filterAttrs
+    mapAttrs'
     mapAttrsToList
     mkDefault
     mkEnableOption
@@ -82,7 +89,6 @@ in
   config =
     let
       constants = import ../constants.nix;
-      bridgeName = "br-containers";
 
       # Map an attribute set and use `lib.mkMerge` to merge them.
       # Useful for merging configs from multiple sources
@@ -91,9 +97,12 @@ in
       # Containers that have set a username.
       # Used to create host users/groups mapped to container root users
       containersWithUsernames = filterAttrs (_: cfg: cfg.username != null) config.modules.containers;
+
+      # Get all used bridges of a container.
+      getBridges = name: filterAttrs (bridge: bridgeCfg: hasAttr name bridgeCfg) constants.bridges;
     in
     {
-      containers = builtins.mapAttrs (
+      containers = mapAttrs (
         name: cfg:
         # Merge such that the specified config can override defaults if needed.
         mkMerge [
@@ -101,32 +110,28 @@ in
             # Calculate default container config.
             let
               hasVeth = hasAttr name constants.veths;
+              bridges = getBridges name;
+              mainBridge = if bridges == { } then null else head (attrNames bridges);
 
               # The container's local IP addresses for this container's default network interface.
               localAddresses =
                 if hasVeth then
                   if cfg.useMacvlan then null else constants.veths.${name}.local
-                else if hasAttr name constants.bridge then
-                  constants.bridge.${name}
+                else if mainBridge == null then
+                  null
                 else
-                  null;
+                  bridges.${mainBridge}.${name};
 
               # The host's IP addresses for this container's default network interface.
-              # Only for containers that aren't part of the bridge.
+              # Only for containers that have a veth pair.
               hostAddresses = if hasVeth && !cfg.useMacvlan then constants.veths.${name}.host else null;
-
-              shortName =
-                if hasVeth then
-                  if constants.veths.${name} ? shortName then constants.veths.${name}.shortName else name
-                else
-                  null;
             in
             {
               privateNetwork = mkDefault true;
               privateUsers = mkDefault (if isNull cfg.username then "pick" else constants.uids.${cfg.username});
               autoStart = mkDefault true;
 
-              hostBridge = mkIf (hasAttr name constants.bridge && !hasVeth) (mkDefault bridgeName);
+              hostBridge = mkIf (mainBridge != null && !hasVeth) (mkDefault "br-${mainBridge}");
               hostAddress = mkIf (hostAddresses != null) (mkDefault hostAddresses.ip4);
               localAddress = mkIf (localAddresses != null) (
                 mkDefault (localAddresses.ip4 + (if hasVeth then "" else "/24"))
@@ -134,13 +139,25 @@ in
 
               macvlans = if cfg.useMacvlan then mkDefault [ config.networking.nat.externalInterface ] else [ ];
 
-              # Add bridge for containers with veths.
-              extraVeths = mkIf (hasVeth && hasAttr name constants.bridge) {
-                "vb-${shortName}" = {
-                  hostBridge = bridgeName;
-                  localAddress = constants.bridge.${name}.ip4 + "/24";
-                };
-              };
+              extraVeths =
+                let
+                  otherBridges = filterAttrs (bridge: _: hasVeth || bridge != mainBridge) bridges;
+                  trimInterface =
+                    iFace:
+                    let
+                      hashFile = pkgs.runCommand "trim-interface.sh" { nativeBuildInputs = [ pkgs.b3sum ]; } ''
+                        echo -n '${iFace}' | b3sum --length 6 --no-names > $out
+                      '';
+                    in
+                    lib.trim (builtins.readFile hashFile);
+                in
+                mapAttrs' (bridge: bridgeCfg: {
+                  name = "vb-" + trimInterface "${bridge}=${name}";
+                  value = {
+                    hostBridge = mkDefault "br-${bridge}";
+                    localAddress = mkDefault (bridgeCfg.${name}.ip4 + "/24");
+                  };
+                }) otherBridges;
 
               extraFlags =
                 let
@@ -197,17 +214,22 @@ in
                 {
                   networking =
                     let
-                      gateways = filter (lib.hasPrefix "caddy-wg-") constants.containerDeps.${name} or [ ];
-                      defaultGateway = lib.optionalAttrs (gateways != [ ]) constants.bridge.${builtins.head gateways};
+                      isDefaultGateway =
+                        dep:
+                        hasAttr dep constants.veths
+                        && (if mainBridge == null then false else hasAttr dep bridges.${mainBridge});
+                      gateways = filter isDefaultGateway constants.containerDeps.${name} or [ ];
+                      defaultGateway = if gateways != [ ] then bridges.${mainBridge}.${head gateways} else null;
                       allowInternet = cfg.allowInternet && !hasVeth && defaultGateway != { };
                       listToSet = values: lib.concatStringsSep "," (map toString values);
-                      ip4Addrs = listToSet (map (value: constants.bridge.${value}.ip4) constants.firewallOpen.${name});
+                      getAllIp4 = dep: mapAttrsToList (_: bridgeCfg: bridgeCfg.${dep}.ip4) (getBridges dep);
+                      ip4Addrs = listToSet (lib.flatten (map getAllIp4 constants.firewallOpen.${name}));
                       tcpPorts = listToSet cfg.allowedPorts.Tcp;
                       udpPorts = listToSet cfg.allowedPorts.Udp;
                     in
                     {
                       # Config for allowing internet through the bridge to another container
-                      defaultGateway = mkIf allowInternet {
+                      defaultGateway = mkIf (allowInternet && defaultGateway != null) {
                         address = mkDefault defaultGateway.ip4;
                         interface = mkDefault "eth0";
                       };
@@ -262,12 +284,19 @@ in
         ]
       ) config.modules.containers;
 
-      # Only create bridge for containers if any containers use it.
-      networking.bridges = mkIf (
-        filter (name: hasAttr name constants.bridge) (attrNames config.modules.containers) != [ ]
-      ) { ${bridgeName}.interfaces = [ ]; };
+      networking.bridges =
+        let
+          isBridgeUsed =
+            _: bridgeCfg: filter (name: hasAttr name bridgeCfg) (attrNames config.modules.containers) != [ ];
+          usedBridges = filterAttrs isBridgeUsed constants.bridges;
+        in
+        # Only setup a bridge if any containers use it.
+        mapAttrs' (name: _: {
+          name = "br-${name}";
+          value.interfaces = [ ];
+        }) usedBridges;
 
-      systemd.services = lib.mapAttrs' (
+      systemd.services = mapAttrs' (
         name: cfg:
         lib.nameValuePair "container@${name}" {
           serviceConfig = mkIf (hasAttr name constants.limits) (
@@ -278,10 +307,10 @@ in
             }
           );
 
-          # Include dependencies from containerDeps, including the bridge for bridge containers.
+          # Include dependencies from containerDeps, including bridges for bridge containers.
           requires =
             map (name: "container@${name}.service") constants.containerDeps.${name} or [ ]
-            ++ lib.optionals (hasAttr name constants.bridge) [ "${bridgeName}-netdev.service" ];
+            ++ map (bridge: "br-${bridge}-netdev.service") (attrNames (getBridges name));
         }
       ) config.modules.containers;
 

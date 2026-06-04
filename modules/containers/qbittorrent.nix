@@ -35,8 +35,9 @@
         forwardPorts = [ { hostPort = config.modules.qbittorrent.port; } ];
 
         credentials = {
-          session.name = "qui/session";
           oidc.name = "qui/oidc";
+          postgres.name = "qui/postgres";
+          session.name = "qui/session";
         };
 
         bindMounts =
@@ -80,6 +81,11 @@
                   host = "0.0.0.0";
                   port = config.modules.qbittorrent.port;
                   corsAllowedOrigins = [ origin ];
+                  databaseEngine = "postgres";
+                  databaseHost = constants.bridges.qb.postgres.ip4;
+                  databasePort = constants.ports.postgres;
+                  databaseUser = "qui";
+                  databaseName = "qui";
                   checkForUpdates = false;
                   oidcEnabled = true;
                   oidcIssuer = with constants.domain; "https://${subdomains.authelia}.${domain}";
@@ -89,8 +95,14 @@
                 };
             };
             systemd.services.qui.serviceConfig = {
-              LoadCredential = [ "oidc:oidc" ];
-              Environment = [ "QUI__OIDC_CLIENT_SECRET_FILE=%d/oidc" ];
+              LoadCredential = [
+                "oidc:oidc"
+                "postgres:postgres"
+              ];
+              Environment = [
+                "QUI__DATABASE_PASSWORD_FILE=%d/postgres"
+                "QUI__OIDC_CLIENT_SECRET_FILE=%d/oidc"
+              ];
             };
 
             system.stateVersion = "26.05";

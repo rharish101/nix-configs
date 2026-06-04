@@ -56,13 +56,13 @@
                     endpoints.authz.forward-auth.implementation = "ForwardAuth";
                   };
                   authentication_backend.ldap = {
-                    address = "ldap://${constants.bridge.lldap.ip4}:${toString constants.ports.lldap}";
+                    address = "ldap://${constants.bridges.caddy.lldap.ip4}:${toString constants.ports.lldap}";
                     implementation = "lldap";
                     base_dn = ldapBaseDn;
                     user = "uid=authelia,ou=people,${ldapBaseDn}";
                   };
                   storage.postgres = {
-                    address = "tcp://${constants.bridge.postgres.ip4}:${toString constants.ports.postgres}";
+                    address = "tcp://${constants.bridges.caddy.postgres.ip4}:${toString constants.ports.postgres}";
                     database = "authelia";
                     username = "authelia";
                   };

@@ -74,7 +74,7 @@
                 secretsFile = "/run/credentials/@system/env";
                 database = {
                   enable = false;
-                  host = constants.bridge.postgres.ip4;
+                  host = constants.bridges.caddy.postgres.ip4;
                   port = constants.ports.postgres;
                 };
                 accelerationDevices = [ gpuDevice ];

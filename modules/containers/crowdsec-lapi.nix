@@ -72,7 +72,7 @@
                         user = "crowdsec";
                         password = "\${DB_PASSWORD}";
                         db_name = "crowdsec";
-                        host = constants.bridge.postgres.ip4;
+                        host = constants.bridges.caddy.postgres.ip4;
                         port = constants.ports.postgres;
                       };
                       api.server = {

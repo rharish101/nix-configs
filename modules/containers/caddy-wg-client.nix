@@ -99,6 +99,7 @@
             services.caddy =
               with config.modules.caddy-wg-client.wireguard;
               with constants.domain;
+              with constants.bridges.caddy;
               {
                 enable = true;
                 package = pkgs.caddy.withPlugins {
@@ -107,7 +108,7 @@
                 };
                 globalConfig =
                   let
-                    mcAddr = constants.bridge.minecraft.ip4;
+                    mcAddr = constants.bridges.caddy.minecraft.ip4;
                     mcPort = constants.ports.minecraft;
                   in
                   ''
@@ -143,28 +144,28 @@
                   respond "hello world"
                 '';
                 virtualHosts.":${toString constants.ports.crowdsec}".extraConfig = ''
-                  reverse_proxy ${constants.bridge.crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
+                  reverse_proxy ${crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
                 '';
                 virtualHosts."http://${subdomains.authelia}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridge.authelia.ip4}:${toString constants.ports.authelia}
+                  reverse_proxy ${authelia.ip4}:${toString constants.ports.authelia}
                 '';
                 virtualHosts."http://${subdomains.collabora}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridge.collabora.ip4}:${toString constants.ports.collabora}
+                  reverse_proxy ${collabora.ip4}:${toString constants.ports.collabora}
                 '';
                 virtualHosts."http://${subdomains.immich}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridge.immich.ip4}:${toString constants.ports.immich}
+                  reverse_proxy ${immich.ip4}:${toString constants.ports.immich}
                 '';
                 virtualHosts."http://${subdomains.jellyfin}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridge.jellyfin.ip4}:${toString constants.ports.jellyfin}
+                  reverse_proxy ${jellyfin.ip4}:${toString constants.ports.jellyfin}
                 '';
                 virtualHosts."http://${subdomains.opencloud}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridge.opencloud.ip4}:${toString constants.ports.opencloud}
+                  reverse_proxy ${opencloud.ip4}:${toString constants.ports.opencloud}
                 '';
                 virtualHosts."http://${subdomains.tandoor}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridge.tandoor.ip4}:${toString constants.ports.tandoor}
+                  reverse_proxy ${tandoor.ip4}:${toString constants.ports.tandoor}
                 '';
                 virtualHosts."http://${subdomains.vaultwarden}.${domain}".extraConfig = ''
-                  reverse_proxy ${constants.bridge.vaultwarden.ip4}:${toString constants.ports.vaultwarden}
+                  reverse_proxy ${vaultwarden.ip4}:${toString constants.ports.vaultwarden}
                 '';
               };
 
@@ -174,7 +175,7 @@
               caddy = {
                 enable = true;
                 virtualHost.extraConfig = with constants; ''
-                  forward_auth ${bridge.authelia.ip4}:${toString ports.authelia} {
+                  forward_auth ${bridges.caddy.authelia.ip4}:${toString ports.authelia} {
                     uri /api/authz/forward-auth
                     copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
                   }
