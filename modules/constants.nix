@@ -277,6 +277,10 @@ rec {
       cpu = 1;
       memory = 1;
     };
+    qbittorrent = {
+      cpu = 2;
+      memory = 6;
+    };
     vaultwarden = {
       cpu = 1;
       memory = 1;
