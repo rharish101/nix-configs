@@ -114,6 +114,12 @@ in
               # The host's IP addresses for this container's default network interface.
               # Only for containers that aren't part of the bridge.
               hostAddresses = if hasVeth && !cfg.useMacvlan then constants.veths.${name}.host else null;
+
+              shortName =
+                if hasVeth then
+                  if constants.veths.${name} ? shortName then constants.veths.${name}.shortName else name
+                else
+                  null;
             in
             {
               privateNetwork = mkDefault true;
@@ -129,9 +135,11 @@ in
               macvlans = if cfg.useMacvlan then mkDefault [ config.networking.nat.externalInterface ] else [ ];
 
               # Add bridge for containers with veths.
-              extraVeths.vb-containers = mkIf (hasVeth && hasAttr name constants.bridge) {
-                hostBridge = bridgeName;
-                localAddress = constants.bridge.${name}.ip4 + "/24";
+              extraVeths = mkIf (hasVeth && hasAttr name constants.bridge) {
+                "vb-${shortName}" = {
+                  hostBridge = bridgeName;
+                  localAddress = constants.bridge.${name}.ip4 + "/24";
+                };
               };
 
               extraFlags =

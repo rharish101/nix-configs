@@ -147,10 +147,12 @@ rec {
   # Includes IPv6 GUAs for containers that need to connect to the internet.
   veths = {
     caddy-wg-client = {
+      shortName = "caddy";
       host.ip4 = "10.1.0.1";
       local.ip4 = "10.1.0.2";
     };
     caddy-wg-server = {
+      shortName = "caddy";
       host = {
         ip4 = "10.1.0.1";
         ip6 = "${ip6Subnets.caddy-wg-server}1";
@@ -161,6 +163,7 @@ rec {
       };
     };
     qbittorrent = {
+      shortName = "qb";
       host.ip4 = "10.1.1.1";
       local.ip4 = "10.1.1.2";
     };
