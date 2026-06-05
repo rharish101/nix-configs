@@ -142,9 +142,11 @@ in
   };
   modules.qbittorrent = {
     enable = true;
-    publicHost = "http://192.168.1.200";
-    port = qbPort;
     dataDir = "/data/qbittorrent";
+  };
+  modules.qui = {
+    enable = true;
+    dataDir = "/data/qui";
   };
   modules.tandoor = {
     enable = true;

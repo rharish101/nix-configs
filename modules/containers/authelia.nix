@@ -257,23 +257,21 @@
                         ];
                         pre_configured_consent_duration = "1 month";
                       }
-                    ]
-                    ++ lib.optional globalConfig.modules.qbittorrent.enable {
-                      client_id = "VPSq_HeaAKSxNyC87AojNrNP11G4z-4uC-P_Tf4iTYL.cHfQSQ6-LRwg4mTAWodyZeRzwAaJ";
-                      client_name = "qui";
-                      client_secret = "$pbkdf2-sha512$310000$STqrh354lAxrlUqdOwZBgQ$jYBw7PyIt8s9aTN49CSZHYvbaiNshRcz57uyLDiS9mRBGiALvSn65MVgFaeNV1D5eiXOnKTq1afFPoqhP3aPdA";
-                      redirect_uris = with globalConfig.modules.qbittorrent; [
-                        "${publicHost}:${toString port}/api/auth/oidc/callback"
-                      ];
-                      scopes = [
-                        "openid"
-                        "profile"
-                        "email"
-                      ];
-                      authorization_policy = "qui";
-                      token_endpoint_auth_method = "client_secret_post";
-                      pre_configured_consent_duration = "1 month";
-                    };
+                      {
+                        client_id = "VPSq_HeaAKSxNyC87AojNrNP11G4z-4uC-P_Tf4iTYL.cHfQSQ6-LRwg4mTAWodyZeRzwAaJ";
+                        client_name = "qui";
+                        client_secret = "$pbkdf2-sha512$310000$STqrh354lAxrlUqdOwZBgQ$jYBw7PyIt8s9aTN49CSZHYvbaiNshRcz57uyLDiS9mRBGiALvSn65MVgFaeNV1D5eiXOnKTq1afFPoqhP3aPdA";
+                        redirect_uris = [ "https://${subdomains.qui}.${domain}/api/auth/oidc/callback" ];
+                        scopes = [
+                          "openid"
+                          "profile"
+                          "email"
+                        ];
+                        authorization_policy = "qui";
+                        token_endpoint_auth_method = "client_secret_post";
+                        pre_configured_consent_duration = "1 month";
+                      }
+                    ];
                   };
                 };
                 settingsFiles = [

@@ -76,6 +76,11 @@ let
         };
       };
       useMacvlan = mkEnableOption "Allow this container to access the local network through a macvlan interface";
+      preferredBridge = mkOption {
+        description = "Which bridge this container prefers over other bridges that it's part of";
+        type = with types; nullOr str;
+        default = null;
+      };
     };
   };
 in
@@ -113,7 +118,13 @@ in
             let
               hasVeth = hasAttr name constants.veths;
               bridges = getBridges name;
-              mainBridge = if bridges == { } then null else head (attrNames bridges);
+              mainBridge =
+                if bridges == { } then
+                  null
+                else if cfg.preferredBridge != null && hasAttr cfg.preferredBridge bridges then
+                  cfg.preferredBridge
+                else
+                  head (attrNames bridges);
 
               # The container's local IP addresses for this container's default network interface.
               localAddresses =

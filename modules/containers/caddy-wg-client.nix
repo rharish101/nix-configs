@@ -161,6 +161,9 @@
                 virtualHosts."http://${subdomains.opencloud}.${domain}".extraConfig = ''
                   reverse_proxy ${opencloud.ip4}:${toString constants.ports.opencloud}
                 '';
+                virtualHosts."http://${subdomains.qui}.${domain}".extraConfig = ''
+                  reverse_proxy ${qui.ip4}:${toString constants.ports.qui}
+                '';
                 virtualHosts."http://${subdomains.tandoor}.${domain}".extraConfig = ''
                   reverse_proxy ${tandoor.ip4}:${toString constants.ports.tandoor}
                 '';

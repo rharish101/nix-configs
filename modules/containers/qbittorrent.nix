@@ -6,17 +6,8 @@
 {
   options.modules.qbittorrent = {
     enable = lib.mkEnableOption "Enable qBittorrent";
-    publicHost = lib.mkOption {
-      description = "The public host used to access qBittorrent, including scheme";
-      type = lib.types.str;
-    };
-    port = lib.mkOption {
-      description = "The port on the host that to be used for qui";
-      type = lib.types.int;
-      default = 7476;
-    };
     dataDir = lib.mkOption {
-      description = "The data directory path for qBittorrent and qui";
+      description = "The data directory path for qBittorrent";
       type = lib.types.str;
     };
     allowedDirs = lib.mkOption {
@@ -32,13 +23,7 @@
     lib.mkIf config.modules.qbittorrent.enable {
       modules.containers.qbittorrent = {
         username = "qbittorrent";
-        forwardPorts = [ { hostPort = config.modules.qbittorrent.port; } ];
-
-        credentials = {
-          oidc.name = "qui/oidc";
-          postgres.name = "qui/postgres";
-          session.name = "qui/session";
-        };
+        allowedPorts.Tcp = [ constants.ports.qbittorrent ];
 
         bindMounts =
           builtins.mapAttrs (name: dir: {
@@ -48,13 +33,8 @@
           }) config.modules.qbittorrent.allowedDirs
           // {
             qbProfile = {
-              hostPath = "${config.modules.qbittorrent.dataDir}/qBittorrent";
+              hostPath = config.modules.qbittorrent.dataDir;
               mountPoint = "/var/lib/qBittorrent/qBittorrent";
-              isReadOnly = false;
-            };
-            qui = {
-              hostPath = "${config.modules.qbittorrent.dataDir}/qui";
-              mountPoint = "/var/lib/qui";
               isReadOnly = false;
             };
           };
@@ -62,47 +42,20 @@
         config =
           { ... }:
           {
-            networking.firewall.interfaces.eth0.allowedTCPPorts = [ config.modules.qbittorrent.port ];
+            networking.nat = {
+              enable = true;
+              internalInterfaces = [ "vb-*" ];
+              externalInterface = "eth0";
+            };
 
             services.qbittorrent = {
               enable = true;
               extraArgs = [ "--confirm-legal-notice" ];
-              serverConfig.Preferences.WebUI.LocalHostAuth = false;
-            };
-
-            services.qui = {
-              enable = true;
-              secretFile = "/run/credentials/@system/session";
-              settings =
-                let
-                  origin = with config.modules.qbittorrent; "${publicHost}:${toString port}";
-                in
-                {
-                  host = "0.0.0.0";
-                  port = config.modules.qbittorrent.port;
-                  corsAllowedOrigins = [ origin ];
-                  databaseEngine = "postgres";
-                  databaseHost = constants.bridges.qb.postgres.ip4;
-                  databasePort = constants.ports.postgres;
-                  databaseUser = "qui";
-                  databaseName = "qui";
-                  checkForUpdates = false;
-                  oidcEnabled = true;
-                  oidcIssuer = with constants.domain; "https://${subdomains.authelia}.${domain}";
-                  oidcClientId = "VPSq_HeaAKSxNyC87AojNrNP11G4z-4uC-P_Tf4iTYL.cHfQSQ6-LRwg4mTAWodyZeRzwAaJ";
-                  oidcRedirectUrl = "${origin}/api/auth/oidc/callback";
-                  oidcDisableBuiltInLogin = true;
-                };
-            };
-            systemd.services.qui.serviceConfig = {
-              LoadCredential = [
-                "oidc:oidc"
-                "postgres:postgres"
-              ];
-              Environment = [
-                "QUI__DATABASE_PASSWORD_FILE=%d/postgres"
-                "QUI__OIDC_CLIENT_SECRET_FILE=%d/oidc"
-              ];
+              webuiPort = constants.ports.qbittorrent;
+              serverConfig.Preferences.WebUI = {
+                Username = "qui";
+                Password_PBKDF2 = "@ByteArray(AEgFonsUIBrIzzKFE+yFnQ==:SEE/1cXWx20ucaQy3ngOMLj044mPvWG8KZAzuradfhW4YNE8/SHeC55FUOMRpG6zJlPW0M71CUgBR3sn9RRf9A==)";
+              };
             };
 
             system.stateVersion = "26.05";

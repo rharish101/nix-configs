@@ -39,6 +39,7 @@ lib: rec {
         collabora = getIps 10;
         vaultwarden = getIps 11;
         postgres.ip4 = "${ip4Prefix}12";
+        qui = getIps 13;
       };
 
     qb =
@@ -47,7 +48,7 @@ lib: rec {
       in
       {
         qbittorrent = getIps 1;
-        postgres = getIps 2;
+        qui = getIps 2;
       };
   };
 
@@ -88,7 +89,10 @@ lib: rec {
       "caddy-wg-client"
       "postgres"
     ];
-    qbittorrent = [ "postgres" ];
+    qui = [
+      "postgres"
+      "qbittorrent"
+    ];
   };
 
   # List of containers to which a container's firewall must be open.
@@ -116,10 +120,12 @@ lib: rec {
       "crowdsec-lapi"
       "immich"
       "lldap"
-      "qbittorrent"
+      "qui"
       "tandoor"
       "vaultwarden"
     ];
+    qbittorrent = [ "qui" ];
+    qui = [ "caddy-wg-client" ];
     tandoor = [ "caddy-wg-client" ];
     vaultwarden = [ "caddy-wg-client" ];
   };
@@ -174,6 +180,7 @@ lib: rec {
     opencloud = 65536 * 18;
     vaultwarden = 65536 * 19;
     qbittorrent = 65536 * 20;
+    qui = 65536 * 21;
   };
 
   ports = {
@@ -186,6 +193,8 @@ lib: rec {
     minecraft = 25565; # Used for both Java (TCP) & Bedrock (UDP) editions
     opencloud = 9200;
     postgres = 5432;
+    qbittorrent = 36252; # Avoid default 8080 to prevent conflicts
+    qui = 7476;
     tandoor = 2113; # Avoid default 8080 to prevent conflicts
     wireguard = 51820;
     vaultwarden = 6062; # Avoid default 8000 to prevent conflicts
@@ -201,6 +210,7 @@ lib: rec {
       immich = "photos";
       jellyfin = "media";
       opencloud = "cloud";
+      qui = "p2p";
       tandoor = "recipes";
       vaultwarden = "vault";
     };
@@ -254,6 +264,10 @@ lib: rec {
     qbittorrent = {
       cpu = 2;
       memory = 6;
+    };
+    qui = {
+      cpu = 1;
+      memory = 1;
     };
     vaultwarden = {
       cpu = 1;
