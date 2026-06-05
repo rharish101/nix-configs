@@ -7,7 +7,7 @@
   options.modules.collabora.enable = lib.mkEnableOption "Enable Collabora Online";
   config =
     let
-      constants = import ../constants.nix;
+      constants = import ../constants.nix lib;
     in
     lib.mkIf (config.modules.collabora.enable && config.modules.caddy-wg-client.enable) {
       modules.containers.collabora = {

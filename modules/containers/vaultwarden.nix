@@ -14,7 +14,7 @@
 
   config =
     let
-      constants = import ../constants.nix;
+      constants = import ../constants.nix lib;
     in
     lib.mkIf (config.modules.vaultwarden.enable && config.modules.caddy-wg-client.enable) {
       modules.containers.vaultwarden = {

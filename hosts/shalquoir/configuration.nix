@@ -6,12 +6,12 @@
 # your system. Help is available in the configuration.nix(5) man page, on
 # https://search.nixos.org/options and in the NixOS manual (`nixos-help`).
 
-{ config, ... }:
+{ config, lib, ... }:
 let
   mcPort = 26460;
   sshPort = 8398;
   wgPort = 34104;
-  constants = import ../../modules/constants.nix;
+  constants = import ../../modules/constants.nix lib;
 in
 {
   imports = [

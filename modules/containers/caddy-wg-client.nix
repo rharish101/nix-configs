@@ -27,7 +27,7 @@
 
   config =
     let
-      constants = import ../constants.nix;
+      constants = import ../constants.nix lib;
       caddyDataDir = "/var/lib/containers/caddy";
     in
     lib.mkIf config.modules.caddy-wg-client.enable {

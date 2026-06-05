@@ -18,7 +18,7 @@
   };
   config =
     let
-      constants = import ../constants.nix;
+      constants = import ../constants.nix lib;
       gpuDevice = "/dev/dri/renderD128";
     in
     lib.mkIf (config.modules.jellyfin.enable && config.modules.caddy-wg-client.enable) {

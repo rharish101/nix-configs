@@ -88,7 +88,7 @@ in
 
   config =
     let
-      constants = import ../constants.nix;
+      constants = import ../constants.nix lib;
 
       # Map an attribute set and use `lib.mkMerge` to merge them.
       # Useful for merging configs from multiple sources

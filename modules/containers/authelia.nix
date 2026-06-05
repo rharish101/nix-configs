@@ -13,7 +13,7 @@
 
   config =
     let
-      constants = import ../constants.nix;
+      constants = import ../constants.nix lib;
     in
     lib.mkIf
       (

@@ -13,7 +13,7 @@
   };
   config =
     let
-      constants = import ../constants.nix;
+      constants = import ../constants.nix lib;
       useCollabora = config.modules.collabora.enable;
     in
     lib.mkIf (config.modules.opencloud.enable && config.modules.caddy-wg-client.enable) {

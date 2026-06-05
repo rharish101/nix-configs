@@ -12,7 +12,7 @@
   options.modules.lldap.enable = lib.mkEnableOption "Enable lldap";
   config =
     let
-      constants = import ../constants.nix;
+      constants = import ../constants.nix lib;
     in
     lib.mkIf (config.modules.lldap.enable && config.modules.postgres.enable) {
       modules.containers.lldap = {

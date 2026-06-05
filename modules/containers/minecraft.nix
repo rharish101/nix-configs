@@ -18,7 +18,7 @@
   };
   config =
     let
-      constants = import ../constants.nix;
+      constants = import ../constants.nix lib;
       serverName = "EBG6 Minecraft server";
       serverPorts = {
         original = 5001;

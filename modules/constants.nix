@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-rec {
+lib: rec {
   ip6Subnets =
     let
       global = "2a01:4f8:1c1e:d4ed:";
@@ -20,61 +20,35 @@ rec {
   bridges = {
     caddy =
       let
-        ip6Prefix = ip6Subnets.caddy-wg-client;
+        ip4Prefix = "10.2.0.";
+        getIps = num: {
+          ip4 = ip4Prefix + toString num;
+          ip6 = ip6Subnets.caddy-wg-client + lib.toHexString num;
+        };
       in
       {
-        caddy-wg-client = {
-          ip4 = "10.2.0.1";
-          ip6 = "${ip6Prefix}1";
-        };
-        minecraft = {
-          ip4 = "10.2.0.2";
-          ip6 = "${ip6Prefix}2";
-        };
-        jellyfin = {
-          ip4 = "10.2.0.3";
-          ip6 = "${ip6Prefix}3";
-        };
-        authelia = {
-          ip4 = "10.2.0.4";
-          ip6 = "${ip6Prefix}4";
-        };
-        lldap = {
-          ip4 = "10.2.0.5";
-        };
-        crowdsec-lapi = {
-          ip4 = "10.2.0.6";
-          ip6 = "${ip6Prefix}6";
-        };
-        immich = {
-          ip4 = "10.2.0.7";
-          ip6 = "${ip6Prefix}7";
-        };
-        tandoor = {
-          ip4 = "10.2.0.8";
-          ip6 = "${ip6Prefix}8";
-        };
-        opencloud = {
-          ip4 = "10.2.0.9";
-          ip6 = "${ip6Prefix}9";
-        };
-        collabora = {
-          ip4 = "10.2.0.10";
-          ip6 = "${ip6Prefix}a";
-        };
-        vaultwarden = {
-          ip4 = "10.2.0.11";
-          ip6 = "${ip6Prefix}b";
-        };
-        postgres = {
-          ip4 = "10.2.0.12";
-        };
+        caddy-wg-client = getIps 1;
+        minecraft = getIps 2;
+        jellyfin = getIps 3;
+        authelia = getIps 4;
+        lldap.ip4 = "${ip4Prefix}5";
+        crowdsec-lapi = getIps 6;
+        immich = getIps 7;
+        tandoor = getIps 8;
+        opencloud = getIps 9;
+        collabora = getIps 10;
+        vaultwarden = getIps 11;
+        postgres.ip4 = "${ip4Prefix}12";
       };
 
-    qb = {
-      qbittorrent.ip4 = "10.2.1.1";
-      postgres.ip4 = "10.2.1.2";
-    };
+    qb =
+      let
+        getIps = num: { ip4 = "10.2.1." + toString num; };
+      in
+      {
+        qbittorrent = getIps 1;
+        postgres = getIps 2;
+      };
   };
 
   # Container dependencies for a container's systemd unit.
