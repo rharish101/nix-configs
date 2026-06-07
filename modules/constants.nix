@@ -49,6 +49,8 @@ lib: rec {
       {
         qbittorrent = getIps 1;
         qui = getIps 2;
+        prowlarr = getIps 3;
+        postgres = getIps 4;
       };
   };
 
@@ -81,6 +83,11 @@ lib: rec {
       "crowdsec-lapi"
     ];
     opencloud = [ "caddy-wg-client" ];
+    prowlarr = [ "postgres" ];
+    qui = [
+      "postgres"
+      "qbittorrent"
+    ];
     tandoor = [
       "caddy-wg-client"
       "postgres"
@@ -88,10 +95,6 @@ lib: rec {
     vaultwarden = [
       "caddy-wg-client"
       "postgres"
-    ];
-    qui = [
-      "postgres"
-      "qbittorrent"
     ];
   };
 
@@ -120,10 +123,12 @@ lib: rec {
       "crowdsec-lapi"
       "immich"
       "lldap"
+      "prowlarr"
       "qui"
       "tandoor"
       "vaultwarden"
     ];
+    prowlarr = [ "qui" ];
     qbittorrent = [ "qui" ];
     qui = [ "caddy-wg-client" ];
     tandoor = [ "caddy-wg-client" ];
@@ -147,6 +152,10 @@ lib: rec {
         ip4 = "10.1.0.2";
         ip6 = "${ip6Subnets.caddy-wg-server}2";
       };
+    };
+    prowlarr = {
+      host.ip4 = "10.1.2.1";
+      local.ip4 = "10.1.2.2";
     };
     qbittorrent = {
       host.ip4 = "10.1.1.1";
@@ -181,6 +190,7 @@ lib: rec {
     vaultwarden = 65536 * 19;
     qbittorrent = 65536 * 20;
     qui = 65536 * 21;
+    prowlarr = 65536 * 22;
   };
 
   ports = {
@@ -258,6 +268,10 @@ lib: rec {
       memory = 9;
     };
     opencloud = {
+      cpu = 1;
+      memory = 1;
+    };
+    prowlarr = {
       cpu = 1;
       memory = 1;
     };

@@ -140,6 +140,10 @@ in
     enable = true;
     backupDir = "/data/postgresql";
   };
+  modules.prowlarr = {
+    enable = true;
+    dataDir = "/data/prowlarr";
+  };
   modules.qbittorrent = {
     enable = true;
     dataDir = "/data/qbittorrent";

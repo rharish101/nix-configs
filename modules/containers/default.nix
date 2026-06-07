@@ -17,6 +17,7 @@
     ./minecraft.nix
     ./opencloud.nix
     ./postgres.nix
+    ./prowlarr.nix
     ./qbittorrent.nix
     ./qui.nix
     ./tandoor.nix

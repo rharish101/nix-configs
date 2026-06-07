@@ -270,8 +270,14 @@ in
                         optionalString (config.networking.nftables.enable && tcpPorts != "") ''
                           ip saddr { ${ip4Addrs} } tcp dport { ${tcpPorts} } accept
                         ''
+                        + optionalString (hasVeth && tcpPorts != "") ''
+                          iifname eth0 tcp dport { ${tcpPorts} } accept
+                        ''
                         + optionalString (config.networking.nftables.enable && udpPorts != "") ''
                           ip saddr { ${ip4Addrs} } udp dport { ${udpPorts} } accept
+                        ''
+                        + optionalString (hasVeth && udpPorts != "") ''
+                          iifname eth0 udp dport { ${udpPorts} } accept
                         '';
                     };
 
