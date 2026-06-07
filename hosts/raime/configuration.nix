@@ -9,7 +9,6 @@
 { ... }:
 let
   shalquoirIp = "91.99.59.38";
-  qbPort = 7476;
 in
 {
   imports = [
@@ -24,10 +23,7 @@ in
   networking.networkmanager.enable = true; # Easiest to use and most distros use this by default.
 
   # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [
-    22
-    qbPort
-  ];
+  networking.firewall.allowedTCPPorts = [ 22 ];
   # networking.firewall.allowedUDPPorts = [ ... ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
