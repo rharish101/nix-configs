@@ -245,7 +245,7 @@ in
                         address = mkDefault defaultGateway.ip4;
                         interface = mkDefault "eth0";
                       };
-                      nameservers = if allowInternet then constants.nameservers else [ ];
+                      nameservers = if allowInternet || hasVeth then constants.nameservers else [ ];
 
                       # Use systemd-networkd to configure network access through the macvlan
                       # interface.

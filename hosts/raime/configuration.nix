@@ -39,23 +39,16 @@ in
     internalInterfaces = [ "ve-*" ]; # NOTE: nftables uses `*`, iptables uses `+`
   };
 
-  # Limit containers to only reach shalquoir.
-  networking.nftables.tables.block = {
-    enable = true;
-    name = "block-containers";
-    family = "inet";
-    content = ''
-      chain block-input {
-        type filter hook input priority filter
-        iifname "ve-*" drop
-      }
-      chain block-filter {
-        type filter hook forward priority filter
-        iifname "ve-caddy-*" ip daddr ${shalquoirIp} accept
-        iifname "ve-caddy-*" drop
-      }
-    '';
-  };
+  # Limit containers behind caddy to only reach shalquoir, and others from reaching LAN.
+  networking.firewall.extraInputRules = ''
+    iifname "ve-*" drop
+  '';
+  networking.firewall.filterForward = true;
+  networking.firewall.extraForwardRules = ''
+    iifname "ve-caddy-*" ip daddr ${shalquoirIp} accept
+    iifname "ve-caddy-*" drop
+    iifname "ve-*" ip daddr 192.168.1.200/24 drop
+  '';
 
   # Set up a wireguard tunnel to Shalquoir.
   modules.caddy-wg-client.enable = true;
