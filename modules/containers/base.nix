@@ -222,26 +222,38 @@ in
                 ) cfg.credentials;
 
               config =
-                { ... }:
+                let
+                  globalConfig = config;
+                in
+                { config, ... }:
                 {
                   networking =
                     let
-                      isDefaultGateway =
-                        dep:
-                        hasAttr dep constants.veths
-                        && (if mainBridge == null then false else hasAttr dep bridges.${mainBridge});
-                      gateways = filter isDefaultGateway constants.containerDeps.${name} or [ ];
-                      defaultGateway = if gateways != [ ] then bridges.${mainBridge}.${head gateways} else null;
-                      allowInternet = cfg.allowInternet && !hasVeth && defaultGateway != { };
+                      defaultGateway =
+                        let
+                          isDefaultGateway =
+                            dep:
+                            hasAttr dep constants.veths
+                            && (if mainBridge == null then false else hasAttr dep bridges.${mainBridge});
+                          gateways = filter isDefaultGateway constants.containerDeps.${name} or [ ];
+                        in
+                        if gateways != [ ] then bridges.${mainBridge}.${head gateways} else null;
+                      allowInternet = cfg.allowInternet && !hasVeth && defaultGateway != null;
                       listToSet = values: lib.concatStringsSep "," (map toString values);
                       getAllIp4 = dep: mapAttrsToList (_: bridgeCfg: bridgeCfg.${dep}.ip4) (getBridges dep);
                       ip4Addrs = listToSet (lib.flatten (map getAllIp4 constants.firewallOpen.${name}));
-                      tcpPorts = listToSet cfg.allowedPorts.Tcp;
-                      udpPorts = listToSet cfg.allowedPorts.Udp;
+                      applyAllowedPorts =
+                        func:
+                        lib.concatMapAttrsStringSep "\n"
+                          (proto: protoPorts: optionalString (protoPorts != "") (func proto protoPorts))
+                          {
+                            tcp = listToSet cfg.allowedPorts.Tcp;
+                            udp = listToSet cfg.allowedPorts.Udp;
+                          };
                     in
                     {
                       # Config for allowing internet through the bridge to another container
-                      defaultGateway = mkIf (allowInternet && defaultGateway != null) {
+                      defaultGateway = mkIf allowInternet {
                         address = mkDefault defaultGateway.ip4;
                         interface = mkDefault "eth0";
                       };
@@ -251,7 +263,7 @@ in
                       # interface.
                       useNetworkd = mkDefault cfg.useMacvlan;
                       interfaces = mkIf cfg.useMacvlan {
-                        "mv-${config.networking.nat.externalInterface}".useDHCP = mkDefault true;
+                        "mv-${globalConfig.networking.nat.externalInterface}".useDHCP = mkDefault true;
                       };
                       useHostResolvConf = !cfg.useMacvlan;
 
@@ -259,26 +271,28 @@ in
                       nftables.enable = mkDefault true;
 
                       # Allow incoming traffic only from containers listed in firewallOpen.
-                      firewall.extraCommands =
-                        optionalString (!config.networking.nftables.enable && udpPorts != "") ''
-                          iptables -A nixos-fw -p tcp -s ${ip4Addrs} -m multiport --dports ${tcpPorts} -j nixos-fw-accept
-                        ''
-                        + optionalString (!config.networking.nftables.enable && udpPorts != "") ''
-                          iptables -A nixos-fw -p udp -s ${ip4Addrs} -m multiport --dports ${udpPorts} -j nixos-fw-accept
-                        '';
-                      firewall.extraInputRules =
-                        optionalString (config.networking.nftables.enable && tcpPorts != "") ''
-                          ip saddr { ${ip4Addrs} } tcp dport { ${tcpPorts} } accept
-                        ''
-                        + optionalString (hasVeth && tcpPorts != "") ''
-                          iifname eth0 tcp dport { ${tcpPorts} } accept
-                        ''
-                        + optionalString (config.networking.nftables.enable && udpPorts != "") ''
-                          ip saddr { ${ip4Addrs} } udp dport { ${udpPorts} } accept
-                        ''
-                        + optionalString (hasVeth && udpPorts != "") ''
-                          iifname eth0 udp dport { ${udpPorts} } accept
-                        '';
+                      firewall.extraCommands = mkIf (!config.networking.nftables.enable) (
+                        applyAllowedPorts (
+                          proto: protoPorts:
+                          ''
+                            iptables -A nixos-fw -p ${proto} -s ${ip4Addrs} -m multiport --dports ${protoPorts} -j nixos-fw-accept
+                          ''
+                          + optionalString hasVeth ''
+                            iptables -A nixos-fw -p ${proto} -i eth0 -m multiport --dports ${protoPorts} -j nixos-fw-accept
+                          ''
+                        )
+                      );
+                      firewall.extraInputRules = mkIf config.networking.nftables.enable (
+                        applyAllowedPorts (
+                          proto: protoPorts:
+                          ''
+                            ip saddr { ${ip4Addrs} } ${proto} dport { ${protoPorts} } accept
+                          ''
+                          + optionalString hasVeth ''
+                            iifname eth0 ${proto} dport { ${protoPorts} } accept
+                          ''
+                        )
+                      );
                     };
 
                   # Enable flakes so that we can debug inside containers via nix shell, nix run, etc.
