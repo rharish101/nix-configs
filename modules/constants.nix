@@ -40,6 +40,7 @@ lib: rec {
         vaultwarden = getIps 11;
         postgres.ip4 = "${ip4Prefix}12";
         qui = getIps 13;
+        prowlarr = getIps 14;
       };
 
     qb =
@@ -50,7 +51,6 @@ lib: rec {
         qbittorrent = getIps 1;
         qui = getIps 2;
         prowlarr = getIps 3;
-        postgres = getIps 4;
       };
   };
 
@@ -83,7 +83,10 @@ lib: rec {
       "crowdsec-lapi"
     ];
     opencloud = [ "caddy-wg-client" ];
-    prowlarr = [ "postgres" ];
+    prowlarr = [
+      "postgres"
+      "qbittorrent"
+    ];
     qui = [
       "postgres"
       "qbittorrent"
@@ -128,7 +131,10 @@ lib: rec {
       "tandoor"
       "vaultwarden"
     ];
-    prowlarr = [ "qui" ];
+    prowlarr = [
+      "caddy-wg-client"
+      "qui"
+    ];
     qbittorrent = [ "qui" ];
     qui = [ "caddy-wg-client" ];
     tandoor = [ "caddy-wg-client" ];
@@ -152,10 +158,6 @@ lib: rec {
         ip4 = "10.1.0.2";
         ip6 = "${ip6Subnets.caddy-wg-server}2";
       };
-    };
-    prowlarr = {
-      host.ip4 = "10.1.2.1";
-      local.ip4 = "10.1.2.2";
     };
     qbittorrent = {
       host.ip4 = "10.1.1.1";
@@ -203,6 +205,7 @@ lib: rec {
     minecraft = 25565; # Used for both Java (TCP) & Bedrock (UDP) editions
     opencloud = 9200;
     postgres = 5432;
+    prowlarr = 9696;
     qbittorrent = 36252; # Avoid default 8080 to prevent conflicts
     qui = 7476;
     tandoor = 2113; # Avoid default 8080 to prevent conflicts
@@ -214,6 +217,7 @@ lib: rec {
   domain = {
     domain = "rharish.dev";
     subdomains = {
+      arr = "arr";
       authelia = "auth";
       bentopdf = "pdf";
       collabora = "office";

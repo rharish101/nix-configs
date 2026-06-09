@@ -46,15 +46,15 @@
               enableTCPIP = true;
               settings.port = constants.ports.postgres;
               # Have to manually allow these hosts to connect.
-              authentication = with constants.bridges; ''
-                host sameuser authelia    ${caddy.authelia.ip4}/32      scram-sha-256
-                host sameuser crowdsec    ${caddy.crowdsec-lapi.ip4}/32 scram-sha-256
-                host sameuser immich      ${caddy.immich.ip4}/32        scram-sha-256
-                host sameuser lldap       ${caddy.lldap.ip4}/32         scram-sha-256
-                host sameuser prowlarr    ${qb.prowlarr.ip4}/32         scram-sha-256
-                host sameuser qui         ${caddy.qui.ip4}/32           scram-sha-256
-                host sameuser tandoor     ${caddy.tandoor.ip4}/32       scram-sha-256
-                host sameuser vaultwarden ${caddy.vaultwarden.ip4}/32   scram-sha-256
+              authentication = with constants.bridges.caddy; ''
+                host sameuser authelia    ${authelia.ip4}/32      scram-sha-256
+                host sameuser crowdsec    ${crowdsec-lapi.ip4}/32 scram-sha-256
+                host sameuser immich      ${immich.ip4}/32        scram-sha-256
+                host sameuser lldap       ${lldap.ip4}/32         scram-sha-256
+                host sameuser prowlarr    ${prowlarr.ip4}/32      scram-sha-256
+                host sameuser qui         ${qui.ip4}/32           scram-sha-256
+                host sameuser tandoor     ${tandoor.ip4}/32       scram-sha-256
+                host sameuser vaultwarden ${vaultwarden.ip4}/32   scram-sha-256
               '';
               ensureUsers = [
                 (lib.mkIf config.modules.authelia.enable {

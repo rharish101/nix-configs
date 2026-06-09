@@ -146,6 +146,17 @@
                 virtualHosts.":${toString constants.ports.crowdsec}".extraConfig = ''
                   reverse_proxy ${crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
                 '';
+                virtualHosts."http://${subdomains.arr}.${domain}".extraConfig = ''
+                  forward_auth ${authelia.ip4}:${toString constants.ports.authelia} {
+                    uri /api/authz/forward-auth
+                    copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+                  }
+                  @prowlarr path /indexers /indexers/*
+                  handle @prowlarr {
+                    reverse_proxy ${prowlarr.ip4}:${toString constants.ports.prowlarr}
+                  }
+                  respond 404
+                '';
                 virtualHosts."http://${subdomains.authelia}.${domain}".extraConfig = ''
                   reverse_proxy ${authelia.ip4}:${toString constants.ports.authelia}
                 '';

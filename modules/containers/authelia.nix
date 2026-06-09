@@ -86,6 +86,11 @@
                       policy = "two_factor";
                       subject = [ "group:bentopdf" ];
                     }
+                    {
+                      domain = "${subdomains.arr}.${domain}";
+                      policy = "two_factor";
+                      subject = [ "group:arr-users" ];
+                    }
                   ];
                   webauthn = {
                     enable_passkey_login = true;

@@ -6,11 +6,6 @@
 {
   options.modules.prowlarr = {
     enable = lib.mkEnableOption "Enable Prowlarr";
-    port = lib.mkOption {
-      description = "The port on the host that to be used for Prowlarr";
-      type = lib.types.int;
-      default = 9696;
-    };
     dataDir = lib.mkOption {
       description = "The data directory path for Prowlarr";
       type = lib.types.str;
@@ -24,9 +19,10 @@
     lib.mkIf config.modules.prowlarr.enable {
       modules.containers.prowlarr = {
         username = "prowlarr";
-        allowedPorts.Tcp = [ config.modules.prowlarr.port ];
+        allowInternet = true;
+        allowedPorts.Tcp = [ constants.ports.prowlarr ];
         credentials.env.name = "prowlarr";
-        forwardPorts = [ { hostPort = config.modules.prowlarr.port; } ];
+        preferredBridge = "qb";
 
         bindMounts.data = {
           hostPath = config.modules.prowlarr.dataDir;
@@ -43,14 +39,15 @@
               settings = {
                 log.dbenabled = false;
                 postgres = {
-                  host = constants.bridges.qb.postgres.ip4;
+                  host = constants.bridges.caddy.postgres.ip4;
                   port = constants.ports.postgres;
                   user = "prowlarr";
                   maindb = "prowlarr";
                 };
                 server = {
+                  urlbase = "/indexers";
                   bindaddress = "*";
-                  port = config.modules.prowlarr.port;
+                  port = constants.ports.prowlarr;
                 };
               };
             };
