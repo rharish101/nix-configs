@@ -18,6 +18,7 @@ let
     ;
   inherit (lib)
     filterAttrs
+    flatten
     mapAttrs'
     mapAttrsToList
     mkDefault
@@ -241,7 +242,7 @@ in
                       allowInternet = cfg.allowInternet && !hasVeth && defaultGateway != null;
                       listToSet = values: lib.concatStringsSep "," (map toString values);
                       getAllIp4 = dep: mapAttrsToList (_: bridgeCfg: bridgeCfg.${dep}.ip4) (getBridges dep);
-                      ip4Addrs = listToSet (lib.flatten (map getAllIp4 constants.firewallOpen.${name}));
+                      ip4Addrs = listToSet (flatten (map getAllIp4 constants.firewallOpen.${name}));
                       applyAllowedPorts =
                         func:
                         lib.concatMapAttrsStringSep "\n"
@@ -250,6 +251,31 @@ in
                             tcp = listToSet cfg.allowedPorts.Tcp;
                             udp = listToSet cfg.allowedPorts.Udp;
                           };
+                      blockedIps =
+                        let
+                          toBlock =
+                            bridgeCfg: other:
+                            other != name
+                            &&
+                              globalConfig.containers.${other}.config.networking.defaultGateway.address or ""
+                              != bridgeCfg.${name}.ip4;
+                          getBlockedIps =
+                            bridgeCfg:
+                            pipe bridgeCfg [
+                              attrNames
+                              (filter (toBlock bridgeCfg))
+                              (map (x: bridgeCfg.${x}.ip4))
+                            ];
+                        in
+                        if hasVeth then
+                          pipe bridges [
+                            lib.attrValues
+                            (map getBlockedIps)
+                            flatten
+                            listToSet
+                          ]
+                        else
+                          "";
                     in
                     {
                       # Config for allowing internet through the bridge to another container
@@ -272,7 +298,10 @@ in
 
                       # Allow incoming traffic only from containers listed in firewallOpen.
                       firewall.extraCommands = mkIf (!config.networking.nftables.enable) (
-                        applyAllowedPorts (
+                        optionalString (blockedIps != "") ''
+                          iptables -A nixos-fw -s ${blockedIps} -j nixos-fw-refuse
+                        ''
+                        + applyAllowedPorts (
                           proto: protoPorts:
                           ''
                             iptables -A nixos-fw -p ${proto} -s ${ip4Addrs} -m multiport --dports ${protoPorts} -j nixos-fw-accept
@@ -293,6 +322,12 @@ in
                           ''
                         )
                       );
+
+                      # Block IPs in gateways.
+                      firewall.filterForward = mkIfDefault (blockedIps != "") true;
+                      firewall.extraForwardRules = mkIf (
+                        config.networking.nftables.enable && blockedIps != ""
+                      ) "ip saddr { ${blockedIps} } drop";
                     };
 
                   # Enable flakes so that we can debug inside containers via nix shell, nix run, etc.
