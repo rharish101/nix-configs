@@ -123,9 +123,9 @@
                   plugins = [
                     "github.com/caddy-dns/cloudflare@v0.2.4"
                     "github.com/mholt/caddy-l4@v0.1.1"
-                    "github.com/mholt/caddy-ratelimit@v0.1.1-0.20260514184501-6cc6d952a591"
+                    "github.com/mholt/caddy-ratelimit@v0.1.1-0.20260521172720-16aecbbcb8ca"
                   ];
-                  hash = "sha256-EvLEyMJA2k0USWFFlarO9VDAnP5lrB0FUlq2lOd4Zow=";
+                  hash = "sha256-1/HVjMlBFdaX/nFzVpBL1eXbIi7LhI2vlg7TO0DLTNA=";
                 };
                 environmentFile = "/run/credentials/@system/caddy-env";
                 email = "harish.rajagopals@gmail.com";
