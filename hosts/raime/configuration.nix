@@ -141,6 +141,10 @@ in
     enable = true;
     dataDir = "/data/qui";
   };
+  modules.radarr = {
+    enable = true;
+    dataDir = "/data/radarr";
+  };
   modules.tandoor = {
     enable = true;
     dataDir = "/data/tandoor";

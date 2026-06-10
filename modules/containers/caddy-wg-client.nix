@@ -155,6 +155,10 @@
                   handle @prowlarr {
                     reverse_proxy ${prowlarr.ip4}:${toString constants.ports.prowlarr}
                   }
+                  @radarr path /movies /movies/*
+                  handle @radarr {
+                    reverse_proxy ${radarr.ip4}:${toString constants.ports.radarr}
+                  }
                   respond 404
                 '';
                 virtualHosts."http://${subdomains.authelia}.${domain}".extraConfig = ''

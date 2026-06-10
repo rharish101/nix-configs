@@ -20,6 +20,7 @@
     ./prowlarr.nix
     ./qbittorrent.nix
     ./qui.nix
+    ./radarr.nix
     ./tandoor.nix
     ./vaultwarden.nix
   ];

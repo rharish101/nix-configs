@@ -41,6 +41,7 @@ lib: rec {
         postgres.ip4 = "${ip4Prefix}12";
         qui = getIps 13;
         prowlarr = getIps 14;
+        radarr = getIps 15;
       };
 
     qb =
@@ -51,6 +52,7 @@ lib: rec {
         qbittorrent = getIps 1;
         qui = getIps 2;
         prowlarr = getIps 3;
+        radarr = getIps 4;
       };
   };
 
@@ -83,12 +85,16 @@ lib: rec {
       "crowdsec-lapi"
     ];
     opencloud = [ "caddy-wg-client" ];
-    prowlarr = [
-      "postgres"
-      "qbittorrent"
-    ];
+    prowlarr = [ "postgres" ];
     qui = [
       "postgres"
+      "prowlarr"
+      "qbittorrent"
+    ];
+    radarr = [
+      "caddy-wg-client"
+      "postgres"
+      "prowlarr"
       "qbittorrent"
     ];
     tandoor = [
@@ -128,15 +134,24 @@ lib: rec {
       "lldap"
       "prowlarr"
       "qui"
+      "radarr"
       "tandoor"
       "vaultwarden"
     ];
     prowlarr = [
       "caddy-wg-client"
       "qui"
+      "radarr"
     ];
-    qbittorrent = [ "qui" ];
+    qbittorrent = [
+      "qui"
+      "radarr"
+    ];
     qui = [ "caddy-wg-client" ];
+    radarr = [
+      "caddy-wg-client"
+      "prowlarr"
+    ];
     tandoor = [ "caddy-wg-client" ];
     vaultwarden = [ "caddy-wg-client" ];
   };
@@ -193,6 +208,7 @@ lib: rec {
     qbittorrent = 65536 * 20;
     qui = 65536 * 21;
     prowlarr = 65536 * 22;
+    radarr = 65536 * 23;
   };
 
   ports = {
@@ -208,6 +224,7 @@ lib: rec {
     prowlarr = 9696;
     qbittorrent = 36252; # Avoid default 8080 to prevent conflicts
     qui = 7476;
+    radarr = 7878;
     tandoor = 2113; # Avoid default 8080 to prevent conflicts
     wireguard = 51820;
     vaultwarden = 6062; # Avoid default 8000 to prevent conflicts
