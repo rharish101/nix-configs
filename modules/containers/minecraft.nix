@@ -24,14 +24,24 @@
         original = 5001;
       };
     in
-    lib.mkIf (config.modules.minecraft.enable && config.modules.caddy-wg-client.enable) {
+    lib.mkIf config.modules.minecraft.enable {
       sops.templates."minecraft/env".content = ''
         VELOCITY_SECRET=${config.sops.placeholder."minecraft/velocity"}
       '';
 
       modules.containers.minecraft = {
         username = "minecraft";
-        allowInternet = true;
+
+        allowedPorts = {
+          Tcp = [ constants.ports.minecraft ];
+          Udp = [ constants.ports.minecraft ];
+        };
+
+        bindMounts.dataDir = {
+          hostPath = config.modules.minecraft.dataDir;
+          mountPoint = "/srv/minecraft";
+          isReadOnly = false;
+        };
 
         credentials = {
           csec-creds.name = "crowdsec/mc-creds";
@@ -41,17 +51,6 @@
             name = "minecraft/env";
             sopsType = "template";
           };
-        };
-
-        bindMounts.dataDir = {
-          hostPath = config.modules.minecraft.dataDir;
-          mountPoint = "/srv/minecraft";
-          isReadOnly = false;
-        };
-
-        allowedPorts = {
-          Tcp = [ constants.ports.minecraft ];
-          Udp = [ constants.ports.minecraft ];
         };
 
         config =

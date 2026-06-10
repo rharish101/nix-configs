@@ -21,12 +21,18 @@
       constants = import ../constants.nix lib;
       gpuDevice = "/dev/dri/renderD128";
     in
-    lib.mkIf (config.modules.jellyfin.enable && config.modules.caddy-wg-client.enable) {
+    lib.mkIf config.modules.jellyfin.enable {
       modules.containers.jellyfin = {
-        username = "jellyfin";
-        allowInternet = true;
-        credentials.csec-creds.name = "jellyfin/crowdsec";
         allowedPorts.Tcp = [ constants.ports.jellyfin ];
+        credentials.csec-creds.name = "jellyfin/crowdsec";
+        username = "jellyfin";
+
+        allowedDevices = [
+          {
+            node = gpuDevice;
+            modifier = "rw";
+          }
+        ];
 
         bindMounts = with config.modules.jellyfin; {
           data = {
@@ -41,13 +47,6 @@
           };
           render.mountPoint = "/dev/dri";
         };
-
-        allowedDevices = [
-          {
-            node = gpuDevice;
-            modifier = "rw";
-          }
-        ];
 
         config =
           let

@@ -16,82 +16,75 @@
       constants = import ../constants.nix lib;
       secretConfig.restartUnits = [ "container@tandoor.service" ];
     in
-    lib.mkIf
-      (
-        config.modules.tandoor.enable
-        && config.modules.caddy-wg-client.enable
-        && config.modules.postgres.enable
-      )
-      {
-        sops.secrets."tandoor/oidc" = secretConfig;
-        sops.secrets."tandoor/postgres" = secretConfig;
-        sops.secrets."tandoor/secret-key" = secretConfig;
+    lib.mkIf config.modules.tandoor.enable {
+      sops.secrets."tandoor/oidc" = secretConfig;
+      sops.secrets."tandoor/postgres" = secretConfig;
+      sops.secrets."tandoor/secret-key" = secretConfig;
 
-        # Tandoor doesn't support loading secrets from a file natively (only through a helper
-        # script, which NixOS doesn't use...). Thus, use sops-nix templates to hide the OIDC
-        # secret.
-        sops.templates."tandoor/env".content =
-          let
-            oidcConfig = builtins.toJSON {
-              openid_connect.APPS = [
-                {
-                  provider_id = "authelia";
-                  name = "Authelia";
-                  client_id = "ze1RwDxg_zLBH40.D9eP3RPbXl.fa~c2Q99q8vbwIQVZqFcn37GtzP3Wbk-HhsBO";
-                  secret = config.sops.placeholder."tandoor/oidc";
-                  settings.server_url =
-                    with constants.domain;
-                    "https://${subdomains.authelia}.${domain}/.well-known/openid-configuration";
-                }
-              ];
-            };
-          in
-          ''
-            POSTGRES_PASSWORD=${config.sops.placeholder."tandoor/postgres"}
-            SECRET_KEY=${config.sops.placeholder."tandoor/secret-key"}
-            SOCIALACCOUNT_PROVIDERS=${oidcConfig}
-          '';
-
-        modules.containers.tandoor = {
-          username = "tandoor";
-          allowInternet = true;
-          allowedPorts.Tcp = [ constants.ports.tandoor ];
-
-          credentials.env = {
-            name = "tandoor/env";
-            sopsType = "template";
+      # Tandoor doesn't support loading secrets from a file natively (only through a helper
+      # script, which NixOS doesn't use...). Thus, use sops-nix templates to hide the OIDC
+      # secret.
+      sops.templates."tandoor/env".content =
+        let
+          oidcConfig = builtins.toJSON {
+            openid_connect.APPS = [
+              {
+                provider_id = "authelia";
+                name = "Authelia";
+                client_id = "ze1RwDxg_zLBH40.D9eP3RPbXl.fa~c2Q99q8vbwIQVZqFcn37GtzP3Wbk-HhsBO";
+                secret = config.sops.placeholder."tandoor/oidc";
+                settings.server_url =
+                  with constants.domain;
+                  "https://${subdomains.authelia}.${domain}/.well-known/openid-configuration";
+              }
+            ];
           };
+        in
+        ''
+          POSTGRES_PASSWORD=${config.sops.placeholder."tandoor/postgres"}
+          SECRET_KEY=${config.sops.placeholder."tandoor/secret-key"}
+          SOCIALACCOUNT_PROVIDERS=${oidcConfig}
+        '';
 
-          bindMounts.media = {
-            hostPath = config.modules.tandoor.dataDir;
-            mountPoint = "/var/lib/tandoor-recipes";
-            isReadOnly = false;
-          };
+      modules.containers.tandoor = {
+        allowedPorts.Tcp = [ constants.ports.tandoor ];
+        username = "tandoor";
 
-          config =
-            { ... }:
-            {
-              services.tandoor-recipes = {
-                enable = true;
-                address = "0.0.0.0";
-                port = constants.ports.tandoor;
-                extraConfig = {
-                  ALLOWED_HOSTS = with constants.domain; "${subdomains.tandoor}.${domain}";
-                  DB_ENGINE = "django.db.backends.postgresql";
-                  POSTGRES_HOST = constants.bridges.caddy.postgres.ip4;
-                  POSTGRES_PORT = constants.ports.postgres;
-                  POSTGRES_USER = "tandoor";
-                  POSTGRES_DB = "tandoor";
-                  MEDIA_ROOT = "/var/lib/tandoor-recipes/mediafiles";
-                  GUNICORN_MEDIA = 1;
-                  SOCIAL_PROVIDERS = "allauth.socialaccount.providers.openid_connect";
-                  HIDE_LOGIN_FORM = 1;
-                };
-              };
-              systemd.services.tandoor-recipes.serviceConfig.EnvironmentFile = "/run/credentials/@system/env";
-
-              system.stateVersion = "25.11";
-            };
+        bindMounts.media = {
+          hostPath = config.modules.tandoor.dataDir;
+          mountPoint = "/var/lib/tandoor-recipes";
+          isReadOnly = false;
         };
+
+        credentials.env = {
+          name = "tandoor/env";
+          sopsType = "template";
+        };
+
+        config =
+          { ... }:
+          {
+            services.tandoor-recipes = {
+              enable = true;
+              address = "0.0.0.0";
+              port = constants.ports.tandoor;
+              extraConfig = {
+                ALLOWED_HOSTS = with constants.domain; "${subdomains.tandoor}.${domain}";
+                DB_ENGINE = "django.db.backends.postgresql";
+                POSTGRES_HOST = constants.bridge.postgres.ip4;
+                POSTGRES_PORT = constants.ports.postgres;
+                POSTGRES_USER = "tandoor";
+                POSTGRES_DB = "tandoor";
+                MEDIA_ROOT = "/var/lib/tandoor-recipes/mediafiles";
+                GUNICORN_MEDIA = 1;
+                SOCIAL_PROVIDERS = "allauth.socialaccount.providers.openid_connect";
+                HIDE_LOGIN_FORM = 1;
+              };
+            };
+            systemd.services.tandoor-recipes.serviceConfig.EnvironmentFile = "/run/credentials/@system/env";
+
+            system.stateVersion = "25.11";
+          };
       };
+    };
 }

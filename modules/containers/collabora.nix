@@ -9,9 +9,8 @@
     let
       constants = import ../constants.nix lib;
     in
-    lib.mkIf (config.modules.collabora.enable && config.modules.caddy-wg-client.enable) {
+    lib.mkIf config.modules.collabora.enable {
       modules.containers.collabora = {
-        allowInternet = true;
         allowedPorts.Tcp = [ constants.ports.collabora ];
 
         config =

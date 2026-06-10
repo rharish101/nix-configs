@@ -17,44 +17,32 @@ lib: rec {
   # Includes IPv6 GUAs for containers that need to connect to the internet.
   # Addresses are kept static to avoid running a DHCP server.
   # NOTE: Keys for containers **must** correspond to their names.
-  bridges = {
-    caddy =
-      let
-        ip4Prefix = "10.2.0.";
-        getIps = num: {
-          ip4 = ip4Prefix + toString num;
-          ip6 = ip6Subnets.caddy-wg-client + lib.toHexString num;
-        };
-      in
-      {
-        caddy-wg-client = getIps 1;
-        minecraft = getIps 2;
-        jellyfin = getIps 3;
-        authelia = getIps 4;
-        lldap.ip4 = "${ip4Prefix}5";
-        crowdsec-lapi = getIps 6;
-        immich = getIps 7;
-        tandoor = getIps 8;
-        opencloud = getIps 9;
-        collabora = getIps 10;
-        vaultwarden = getIps 11;
-        postgres.ip4 = "${ip4Prefix}12";
-        qui = getIps 13;
-        prowlarr = getIps 14;
-        radarr = getIps 15;
+  bridge =
+    let
+      ip4Prefix = "10.2.0.";
+      getIps = num: {
+        ip4 = ip4Prefix + toString num;
+        ip6 = ip6Subnets.caddy-wg-client + lib.toHexString num;
       };
-
-    qb =
-      let
-        getIps = num: { ip4 = "10.2.1." + toString num; };
-      in
-      {
-        qbittorrent = getIps 1;
-        qui = getIps 2;
-        prowlarr = getIps 3;
-        radarr = getIps 4;
-      };
-  };
+    in
+    {
+      caddy-wg-client = getIps 1;
+      minecraft = getIps 2;
+      jellyfin = getIps 3;
+      authelia = getIps 4;
+      lldap.ip4 = "${ip4Prefix}5";
+      crowdsec-lapi = getIps 6;
+      immich = getIps 7;
+      tandoor = getIps 8;
+      opencloud = getIps 9;
+      collabora = getIps 10;
+      vaultwarden = getIps 11;
+      postgres.ip4 = "${ip4Prefix}12";
+      qui.ip4 = "${ip4Prefix}13";
+      prowlarr.ip4 = "${ip4Prefix}14";
+      radarr = getIps 15;
+      qbittorrent.ip4 = "${ip4Prefix}16";
+    };
 
   # Container dependencies for a container's systemd unit.
   # Also used for determining the default gateway, for containers who need internet access.
@@ -85,8 +73,13 @@ lib: rec {
       "crowdsec-lapi"
     ];
     opencloud = [ "caddy-wg-client" ];
-    prowlarr = [ "postgres" ];
+    prowlarr = [
+      "caddy-wg-client"
+      "postgres"
+      "qbittorrent"
+    ];
     qui = [
+      "caddy-wg-client"
       "postgres"
       "prowlarr"
       "qbittorrent"
@@ -188,6 +181,21 @@ lib: rec {
         ip6 = "${ip6Subnets.tunnel}2";
       };
     };
+  };
+
+  gateways = {
+    authelia = "caddy-wg-client";
+    collabora = "caddy-wg-client";
+    crowdsec-lapi = "caddy-wg-client";
+    immich = "caddy-wg-client";
+    jellyfin = "caddy-wg-client";
+    minecraft = "caddy-wg-client";
+    opencloud = "caddy-wg-client";
+    prowlarr = "qbittorrent";
+    qui = "qbittorrent";
+    radarr = "caddy-wg-client";
+    tandoor = "caddy-wg-client";
+    vaultwarden = "caddy-wg-client";
   };
 
   # UIDs/GIDs that are multiples of 65536 are chosen a/c to how systemd-nspawn chooses one for user

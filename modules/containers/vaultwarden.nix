@@ -16,12 +16,11 @@
     let
       constants = import ../constants.nix lib;
     in
-    lib.mkIf (config.modules.vaultwarden.enable && config.modules.caddy-wg-client.enable) {
+    lib.mkIf config.modules.vaultwarden.enable {
       modules.containers.vaultwarden = {
-        username = "vaultwarden";
-        allowInternet = true;
-        credentials.env.name = "vaultwarden";
         allowedPorts.Tcp = [ constants.ports.vaultwarden ];
+        credentials.env.name = "vaultwarden";
+        username = "vaultwarden";
 
         bindMounts.dataDir = {
           hostPath = config.modules.vaultwarden.dataDir;

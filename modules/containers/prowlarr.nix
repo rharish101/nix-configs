@@ -18,11 +18,9 @@
     in
     lib.mkIf config.modules.prowlarr.enable {
       modules.containers.prowlarr = {
-        username = "prowlarr";
-        allowInternet = true;
         allowedPorts.Tcp = [ constants.ports.prowlarr ];
         credentials.env.name = "prowlarr";
-        preferredBridge = "qb";
+        username = "prowlarr";
 
         bindMounts.data = {
           hostPath = config.modules.prowlarr.dataDir;
@@ -39,7 +37,7 @@
               settings = {
                 log.dbenabled = false;
                 postgres = {
-                  host = constants.bridges.caddy.postgres.ip4;
+                  host = constants.bridge.postgres.ip4;
                   port = constants.ports.postgres;
                   user = "prowlarr";
                   maindb = "prowlarr";

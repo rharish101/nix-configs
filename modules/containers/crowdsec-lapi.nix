@@ -20,74 +20,67 @@
     let
       constants = import ../constants.nix lib;
     in
-    lib.mkIf
-      (
-        config.modules.crowdsec-lapi.enable
-        && config.modules.caddy-wg-client.enable
-        && config.modules.postgres.enable
-      )
-      {
-        modules.containers.crowdsec-lapi = {
-          username = "crowdsec";
-          allowInternet = true;
-          credentials.env.name = "crowdsec/lapi-env";
-          allowedPorts.Tcp = [ constants.ports.crowdsec ];
+    lib.mkIf config.modules.crowdsec-lapi.enable {
+      modules.containers.crowdsec-lapi = {
+        allowedPorts.Tcp = [ constants.ports.crowdsec ];
+        credentials.env.name = "crowdsec/lapi-env";
+        username = "crowdsec";
 
-          bindMounts.dataDir = {
-            hostPath = config.modules.crowdsec-lapi.dataDir;
-            mountPoint = "/var/lib/crowdsec";
-            isReadOnly = false;
-          };
-
-          config =
-            { ... }:
-            {
-              # Add secrets using an environment file.
-              systemd.services.crowdsec.serviceConfig.EnvironmentFile = "/run/credentials/@system/env";
-              systemd.services.crowdsec.path = [ pkgs.sytemd ];
-
-              services.crowdsec =
-                let
-                  credentialsDir = "/var/lib/crowdsec/credentials";
-                in
-                {
-                  enable = true;
-                  autoUpdateService = true;
-                  name = "${config.networking.hostName}-lapi";
-
-                  # XXX: CrowdSec refuses to start unless some acquisitions are specified.
-                  localConfig.acquisitions = [
-                    # Minimal acquisition for journalctl
-                    {
-                      source = "journalctl";
-                      journalctl_filter = [ "_SYSTEMD_UNIT=ssh.service" ];
-                      labels.type = "syslog";
-                    }
-                  ];
-
-                  settings = {
-                    general = {
-                      db_config = {
-                        type = "postgres";
-                        user = "crowdsec";
-                        password = "\${DB_PASSWORD}";
-                        db_name = "crowdsec";
-                        host = constants.bridges.caddy.postgres.ip4;
-                        port = constants.ports.postgres;
-                      };
-                      api.server = {
-                        enable = true;
-                        listen_uri = "0.0.0.0:${toString constants.ports.crowdsec}";
-                      };
-                    };
-                    capi.credentialsFile = "${credentialsDir}/capi.yaml";
-                    lapi.credentialsFile = "${credentialsDir}/lapi.yaml";
-                    console.tokenFile = "${credentialsDir}/console.yaml";
-                  };
-                };
-
-              system.stateVersion = "25.05";
-            };
+        bindMounts.dataDir = {
+          hostPath = config.modules.crowdsec-lapi.dataDir;
+          mountPoint = "/var/lib/crowdsec";
+          isReadOnly = false;
         };
+
+        config =
+          { ... }:
+          {
+            # Add secrets using an environment file.
+            systemd.services.crowdsec.serviceConfig.EnvironmentFile = "/run/credentials/@system/env";
+            systemd.services.crowdsec.path = [ pkgs.sytemd ];
+
+            services.crowdsec =
+              let
+                credentialsDir = "/var/lib/crowdsec/credentials";
+              in
+              {
+                enable = true;
+                autoUpdateService = true;
+                name = "${config.networking.hostName}-lapi";
+
+                # XXX: CrowdSec refuses to start unless some acquisitions are specified.
+                localConfig.acquisitions = [
+                  # Minimal acquisition for journalctl
+                  {
+                    source = "journalctl";
+                    journalctl_filter = [ "_SYSTEMD_UNIT=ssh.service" ];
+                    labels.type = "syslog";
+                  }
+                ];
+
+                settings = {
+                  general = {
+                    db_config = {
+                      type = "postgres";
+                      user = "crowdsec";
+                      password = "\${DB_PASSWORD}";
+                      db_name = "crowdsec";
+                      host = constants.bridge.postgres.ip4;
+                      port = constants.ports.postgres;
+                    };
+                    api.server = {
+                      enable = true;
+                      listen_uri = "0.0.0.0:${toString constants.ports.crowdsec}";
+                    };
+                  };
+                  capi.credentialsFile = "${credentialsDir}/capi.yaml";
+                  lapi.credentialsFile = "${credentialsDir}/lapi.yaml";
+                  console.tokenFile = "${credentialsDir}/console.yaml";
+                };
+              };
+
+            system.stateVersion = "25.05";
+          };
       };
+    };
 }

@@ -18,21 +18,19 @@
     in
     lib.mkIf config.modules.qui.enable {
       modules.containers.qui = {
-        username = "qui";
-        allowInternet = true;
-        preferredBridge = "qb";
         allowedPorts.Tcp = [ constants.ports.qui ];
-
-        credentials = {
-          oidc.name = "qui/oidc";
-          postgres.name = "qui/postgres";
-          session.name = "qui/session";
-        };
+        username = "qui";
 
         bindMounts.qui = {
           hostPath = config.modules.qui.dataDir;
           mountPoint = "/var/lib/qui";
           isReadOnly = false;
+        };
+
+        credentials = {
+          oidc.name = "qui/oidc";
+          postgres.name = "qui/postgres";
+          session.name = "qui/session";
         };
 
         config =
@@ -50,7 +48,7 @@
                   port = constants.ports.qui;
                   corsAllowedOrigins = [ origin ];
                   databaseEngine = "postgres";
-                  databaseHost = constants.bridges.caddy.postgres.ip4;
+                  databaseHost = constants.bridge.postgres.ip4;
                   databasePort = constants.ports.postgres;
                   databaseUser = "qui";
                   databaseName = "qui";

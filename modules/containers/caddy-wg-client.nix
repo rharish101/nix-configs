@@ -34,15 +34,15 @@
       modules.containers.caddy-wg-client = {
         username = "caddywg";
 
-        credentials = {
-          priv-key.name = "wireguard/client";
-          psk.name = "wireguard/psk";
-        };
-
         bindMounts.dataDir = {
           hostPath = caddyDataDir;
           mountPoint = "/var/lib/caddy";
           isReadOnly = false;
+        };
+
+        credentials = {
+          priv-key.name = "wireguard/client";
+          psk.name = "wireguard/psk";
         };
 
         config =
@@ -99,7 +99,7 @@
             services.caddy =
               with config.modules.caddy-wg-client.wireguard;
               with constants.domain;
-              with constants.bridges.caddy;
+              with constants.bridge;
               {
                 enable = true;
                 package = pkgs.caddy.withPlugins {
@@ -108,7 +108,7 @@
                 };
                 globalConfig =
                   let
-                    mcAddr = constants.bridges.caddy.minecraft.ip4;
+                    mcAddr = minecraft.ip4;
                     mcPort = constants.ports.minecraft;
                   in
                   ''
@@ -193,7 +193,7 @@
               caddy = {
                 enable = true;
                 virtualHost.extraConfig = with constants; ''
-                  forward_auth ${bridges.caddy.authelia.ip4}:${toString ports.authelia} {
+                  forward_auth ${bridge.authelia.ip4}:${toString ports.authelia} {
                     uri /api/authz/forward-auth
                     copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
                   }

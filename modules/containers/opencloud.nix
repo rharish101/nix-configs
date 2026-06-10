@@ -16,12 +16,11 @@
       constants = import ../constants.nix lib;
       useCollabora = config.modules.collabora.enable;
     in
-    lib.mkIf (config.modules.opencloud.enable && config.modules.caddy-wg-client.enable) {
+    lib.mkIf config.modules.opencloud.enable {
       modules.containers.opencloud = {
-        username = "opencloud";
-        allowInternet = true;
-        credentials.env.name = "opencloud";
         allowedPorts.Tcp = [ constants.ports.opencloud ];
+        credentials.env.name = "opencloud";
+        username = "opencloud";
 
         bindMounts.data = with config.modules.opencloud; {
           hostPath = dataDir;

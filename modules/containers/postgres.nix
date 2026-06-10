@@ -22,18 +22,18 @@
     in
     lib.mkIf config.modules.postgres.enable {
       modules.containers.postgres = {
-        username = "postgres";
         allowedPorts.Tcp = [ constants.ports.postgres ];
+        username = "postgres";
 
         bindMounts = with config.modules.postgres; {
-          dataDir = {
-            hostPath = dataDir;
-            mountPoint = "/var/lib/postgresql";
-            isReadOnly = false;
-          };
           backupDir = {
             hostPath = backupDir;
             mountPoint = "/var/backup/postgresql";
+            isReadOnly = false;
+          };
+          dataDir = {
+            hostPath = dataDir;
+            mountPoint = "/var/lib/postgresql";
             isReadOnly = false;
           };
         };
@@ -46,7 +46,7 @@
               enableTCPIP = true;
               settings.port = constants.ports.postgres;
               # Have to manually allow these hosts to connect.
-              authentication = with constants.bridges.caddy; ''
+              authentication = with constants.bridge; ''
                 host sameuser authelia    ${authelia.ip4}/32      scram-sha-256
                 host sameuser crowdsec    ${crowdsec-lapi.ip4}/32 scram-sha-256
                 host sameuser immich      ${immich.ip4}/32        scram-sha-256

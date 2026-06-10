@@ -14,7 +14,7 @@
     let
       constants = import ../constants.nix lib;
     in
-    lib.mkIf (config.modules.lldap.enable && config.modules.postgres.enable) {
+    lib.mkIf config.modules.lldap.enable {
       modules.containers.lldap = {
         allowedPorts.Tcp = [ constants.ports.lldap ];
 
