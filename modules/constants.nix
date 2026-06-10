@@ -88,7 +88,7 @@ lib: rec {
       "caddy-wg-client"
       "postgres"
       "prowlarr"
-      "qbittorrent"
+      "qui"
     ];
     tandoor = [
       "caddy-wg-client"
@@ -136,11 +136,11 @@ lib: rec {
       "qui"
       "radarr"
     ];
-    qbittorrent = [
-      "qui"
+    qbittorrent = [ "qui" ];
+    qui = [
+      "caddy-wg-client"
       "radarr"
     ];
-    qui = [ "caddy-wg-client" ];
     radarr = [
       "caddy-wg-client"
       "prowlarr"
