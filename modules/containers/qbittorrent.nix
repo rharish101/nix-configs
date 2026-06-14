@@ -10,10 +10,6 @@
       description = "The data directory path for qBittorrent";
       type = lib.types.str;
     };
-    allowedDirs = lib.mkOption {
-      description = "The directories exposed to qBittorrent";
-      type = with lib.types; attrsOf str;
-    };
   };
 
   config =
@@ -25,19 +21,11 @@
         username = "qbittorrent";
         allowedPorts.Tcp = [ constants.ports.qbittorrent ];
 
-        bindMounts =
-          builtins.mapAttrs (name: dir: {
-            hostPath = dir;
-            mountPoint = "/data/${name}";
-            isReadOnly = false;
-          }) config.modules.qbittorrent.allowedDirs
-          // {
-            qbProfile = {
-              hostPath = config.modules.qbittorrent.dataDir;
-              mountPoint = "/var/lib/qBittorrent/qBittorrent";
-              isReadOnly = false;
-            };
-          };
+        bindMounts.profile = {
+          hostPath = config.modules.qbittorrent.dataDir;
+          mountPoint = "/var/lib/qBittorrent/qBittorrent";
+          isReadOnly = false;
+        };
 
         config =
           { ... }:

@@ -8,6 +8,8 @@
 
 { ... }:
 let
+  jellyfinDir = "/data/jellyfin";
+  qBitDir = "/data/qbittorrent";
   shalquoirIp = "91.99.59.38";
 in
 {
@@ -114,7 +116,7 @@ in
   };
   modules.jellyfin = {
     enable = true;
-    dataDir = "/data/jellyfin";
+    dataDir = jellyfinDir;
   };
   modules.lldap.enable = true;
   modules.minecraft = {
@@ -135,7 +137,7 @@ in
   };
   modules.qbittorrent = {
     enable = true;
-    dataDir = "/data/qbittorrent";
+    dataDir = qBitDir;
   };
   modules.qui = {
     enable = true;
@@ -144,6 +146,8 @@ in
   modules.radarr = {
     enable = true;
     dataDir = "/data/radarr";
+    downloadDir = "${qBitDir}/downloads";
+    mediaDirs.rharish = "${jellyfinDir}/media/rharish/Movies";
   };
   modules.tandoor = {
     enable = true;

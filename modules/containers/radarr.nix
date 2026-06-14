@@ -10,6 +10,14 @@
       description = "The data directory path for Radarr";
       type = lib.types.str;
     };
+    downloadDir = lib.mkOption {
+      description = "The directory path where the download client downloads media";
+      type = lib.types.str;
+    };
+    mediaDirs = lib.mkOption {
+      description = "The directories where media is to be saved and managed by Radarr";
+      type = with lib.types; attrsOf str;
+    };
   };
 
   config =
@@ -22,11 +30,24 @@
         credentials.env.name = "radarr";
         username = "radarr";
 
-        bindMounts.data = {
-          hostPath = config.modules.radarr.dataDir;
-          mountPoint = "/var/lib/radarr/.config/Radarr";
-          isReadOnly = false;
-        };
+        bindMounts =
+          with config.modules.radarr;
+          {
+            data = {
+              hostPath = dataDir;
+              mountPoint = "/var/lib/radarr/.config/Radarr";
+              isReadOnly = false;
+            };
+            downloads = {
+              hostPath = downloadDir;
+              mountPoint = "/var/lib/qBittorrent/qBittorrent/downloads";
+            };
+          }
+          // builtins.mapAttrs (name: dir: {
+            hostPath = dir;
+            mountPoint = "/data/${name}";
+            isReadOnly = false;
+          }) mediaDirs;
 
         config =
           { ... }:
