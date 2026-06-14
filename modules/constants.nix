@@ -154,10 +154,12 @@ lib: rec {
     radarr = [
       "caddy-wg-client"
       "prowlarr"
+      "qui"
     ];
     sonarr = [
       "caddy-wg-client"
       "prowlarr"
+      "qui"
     ];
     tandoor = [ "caddy-wg-client" ];
     vaultwarden = [ "caddy-wg-client" ];
