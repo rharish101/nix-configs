@@ -44,6 +44,19 @@ in
   # networking.firewall.enable = false;
   networking.nftables.enable = true;
 
+  networking.nftables.tables.crowdsec.content = ''
+    chain crowdsec-fw-chain {
+      type filter hook forward priority filter; policy accept;
+      ip saddr @crowdsec-blacklists drop
+    }
+  '';
+  networking.nftables.tables.crowdsec6.content = ''
+    chain crowdsec6-fw-chain {
+      type filter hook forward priority filter; policy accept;
+      ip6 saddr @crowdsec6-blacklists drop
+    }
+  '';
+
   # Hairpin NAT for the wireguard server.
   # Required for OIDC flows where services need to send requests to other services using public URLs
   networking.nftables.tables.hairpin-nat = {
