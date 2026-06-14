@@ -320,8 +320,8 @@ lib: rec {
       memory = 1;
     };
     prowlarr = {
-      cpu = 1;
-      memory = 1;
+      cpu = 2;
+      memory = 4;
     };
     qbittorrent = {
       cpu = 2;
