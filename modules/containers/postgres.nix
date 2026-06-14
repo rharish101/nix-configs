@@ -54,6 +54,7 @@
                 host sameuser prowlarr    ${prowlarr.ip4}/32      scram-sha-256
                 host sameuser qui         ${qui.ip4}/32           scram-sha-256
                 host sameuser radarr      ${radarr.ip4}/32        scram-sha-256
+                host sameuser sonarr      ${sonarr.ip4}/32        scram-sha-256
                 host sameuser tandoor     ${tandoor.ip4}/32       scram-sha-256
                 host sameuser vaultwarden ${vaultwarden.ip4}/32   scram-sha-256
               '';
@@ -86,6 +87,10 @@
                   name = "radarr";
                   ensureDBOwnership = true;
                 })
+                (lib.mkIf config.modules.sonarr.enable {
+                  name = "sonarr";
+                  ensureDBOwnership = true;
+                })
                 (lib.mkIf config.modules.tandoor.enable {
                   name = "tandoor";
                   ensureDBOwnership = true;
@@ -103,6 +108,7 @@
                 (lib.mkIf config.modules.prowlarr.enable "prowlarr")
                 (lib.mkIf config.modules.qui.enable "qui")
                 (lib.mkIf config.modules.radarr.enable "radarr")
+                (lib.mkIf config.modules.sonarr.enable "sonarr")
                 (lib.mkIf config.modules.tandoor.enable "tandoor")
                 (lib.mkIf config.modules.vaultwarden.enable "vaultwarden")
               ];

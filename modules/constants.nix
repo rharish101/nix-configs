@@ -42,6 +42,7 @@ lib: rec {
       prowlarr.ip4 = "${ip4Prefix}14";
       radarr = getIps 15;
       qbittorrent.ip4 = "${ip4Prefix}16";
+      sonarr = getIps 17;
     };
 
   # Container dependencies for a container's systemd unit.
@@ -90,6 +91,12 @@ lib: rec {
       "prowlarr"
       "qui"
     ];
+    sonarr = [
+      "caddy-wg-client"
+      "postgres"
+      "prowlarr"
+      "qui"
+    ];
     tandoor = [
       "caddy-wg-client"
       "postgres"
@@ -128,6 +135,7 @@ lib: rec {
       "prowlarr"
       "qui"
       "radarr"
+      "sonarr"
       "tandoor"
       "vaultwarden"
     ];
@@ -135,13 +143,19 @@ lib: rec {
       "caddy-wg-client"
       "qui"
       "radarr"
+      "sonarr"
     ];
     qbittorrent = [ "qui" ];
     qui = [
       "caddy-wg-client"
       "radarr"
+      "sonarr"
     ];
     radarr = [
+      "caddy-wg-client"
+      "prowlarr"
+    ];
+    sonarr = [
       "caddy-wg-client"
       "prowlarr"
     ];
@@ -194,6 +208,7 @@ lib: rec {
     prowlarr = "qbittorrent";
     qui = "qbittorrent";
     radarr = "caddy-wg-client";
+    sonarr = "caddy-wg-client";
     tandoor = "caddy-wg-client";
     vaultwarden = "caddy-wg-client";
   };
@@ -217,6 +232,7 @@ lib: rec {
     qui = 65536 * 21;
     prowlarr = 65536 * 22;
     radarr = 65536 * 23;
+    sonarr = 65536 * 24;
   };
 
   ports = {
@@ -233,6 +249,7 @@ lib: rec {
     qbittorrent = 36252; # Avoid default 8080 to prevent conflicts
     qui = 7476;
     radarr = 7878;
+    sonarr = 8989;
     tandoor = 2113; # Avoid default 8080 to prevent conflicts
     wireguard = 51820;
     vaultwarden = 6062; # Avoid default 8000 to prevent conflicts

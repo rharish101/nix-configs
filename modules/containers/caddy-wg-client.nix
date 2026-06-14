@@ -159,6 +159,10 @@
                   handle @radarr {
                     reverse_proxy ${radarr.ip4}:${toString constants.ports.radarr}
                   }
+                  @sonarr path /shows /shows/*
+                  handle @sonarr {
+                    reverse_proxy ${sonarr.ip4}:${toString constants.ports.sonarr}
+                  }
                   respond 404
                 '';
                 virtualHosts."http://${subdomains.authelia}.${domain}".extraConfig = ''

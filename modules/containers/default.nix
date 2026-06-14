@@ -21,6 +21,7 @@
     ./qbittorrent.nix
     ./qui.nix
     ./radarr.nix
+    ./sonarr.nix
     ./tandoor.nix
     ./vaultwarden.nix
   ];

@@ -149,6 +149,12 @@ in
     downloadDir = "${qBitDir}/downloads";
     mediaDirs.rharish = "${jellyfinDir}/media/rharish/Movies";
   };
+  modules.sonarr = {
+    enable = true;
+    dataDir = "/data/sonarr";
+    downloadDir = "${qBitDir}/downloads";
+    mediaDirs.rharish = "${jellyfinDir}/media/rharish/Shows";
+  };
   modules.tandoor = {
     enable = true;
     dataDir = "/data/tandoor";
