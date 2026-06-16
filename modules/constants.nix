@@ -58,6 +58,7 @@ lib: rec {
     ];
     bazarr = [
       "caddy-wg-client"
+      "postgres"
       "radarr"
       "sonarr"
     ];
