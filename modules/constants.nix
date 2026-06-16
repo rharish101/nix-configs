@@ -43,6 +43,7 @@ lib: rec {
       radarr = getIps 15;
       qbittorrent.ip4 = "${ip4Prefix}16";
       sonarr = getIps 17;
+      bazarr = getIps 18;
     };
 
   # Container dependencies for a container's systemd unit.
@@ -54,6 +55,11 @@ lib: rec {
       "crowdsec-lapi"
       "lldap"
       "postgres"
+    ];
+    bazarr = [
+      "caddy-wg-client"
+      "radarr"
+      "sonarr"
     ];
     collabora = [ "caddy-wg-client" ];
     crowdsec-lapi = [
@@ -112,6 +118,7 @@ lib: rec {
   # NOTE: Keys and list values for containers **must** correspond to their names.
   firewallOpen = {
     authelia = [ "caddy-wg-client" ];
+    bazarr = [ "caddy-wg-client" ];
     collabora = [ "caddy-wg-client" ];
     crowdsec-lapi = [
       "authelia"
@@ -129,6 +136,7 @@ lib: rec {
     opencloud = [ "caddy-wg-client" ];
     postgres = [
       "authelia"
+      "bazarr"
       "crowdsec-lapi"
       "immich"
       "lldap"
@@ -152,11 +160,13 @@ lib: rec {
       "sonarr"
     ];
     radarr = [
+      "bazarr"
       "caddy-wg-client"
       "prowlarr"
       "qui"
     ];
     sonarr = [
+      "bazarr"
       "caddy-wg-client"
       "prowlarr"
       "qui"
@@ -201,6 +211,7 @@ lib: rec {
 
   gateways = {
     authelia = "caddy-wg-client";
+    bazarr = "caddy-wg-client";
     collabora = "caddy-wg-client";
     crowdsec-lapi = "caddy-wg-client";
     immich = "caddy-wg-client";
@@ -235,10 +246,12 @@ lib: rec {
     prowlarr = 65536 * 22;
     radarr = 65536 * 23;
     sonarr = 65536 * 24;
+    bazarr = 65536 * 25;
   };
 
   ports = {
     authelia = 9091;
+    bazarr = 6767;
     collabora = 9980;
     crowdsec = 20546; # Avoid default 8080 to prevent conflicts
     immich = 2283;
@@ -253,8 +266,8 @@ lib: rec {
     radarr = 7878;
     sonarr = 8989;
     tandoor = 2113; # Avoid default 8080 to prevent conflicts
-    wireguard = 51820;
     vaultwarden = 6062; # Avoid default 8000 to prevent conflicts
+    wireguard = 51820;
   };
 
   # Constants related to my personal domain.

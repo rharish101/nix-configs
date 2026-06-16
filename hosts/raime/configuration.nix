@@ -104,6 +104,14 @@ in
   modules.secure-boot.enable = true;
 
   modules.authelia.enable = true;
+  modules.bazarr = {
+    enable = true;
+    dataDir = "/data/bazarr";
+    mediaDirs = {
+      "rharish/movies" = "${jellyfinDir}/media/rharish/Movies";
+      "rharish/shows" = "${jellyfinDir}/media/rharish/Shows";
+    };
+  };
   modules.bentopdf.enable = true;
   modules.collabora.enable = true;
   modules.crowdsec-lapi = {

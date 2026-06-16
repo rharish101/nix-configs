@@ -163,6 +163,10 @@
                   handle @sonarr {
                     reverse_proxy ${sonarr.ip4}:${toString constants.ports.sonarr}
                   }
+                  @bazarr path /subs /subs/*
+                  handle @bazarr {
+                    reverse_proxy ${bazarr.ip4}:${toString constants.ports.bazarr}
+                  }
                   respond 404
                 '';
                 virtualHosts."http://${subdomains.authelia}.${domain}".extraConfig = ''
