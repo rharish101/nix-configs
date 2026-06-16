@@ -17,6 +17,7 @@
     mediaDirs = lib.mkOption {
       description = "The directories where media is to be saved and managed by Radarr";
       type = with lib.types; attrsOf str;
+      default = { };
     };
   };
 
