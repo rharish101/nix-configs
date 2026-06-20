@@ -51,6 +51,7 @@
                 host sameuser bazarr      ${bazarr.ip4}/32        scram-sha-256
                 host sameuser crowdsec    ${crowdsec-lapi.ip4}/32 scram-sha-256
                 host sameuser immich      ${immich.ip4}/32        scram-sha-256
+                host sameuser lidarr      ${lidarr.ip4}/32        scram-sha-256
                 host sameuser lldap       ${lldap.ip4}/32         scram-sha-256
                 host sameuser prowlarr    ${prowlarr.ip4}/32      scram-sha-256
                 host sameuser qui         ${qui.ip4}/32           scram-sha-256
@@ -74,6 +75,10 @@
                 })
                 (lib.mkIf config.modules.immich.enable {
                   name = "immich";
+                  ensureDBOwnership = true;
+                })
+                (lib.mkIf config.modules.lidarr.enable {
+                  name = "lidarr";
                   ensureDBOwnership = true;
                 })
                 (lib.mkIf config.modules.lldap.enable {
@@ -110,6 +115,7 @@
                 (lib.mkIf config.modules.bazarr.enable "bazarr")
                 (lib.mkIf config.modules.crowdsec-lapi.enable "crowdsec")
                 (lib.mkIf config.modules.immich.enable "immich")
+                (lib.mkIf config.modules.lidarr.enable "lidarr")
                 (lib.mkIf config.modules.lldap.enable "lldap")
                 (lib.mkIf config.modules.prowlarr.enable "prowlarr")
                 (lib.mkIf config.modules.qui.enable "qui")

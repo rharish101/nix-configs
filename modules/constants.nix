@@ -44,6 +44,7 @@ lib: rec {
       qbittorrent.ip4 = "${ip4Prefix}16";
       sonarr = getIps 17;
       bazarr = getIps 18;
+      lidarr = getIps 19;
     };
 
   # Container dependencies for a container's systemd unit.
@@ -74,6 +75,12 @@ lib: rec {
     jellyfin = [
       "caddy-wg-client"
       "crowdsec-lapi"
+    ];
+    lidarr = [
+      "caddy-wg-client"
+      "postgres"
+      "prowlarr"
+      "qui"
     ];
     lldap = [ "postgres" ];
     minecraft = [
@@ -129,6 +136,10 @@ lib: rec {
     ];
     immich = [ "caddy-wg-client" ];
     jellyfin = [ "caddy-wg-client" ];
+    lidarr = [
+      "caddy-wg-client"
+      "prowlarr"
+    ];
     lldap = [
       "authelia"
       "jellyfin"
@@ -140,6 +151,7 @@ lib: rec {
       "bazarr"
       "crowdsec-lapi"
       "immich"
+      "lidarr"
       "lldap"
       "prowlarr"
       "qui"
@@ -150,6 +162,7 @@ lib: rec {
     ];
     prowlarr = [
       "caddy-wg-client"
+      "lidarr"
       "qui"
       "radarr"
       "sonarr"
@@ -157,6 +170,7 @@ lib: rec {
     qbittorrent = [ "qui" ];
     qui = [
       "caddy-wg-client"
+      "lidarr"
       "radarr"
       "sonarr"
     ];
@@ -217,6 +231,7 @@ lib: rec {
     crowdsec-lapi = "caddy-wg-client";
     immich = "caddy-wg-client";
     jellyfin = "caddy-wg-client";
+    lidarr = "caddy-wg-client";
     minecraft = "caddy-wg-client";
     opencloud = "caddy-wg-client";
     prowlarr = "qbittorrent";
@@ -248,6 +263,7 @@ lib: rec {
     radarr = 65536 * 23;
     sonarr = 65536 * 24;
     bazarr = 65536 * 25;
+    lidarr = 65536 * 26;
   };
 
   ports = {
@@ -257,6 +273,7 @@ lib: rec {
     crowdsec = 20546; # Avoid default 8080 to prevent conflicts
     immich = 2283;
     jellyfin = 8096;
+    lidarr = 8686;
     lldap = 3890;
     minecraft = 25565; # Used for both Java (TCP) & Bedrock (UDP) editions
     opencloud = 9200;

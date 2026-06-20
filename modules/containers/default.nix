@@ -14,6 +14,7 @@
     ./crowdsec-lapi.nix
     ./immich.nix
     ./jellyfin.nix
+    ./lidarr.nix
     ./lldap.nix
     ./minecraft.nix
     ./opencloud.nix

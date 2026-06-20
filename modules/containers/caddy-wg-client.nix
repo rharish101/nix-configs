@@ -167,6 +167,10 @@
                   handle @bazarr {
                     reverse_proxy ${bazarr.ip4}:${toString constants.ports.bazarr}
                   }
+                  @lidarr path /music /music/*
+                  handle @lidarr {
+                    reverse_proxy ${lidarr.ip4}:${toString constants.ports.lidarr}
+                  }
                   respond 404
                 '';
                 virtualHosts."http://${subdomains.authelia}.${domain}".extraConfig = ''

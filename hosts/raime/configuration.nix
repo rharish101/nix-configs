@@ -126,6 +126,11 @@ in
     enable = true;
     dataDir = jellyfinDir;
   };
+  modules.lidarr = {
+    enable = true;
+    dataDir = "/data/lidarr";
+    downloadDir = "${qBitDir}/downloads";
+  };
   modules.lldap.enable = true;
   modules.minecraft = {
     enable = true;
