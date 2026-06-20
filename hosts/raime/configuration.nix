@@ -130,6 +130,7 @@ in
     enable = true;
     dataDir = "/data/lidarr";
     downloadDir = "${qBitDir}/downloads";
+    mediaDirs.rharish = "${jellyfinDir}/media/rharish/Music";
   };
   modules.lldap.enable = true;
   modules.minecraft = {
