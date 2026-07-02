@@ -183,6 +183,23 @@
                   reverse_proxy ${immich.ip4}:${toString constants.ports.immich}
                 '';
                 virtualHosts."http://${subdomains.jellyfin}.${domain}".extraConfig = ''
+                  handle /music/settings.js {
+                    header Content-Type text/javascript
+                    respond <<EOF
+                      "use strict";
+                      window.SERVER_URL = "https://${subdomains.jellyfin}.${domain}";
+                      window.SERVER_NAME = "Harish's Server";
+                      window.SERVER_TYPE = "jellyfin";
+                      window.SERVER_LOCK = "true";
+                      window.PUBLIC_PATH = "/music";
+                      window.ANALYTICS_DISABLED = "true";
+                      EOF 200
+                  }
+                  handle_path /music/* {
+                    root * ${pkgs.feishin}
+                    try_files {path} /index.html
+                    file_server
+                  }
                   reverse_proxy ${jellyfin.ip4}:${toString constants.ports.jellyfin}
                 '';
                 virtualHosts."http://${subdomains.opencloud}.${domain}".extraConfig = ''

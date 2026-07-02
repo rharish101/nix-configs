@@ -28,14 +28,29 @@
 
   outputs =
     { nixpkgs, ... }@inputs:
+    let
+      system = "x86_64-linux";
+      mypkgs = import ./pkgs { pkgs = nixpkgs.legacyPackages.${system}; };
+      extraConfig = {
+        nixpkgs.overlays = [ (final: prev: mypkgs) ];
+      };
+    in
     {
+      packages.${system} = mypkgs;
+
       nixosConfigurations.raime = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs; };
-        modules = [ ./hosts/raime/configuration.nix ];
+        modules = [
+          ./hosts/raime/configuration.nix
+          extraConfig
+        ];
       };
       nixosConfigurations.shalquoir = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs; };
-        modules = [ ./hosts/shalquoir/configuration.nix ];
+        modules = [
+          ./hosts/shalquoir/configuration.nix
+          extraConfig
+        ];
       };
     };
 }

@@ -290,6 +290,8 @@ in
                     "flakes"
                   ];
 
+                  nixpkgs.overlays = globalConfig.nixpkgs.overlays;
+
                   services.redis.package = mkDefault pkgs.valkey;
 
                   # Set a low reload time, to account for crashes on init:
