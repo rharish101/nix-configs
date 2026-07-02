@@ -2,12 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ config, lib, ... }:
 {
   options.modules.authelia.enable = lib.mkEnableOption "Enable Authelia";
 
@@ -35,7 +30,7 @@
           let
             globalConfig = config;
           in
-          { config, ... }:
+          { config, pkgs, ... }:
           {
             services.authelia.instances.main = with globalConfig.modules.authelia; {
               enable = true;

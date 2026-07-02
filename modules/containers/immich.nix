@@ -2,12 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ config, lib, ... }:
 {
   options.modules.immich = {
     enable = lib.mkEnableOption "Enable Immich";
@@ -49,7 +44,7 @@
         };
 
         config =
-          { ... }:
+          { pkgs, ... }:
           {
             hardware.graphics = {
               enable = true;

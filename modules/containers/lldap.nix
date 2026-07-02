@@ -2,12 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ config, lib, ... }:
 {
   options.modules.lldap.enable = lib.mkEnableOption "Enable lldap";
   config =
@@ -26,7 +21,7 @@
         };
 
         config =
-          { ... }:
+          { pkgs, ... }:
           {
             environment.defaultPackages = with pkgs; [ lldap-cli ];
 

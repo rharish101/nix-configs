@@ -2,12 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ config, lib, ... }:
 {
   options.modules.crowdsec-lapi = {
     enable = lib.mkEnableOption "Enable CrowdSec Local API server";
@@ -37,7 +32,6 @@
           {
             # Add secrets using an environment file.
             systemd.services.crowdsec.serviceConfig.EnvironmentFile = "/run/credentials/@system/env";
-            systemd.services.crowdsec.path = [ pkgs.sytemd ];
 
             services.crowdsec =
               let
