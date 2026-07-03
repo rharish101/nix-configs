@@ -29,8 +29,8 @@
   outputs =
     { nixpkgs, ... }@inputs:
     let
-      extraConfig = { pkgs, ... }: {
-        nixpkgs.overlays = [ (final: prev: import ./pkgs { inherit pkgs; }) ];
+      extraConfig = {
+        nixpkgs.overlays = [ (final: prev: import ./pkgs { inherit final prev; }) ];
       };
     in
     {

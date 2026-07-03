@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{ pkgs, ... }:
+{ prev, ... }:
 {
-  feishin = pkgs.callPackage ./feishin { };
+  feishin = prev.callPackage ./feishin { };
 }
