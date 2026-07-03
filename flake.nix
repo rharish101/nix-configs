@@ -29,15 +29,11 @@
   outputs =
     { nixpkgs, ... }@inputs:
     let
-      system = "x86_64-linux";
-      mypkgs = import ./pkgs { pkgs = nixpkgs.legacyPackages.${system}; };
-      extraConfig = {
-        nixpkgs.overlays = [ (final: prev: mypkgs) ];
+      extraConfig = { pkgs, ... }: {
+        nixpkgs.overlays = [ (final: prev: import ./pkgs { inherit pkgs; }) ];
       };
     in
     {
-      packages.${system} = mypkgs;
-
       nixosConfigurations.raime = nixpkgs.lib.nixosSystem {
         specialArgs = { inherit inputs; };
         modules = [
