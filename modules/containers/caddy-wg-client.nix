@@ -196,7 +196,7 @@
                       EOF 200
                   }
                   handle_path /music/* {
-                    root * ${pkgs.feishin}
+                    root * ${pkgs.feishin-web}
                     try_files {path} /index.html
                     file_server
                   }

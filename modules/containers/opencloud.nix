@@ -109,6 +109,9 @@
               source = "${config.services.opencloud.stateDir}/opencloud.yaml";
             };
 
+            # TODO: Remove this when OpenCloud stops using pnpm_9
+            nixpkgs.config.permittedInsecurePackages = [ "pnpm-9.15.9" ];
+
             system.stateVersion = "25.11";
           };
       };
