@@ -196,6 +196,7 @@
                   in
                   ''
                     handle_path /music/* {
+                      encode
                       handle /settings.js {
                         header Cache-Control no-store
                         root ${settingsJs}
@@ -229,6 +230,7 @@
               caddy = {
                 enable = true;
                 virtualHost.extraConfig = with constants; ''
+                  encode
                   forward_auth ${bridge.authelia.ip4}:${toString ports.authelia} {
                     uri /api/authz/forward-auth
                     copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
