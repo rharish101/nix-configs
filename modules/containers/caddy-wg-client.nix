@@ -182,10 +182,9 @@
                 virtualHosts."http://${subdomains.immich}.${domain}".extraConfig = ''
                   reverse_proxy ${immich.ip4}:${toString constants.ports.immich}
                 '';
-                virtualHosts."http://${subdomains.jellyfin}.${domain}".extraConfig = ''
-                  handle /music/settings.js {
-                    header Content-Type text/javascript
-                    respond <<EOF
+                virtualHosts."http://${subdomains.jellyfin}.${domain}".extraConfig =
+                  let
+                    settingsJs = pkgs.writeTextDir "settings.js" ''
                       "use strict";
                       window.SERVER_URL = "https://${subdomains.jellyfin}.${domain}";
                       window.SERVER_NAME = "Harish's Server";
@@ -193,15 +192,23 @@
                       window.SERVER_LOCK = "true";
                       window.PUBLIC_PATH = "/music";
                       window.ANALYTICS_DISABLED = "true";
-                      EOF 200
-                  }
-                  handle_path /music/* {
-                    root * ${pkgs.feishin-web}
-                    try_files {path} /index.html
-                    file_server
-                  }
-                  reverse_proxy ${jellyfin.ip4}:${toString constants.ports.jellyfin}
-                '';
+                    '';
+                  in
+                  ''
+                    handle_path /music/* {
+                      handle /settings.js {
+                        header Cache-Control no-store
+                        root ${settingsJs}
+                        file_server
+                      }
+                      handle {
+                        root ${pkgs.feishin-web}
+                        try_files {path} /index.html
+                        file_server
+                      }
+                    }
+                    reverse_proxy ${jellyfin.ip4}:${toString constants.ports.jellyfin}
+                  '';
                 virtualHosts."http://${subdomains.opencloud}.${domain}".extraConfig = ''
                   reverse_proxy ${opencloud.ip4}:${toString constants.ports.opencloud}
                 '';
