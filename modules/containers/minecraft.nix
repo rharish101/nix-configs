@@ -71,7 +71,7 @@
 
               servers.proxy = {
                 enable = true;
-                package = pkgs.velocityServers.velocity;
+                package = pkgs.velocityServers.velocity-3_5_1-build_615;
                 # Flags from: https://docs.papermc.io/velocity/getting-started/
                 jvmOpts = ''
                   -Xms1G \
@@ -88,7 +88,7 @@
                   "plugins/Geyser.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/velocity";
                     name = "Geyser";
-                    hash = "sha256-rBxpvPYkcQTLxE+JmUp7nSBQ0LiJOuXrD1I3MUTdjZI=";
+                    hash = "sha256-wFYIW4UE/hh94widIogKAv3hjEUDVdywkXZHHZJMlkw=";
                   };
                   "plugins/Floodgate.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/velocity";
