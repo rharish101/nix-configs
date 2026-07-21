@@ -122,10 +122,10 @@
                 package = pkgs.caddy.withPlugins {
                   plugins = [
                     "github.com/caddy-dns/cloudflare@v0.2.4"
-                    "github.com/mholt/caddy-l4@v0.1.1"
-                    "github.com/mholt/caddy-ratelimit@v0.1.1-0.20260521172720-16aecbbcb8ca"
+                    "github.com/mholt/caddy-l4@v0.1.2"
+                    "github.com/mholt/caddy-ratelimit@v0.1.1-0.20260612195517-5625512f24f6"
                   ];
-                  hash = "sha256-fb7sjTG6RlycWEkFUq1Lda6d8L8H5+sOB05C6k0C8zs=";
+                  hash = "sha256-CCZckFesjZ/Zq3PgjvU2a2Uom1G9BEuNdofoN63sAZ4=";
                 };
                 environmentFile = "/run/credentials/@system/caddy-env";
                 email = "harish.rajagopals@gmail.com";
