@@ -321,6 +321,7 @@ in
             in
             {
               MemoryHigh = mkIfDefault (limits ? memory) "${toString limits.memory}G";
+              MemoryMax = mkIfDefault (limits ? memory) "${toString (limits.memory * 1.1)}G";
               CPUQuota = mkIfDefault (limits ? cpu) "${toString (limits.cpu * 100)}%";
             }
           );
