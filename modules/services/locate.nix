@@ -2,11 +2,12 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{ pkgs, ... }:
+{ options, pkgs, ... }:
 {
   # Enable locate.
   services.locate = {
     enable = true;
     package = pkgs.plocate;
+    pruneNames = options.services.locate.pruneNames.default ++ [ ".snapshots" ];
   };
 }
