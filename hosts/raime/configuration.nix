@@ -118,6 +118,7 @@ in
     enable = true;
     dataDir = "/data/crowdsec";
   };
+  modules.feishin.enable = true;
   modules.immich = {
     enable = true;
     dataDir = "/data/immich";

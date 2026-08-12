@@ -24,6 +24,7 @@
     };
   };
   options.modules.bentopdf.enable = lib.mkEnableOption "Enable BentoPDF";
+  options.modules.feishin.enable = lib.mkEnableOption "Enable Feishin Web";
 
   config =
     let
@@ -182,34 +183,9 @@
                 virtualHosts."http://${subdomains.immich}.${domain}".extraConfig = ''
                   reverse_proxy ${immich.ip4}:${toString constants.ports.immich}
                 '';
-                virtualHosts."http://${subdomains.jellyfin}.${domain}".extraConfig =
-                  let
-                    settingsJs = pkgs.writeTextDir "settings.js" ''
-                      "use strict";
-                      window.SERVER_URL = "https://${subdomains.jellyfin}.${domain}";
-                      window.SERVER_NAME = "Harish's Server";
-                      window.SERVER_TYPE = "jellyfin";
-                      window.SERVER_LOCK = "true";
-                      window.PUBLIC_PATH = "/music";
-                      window.ANALYTICS_DISABLED = "true";
-                    '';
-                  in
-                  ''
-                    handle_path /music/* {
-                      encode
-                      handle /settings.js {
-                        header Cache-Control no-store
-                        root ${settingsJs}
-                        file_server
-                      }
-                      handle {
-                        root ${pkgs.feishin-web}
-                        try_files {path} /index.html
-                        file_server
-                      }
-                    }
-                    reverse_proxy ${jellyfin.ip4}:${toString constants.ports.jellyfin}
-                  '';
+                virtualHosts."http://${subdomains.jellyfin}.${domain}".extraConfig = ''
+                  reverse_proxy ${jellyfin.ip4}:${toString constants.ports.jellyfin}
+                '';
                 virtualHosts."http://${subdomains.opencloud}.${domain}".extraConfig = ''
                   reverse_proxy ${opencloud.ip4}:${toString constants.ports.opencloud}
                 '';
@@ -237,6 +213,20 @@
                   }
                 '';
               };
+            };
+
+            services.feishin = lib.mkIf config.modules.feishin.enable {
+              enable = true;
+              domain = with constants.domain; "http://${subdomains.jellyfin}.${domain}";
+              pathbase = "/music";
+              settings = {
+                SERVER_NAME = "Harish's Server";
+                SERVER_TYPE = "jellyfin";
+                SERVER_URL = with constants.domain; "https://${subdomains.jellyfin}.${domain}";
+                SERVER_LOCK = "true";
+                ANALYTICS_DISABLED = "true";
+              };
+              caddy.enable = true;
             };
 
             system.stateVersion = "24.11";
