@@ -15,6 +15,7 @@ let
     hasAttr
     ;
   inherit (lib)
+    concatMapAttrs
     mapAttrsToList
     mkDefault
     mkIf
@@ -53,7 +54,6 @@ let
                 default = "secret";
               };
             };
-
           });
         default = { };
       };
@@ -85,10 +85,6 @@ in
       constants = import ../constants.nix lib;
       bridgeName = "br-containers";
 
-      # Map an attribute set and use `lib.mkMerge` to merge them.
-      # Useful for merging configs from multiple sources
-      mergeMapAttrs = func: attr: mkMerge (mapAttrsToList func attr);
-
       # Containers that have set a username.
       # Used to create host users/groups mapped to container root users
       containersWithUsernames = lib.filterAttrs (_: cfg: cfg.username != null) config.modules.containers;
@@ -99,7 +95,7 @@ in
       containers = builtins.mapAttrs (
         name: cfg:
         # Merge such that the specified config can override defaults if needed.
-        mkMerge [
+        lib.mkMerge [
           (
             # Calculate default container config.
             let
@@ -342,6 +338,10 @@ in
               value.${secret.name}.restartUnits = mkDefault [ "container@${container}.service" ];
             in
             if secret.sopsType == "secret" then { secrets = value; } else { templates = value; };
+
+          # Map an attribute set and use `lib.mkMerge` to merge them.
+          # Unlike `lib.concatMapAttrs`, this can recursively merge instead of overwriting.
+          mergeMapAttrs = func: attr: mkMerge (mapAttrsToList func attr);
         in
         # Iterate over all containers, and for each container, get all required SOPS configs as a
         # merged attribute set, then merge them all at the end.
@@ -351,7 +351,7 @@ in
 
       # Define users and their corresponding groups for containers that define the host username for
       # their root users.
-      users.users = mergeMapAttrs (_: cfg: {
+      users.users = concatMapAttrs (_: cfg: {
         ${cfg.username} = {
           uid = constants.uids.${cfg.username};
           group = cfg.username;
@@ -359,7 +359,7 @@ in
         };
       }) containersWithUsernames;
 
-      users.groups = mergeMapAttrs (_: cfg: {
+      users.groups = concatMapAttrs (_: cfg: {
         ${cfg.username}.gid = constants.uids.${cfg.username};
       }) containersWithUsernames; # Create groups with same names as users.
     };
