@@ -21,7 +21,7 @@
         allowedPorts.Tcp = [ constants.ports.qui ];
         username = "qui";
 
-        bindMounts.qui = {
+        dirMounts.data = {
           hostPath = config.modules.qui.dataDir;
           mountPoint = "/var/lib/qui";
           isReadOnly = false;

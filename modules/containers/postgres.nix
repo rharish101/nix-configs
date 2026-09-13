@@ -25,7 +25,7 @@
         allowedPorts.Tcp = [ constants.ports.postgres ];
         username = "postgres";
 
-        bindMounts = with config.modules.postgres; {
+        dirMounts = with config.modules.postgres; {
           backupDir = {
             hostPath = backupDir;
             mountPoint = "/var/backup/postgresql";

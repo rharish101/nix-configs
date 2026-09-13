@@ -22,7 +22,7 @@
         credentials.env.name = "prowlarr";
         username = "prowlarr";
 
-        bindMounts.data = {
+        dirMounts.data = {
           hostPath = config.modules.prowlarr.dataDir;
           mountPoint = "/var/lib/private/prowlarr";
           isReadOnly = false;

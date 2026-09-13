@@ -63,7 +63,7 @@
           }
         ];
 
-        bindMounts.dataDir = {
+        dirMounts.dataDir = {
           hostPath = caddyDataDir;
           mountPoint = "/var/lib/caddy";
           isReadOnly = false;

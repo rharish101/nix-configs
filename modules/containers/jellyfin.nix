@@ -29,7 +29,7 @@
           }
         ];
 
-        bindMounts = with config.modules.jellyfin; {
+        dirMounts = with config.modules.jellyfin; {
           data = {
             hostPath = "${dataDir}/data";
             mountPoint = "/var/lib/jellyfin";
@@ -40,8 +40,8 @@
             mountPoint = "/media";
             isReadOnly = false;
           };
-          render.mountPoint = "/dev/dri";
         };
+        bindMounts.render.mountPoint = "/dev/dri";
 
         config =
           let

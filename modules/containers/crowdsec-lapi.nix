@@ -21,7 +21,7 @@
         credentials.env.name = "crowdsec/lapi-env";
         username = "crowdsec";
 
-        bindMounts.dataDir = {
+        dirMounts.dataDir = {
           hostPath = config.modules.crowdsec-lapi.dataDir;
           mountPoint = "/var/lib/crowdsec";
           isReadOnly = false;

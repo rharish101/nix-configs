@@ -31,18 +31,19 @@
         credentials.env.name = "lidarr";
         username = "lidarr";
 
+        dirMounts.data = {
+          hostPath = config.modules.lidarr.dataDir;
+          mountPoint = "/var/lib/lidarr/.config/Lidarr";
+          isReadOnly = false;
+        };
         bindMounts =
           with config.modules.lidarr;
           {
-            data = {
-              hostPath = dataDir;
-              mountPoint = "/var/lib/lidarr/.config/Lidarr";
-              isReadOnly = false;
-            };
             downloads = {
               hostPath = downloadDir;
               mountPoint = "/var/lib/qBittorrent/qBittorrent/downloads";
             };
+
           }
           // builtins.mapAttrs (name: dir: {
             hostPath = dir;

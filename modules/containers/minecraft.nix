@@ -37,7 +37,7 @@
           Udp = [ constants.ports.minecraft ];
         };
 
-        bindMounts.dataDir = {
+        dirMounts.dataDir = {
           hostPath = config.modules.minecraft.dataDir;
           mountPoint = "/srv/minecraft";
           isReadOnly = false;

@@ -33,12 +33,12 @@
           }
         ];
 
-        bindMounts = with config.modules.immich; {
-          dataDir = {
-            hostPath = dataDir;
-            mountPoint = "/var/lib/immich";
-            isReadOnly = false;
-          };
+        dirMounts.dataDir = {
+          hostPath = config.modules.immich.dataDir;
+          mountPoint = "/var/lib/immich";
+          isReadOnly = false;
+        };
+        bindMounts = {
           render.mountPoint = "/dev/dri";
           usb.mountPoint = "/dev/bus/usb";
         };

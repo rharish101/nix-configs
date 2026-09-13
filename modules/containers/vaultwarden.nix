@@ -22,7 +22,7 @@
         credentials.env.name = "vaultwarden";
         username = "vaultwarden";
 
-        bindMounts.dataDir = {
+        dirMounts.dataDir = {
           hostPath = config.modules.vaultwarden.dataDir;
           mountPoint = "/var/lib/vaultwarden";
           isReadOnly = false;

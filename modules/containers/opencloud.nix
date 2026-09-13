@@ -22,7 +22,7 @@
         credentials.env.name = "opencloud";
         username = "opencloud";
 
-        bindMounts.data = with config.modules.opencloud; {
+        dirMounts.data = with config.modules.opencloud; {
           hostPath = dataDir;
           mountPoint = "/var/lib/opencloud";
           isReadOnly = false;

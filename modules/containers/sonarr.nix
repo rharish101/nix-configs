@@ -31,14 +31,14 @@
         credentials.env.name = "sonarr";
         username = "sonarr";
 
+        dirMounts.data = {
+          hostPath = config.modules.sonarr.dataDir;
+          mountPoint = "/var/lib/sonarr/.config/NzbDrone";
+          isReadOnly = false;
+        };
         bindMounts =
           with config.modules.sonarr;
           {
-            data = {
-              hostPath = dataDir;
-              mountPoint = "/var/lib/sonarr/.config/NzbDrone";
-              isReadOnly = false;
-            };
             downloads = {
               hostPath = downloadDir;
               mountPoint = "/var/lib/qBittorrent/qBittorrent/downloads";

@@ -27,20 +27,16 @@
         credentials.env.name = "bazarr";
         username = "bazarr";
 
-        bindMounts =
-          with config.modules.bazarr;
-          {
-            data = {
-              hostPath = dataDir;
-              mountPoint = "/var/lib/bazarr";
-              isReadOnly = false;
-            };
-          }
-          // builtins.mapAttrs (name: dir: {
-            hostPath = dir;
-            mountPoint = "/data/${name}";
-            isReadOnly = false;
-          }) mediaDirs;
+        dirMounts.data = {
+          hostPath = config.modules.bazarr.dataDir;
+          mountPoint = "/var/lib/bazarr";
+          isReadOnly = false;
+        };
+        bindMounts = builtins.mapAttrs (name: dir: {
+          hostPath = dir;
+          mountPoint = "/data/${name}";
+          isReadOnly = false;
+        }) config.modules.bazarr.mediaDirs;
 
         config =
           { ... }:

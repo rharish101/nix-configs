@@ -50,7 +50,7 @@
         allowedPorts.Tcp = [ constants.ports.tandoor ];
         username = "tandoor";
 
-        bindMounts.media = {
+        dirMounts.media = {
           hostPath = config.modules.tandoor.dataDir;
           mountPoint = "/var/lib/tandoor-recipes";
           isReadOnly = false;

@@ -21,7 +21,7 @@
         username = "qbittorrent";
         allowedPorts.Tcp = [ constants.ports.qbittorrent ];
 
-        bindMounts.profile = {
+        dirMounts.profile = {
           hostPath = config.modules.qbittorrent.dataDir;
           mountPoint = "/var/lib/qBittorrent/qBittorrent";
           isReadOnly = false;

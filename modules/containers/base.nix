@@ -17,10 +17,12 @@ let
   inherit (lib)
     concatMapAttrs
     mapAttrsToList
+    mapAttrs'
     mkDefault
     mkIf
     mkMerge
     mkOption
+    nameValuePair
     optionalString
     pipe
     types
@@ -70,6 +72,30 @@ let
         };
       };
       useMacvlan = lib.mkEnableOption "local network access for this container through a macvlan interface";
+      # Same type as `containers.<name>.bindMounts`, so it can be passed through directly.
+      dirMounts = mkOption {
+        description = "An extra list of directories that is bound to the container, in the same format as `containers.<name>.bindMounts`";
+        type =
+          with types;
+          attrsOf (submodule {
+            options = {
+              mountPoint = mkOption {
+                description = "Mount point on the container file system.";
+                type = str;
+              };
+              hostPath = mkOption {
+                description = "Location of the host path to be mounted.";
+                type = str;
+              };
+              isReadOnly = mkOption {
+                description = "Determine whether the mounted path will be accessed in read-only mode.";
+                type = bool;
+                default = true;
+              };
+            };
+          });
+        default = { };
+      };
     };
   };
 in
@@ -142,6 +168,8 @@ in
                     localAddress = mkDefault "${constants.bridge.${name}.ip4}/24";
                   };
                 };
+
+              bindMounts = cfg.dirMounts;
 
               extraFlags =
                 let
@@ -308,9 +336,9 @@ in
         filter (name: hasAttr name constants.bridge) (attrNames config.modules.containers) != [ ]
       ) { ${bridgeName}.interfaces = [ ]; };
 
-      systemd.services = lib.mapAttrs' (
+      systemd.services = mapAttrs' (
         name: cfg:
-        lib.nameValuePair "container@${name}" {
+        nameValuePair "container@${name}" {
           serviceConfig = mkIf (hasAttr name constants.limits) (
             let
               limits = constants.limits.${name};
@@ -362,5 +390,20 @@ in
       users.groups = concatMapAttrs (_: cfg: {
         ${cfg.username}.gid = constants.uids.${cfg.username};
       }) containersWithUsernames; # Create groups with same names as users.
+
+      # Create the required host dirs to bind mount, setting the container user + group if created.
+      systemd.tmpfiles.settings = mapAttrs' (
+        name: cfg:
+        nameValuePair "10-container-${name}" (
+          mapAttrs' (_: mnt: {
+            name = mnt.hostPath;
+            value.d = {
+              mode = ":0700";
+              user = ":${cfg.username}";
+              group = ":${cfg.username}";
+            };
+          }) cfg.dirMounts
+        )
+      ) containersWithUsernames;
     };
 }

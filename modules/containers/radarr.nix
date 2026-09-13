@@ -31,14 +31,14 @@
         credentials.env.name = "radarr";
         username = "radarr";
 
+        dirMounts.data = {
+          hostPath = config.modules.radarr.dataDir;
+          mountPoint = "/var/lib/radarr/.config/Radarr";
+          isReadOnly = false;
+        };
         bindMounts =
           with config.modules.radarr;
           {
-            data = {
-              hostPath = dataDir;
-              mountPoint = "/var/lib/radarr/.config/Radarr";
-              isReadOnly = false;
-            };
             downloads = {
               hostPath = downloadDir;
               mountPoint = "/var/lib/qBittorrent/qBittorrent/downloads";
