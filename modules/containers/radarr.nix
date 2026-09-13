@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.radarr = {
-    enable = lib.mkEnableOption "Enable Radarr";
+    enable = lib.mkEnableOption "Radarr";
     dataDir = lib.mkOption {
       description = "The data directory path for Radarr";
       type = lib.types.str;

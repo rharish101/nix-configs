@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.qbittorrent = {
-    enable = lib.mkEnableOption "Enable qBittorrent";
+    enable = lib.mkEnableOption "qBittorrent";
     dataDir = lib.mkOption {
       description = "The data directory path for qBittorrent";
       type = lib.types.str;

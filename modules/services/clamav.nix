@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.clamav = {
-    enable = lib.mkEnableOption "Enable scanning files with ClamAV";
+    enable = lib.mkEnableOption "ClamAV for scanning files";
     extraScanDirs = lib.mkOption {
       description = "List of directories to scan on top of the defaults";
       type = lib.types.listOf lib.types.str;

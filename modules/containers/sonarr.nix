@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.sonarr = {
-    enable = lib.mkEnableOption "Enable Sonarr";
+    enable = lib.mkEnableOption "Sonarr";
     dataDir = lib.mkOption {
       description = "The data directory path for Sonarr";
       type = lib.types.str;

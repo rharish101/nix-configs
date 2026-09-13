@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.vaultwarden = {
-    enable = lib.mkEnableOption "Enable Vaultwarden";
+    enable = lib.mkEnableOption "Vaultwarden";
     dataDir = lib.mkOption {
       description = "The Vaultwarden data directory path";
       type = lib.types.str;

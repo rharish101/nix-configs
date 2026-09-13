@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.opencloud = {
-    enable = lib.mkEnableOption "Enable OpenCloud";
+    enable = lib.mkEnableOption "OpenCloud";
     dataDir = lib.mkOption {
       description = "The OpenCloud directory path";
       type = lib.types.str;

@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.caddy-wg-server = {
-    enable = lib.mkEnableOption "Enable WireGuard server with public Caddy reverse proxy";
+    enable = lib.mkEnableOption "WireGuard server with public Caddy reverse proxy";
     wireguard = {
       port = lib.mkOption {
         description = "The port on the host that to be used for Wireguard";
@@ -22,7 +22,7 @@
       type = lib.types.int;
       default = 25565;
     };
-    crowdsec.enable = lib.mkEnableOption "Enable CrowdSec Caddy log processor";
+    crowdsec.enable = lib.mkEnableOption "CrowdSec Caddy log processor";
   };
 
   config =

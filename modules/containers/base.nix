@@ -69,7 +69,7 @@ let
           default = [ ];
         };
       };
-      useMacvlan = lib.mkEnableOption "Allow this container to access the local network through a macvlan interface";
+      useMacvlan = lib.mkEnableOption "local network access for this container through a macvlan interface";
     };
   };
 in

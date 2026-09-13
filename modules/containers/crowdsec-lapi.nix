@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.crowdsec-lapi = {
-    enable = lib.mkEnableOption "Enable CrowdSec Local API server";
+    enable = lib.mkEnableOption "CrowdSec Local API server";
     dataDir = lib.mkOption {
       description = "Path to the directory to store CrowdSec info & credentials.";
       type = lib.types.str;

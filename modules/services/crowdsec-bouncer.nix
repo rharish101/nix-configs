@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.crowdsec-bouncer = {
-    enable = lib.mkEnableOption "Enable CrowdSec firewall bouncer";
+    enable = lib.mkEnableOption "CrowdSec firewall bouncer";
     apiUrl = lib.mkOption {
       description = "The CrowdSec local API URL";
       type = lib.types.str;

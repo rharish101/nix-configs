@@ -9,8 +9,7 @@
   ...
 }:
 {
-  options.modules.editor.nixLsp.enable =
-    lib.mkEnableOption "Install LSP servers for editing Nix files";
+  options.modules.editor.nixLsp.enable = lib.mkEnableOption "LSP servers for editing Nix files";
 
   config = {
     # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.

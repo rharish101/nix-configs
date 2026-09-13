@@ -10,7 +10,7 @@
 }:
 {
   options.modules.immich = {
-    enable = lib.mkEnableOption "Enable Immich";
+    enable = lib.mkEnableOption "Immich";
     dataDir = lib.mkOption {
       description = "The Immich directory path";
       type = lib.types.str;

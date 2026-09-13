@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.prowlarr = {
-    enable = lib.mkEnableOption "Enable Prowlarr";
+    enable = lib.mkEnableOption "Prowlarr";
     dataDir = lib.mkOption {
       description = "The data directory path for Prowlarr";
       type = lib.types.str;

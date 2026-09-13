@@ -9,7 +9,7 @@
   ...
 }:
 {
-  options.modules.git.dev = lib.mkEnableOption "Install packages for development with Git";
+  options.modules.git.dev = lib.mkEnableOption "packages for development with Git";
   config = {
     programs.git.enable = true;
     users.users.rharish.packages =

@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.crowdsec-sshd = {
-    enable = lib.mkEnableOption "Enable CrowdSec SSH log processor";
+    enable = lib.mkEnableOption "CrowdSec SSH log processor";
     secrets.credFile = lib.mkOption {
       description = "Path to the CrowdSec Local API credentials file";
       type = lib.types.str;

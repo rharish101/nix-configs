@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.tandoor = {
-    enable = lib.mkEnableOption "Enable Tandoor Recipes";
+    enable = lib.mkEnableOption "Tandoor Recipes";
     dataDir = lib.mkOption {
       description = "The Tandoor Recipes directory path";
       type = lib.types.str;

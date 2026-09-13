@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.jellyfin = {
-    enable = lib.mkEnableOption "Enable Jellyfin";
+    enable = lib.mkEnableOption "Jellyfin";
     dataDir = lib.mkOption {
       description = "The Jellyfin directory path";
       type = lib.types.str;

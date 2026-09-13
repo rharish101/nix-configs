@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.lidarr = {
-    enable = lib.mkEnableOption "Enable Lidarr";
+    enable = lib.mkEnableOption "Lidarr";
     dataDir = lib.mkOption {
       description = "The data directory path for Lidarr";
       type = lib.types.str;

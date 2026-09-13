@@ -8,7 +8,7 @@ let
 in
 {
   options.modules.restic = {
-    enable = lib.mkEnableOption "Enable remote backups with Restic";
+    enable = lib.mkEnableOption "remote backups with Restic";
     ssh = {
       config = lib.mkOption {
         description = "SSH host config for the restic SFTP remote";

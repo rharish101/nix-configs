@@ -9,8 +9,7 @@
   ...
 }:
 {
-  options.modules.terminal.utils.enable =
-    lib.mkEnableOption "Install useful terminal tools & utilities";
+  options.modules.terminal.utils.enable = lib.mkEnableOption "useful terminal tools & utilities";
   config.users.users.rharish.packages =
     with pkgs;
     lib.mkIf config.modules.terminal.utils.enable [

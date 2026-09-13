@@ -4,7 +4,7 @@
 
 { config, lib, ... }:
 {
-  options.modules.snapshots.enable = lib.mkEnableOption "Enable snapshotting of a Btrfs root partition";
+  options.modules.snapshots.enable = lib.mkEnableOption "snapshotting of a Btrfs root partition";
   # Enable snapper for automatic Btrfs snapshots.
   config.services.snapper.configs =
     let

@@ -4,7 +4,7 @@
 
 { config, lib, ... }:
 {
-  options.modules.lldap.enable = lib.mkEnableOption "Enable lldap";
+  options.modules.lldap.enable = lib.mkEnableOption "lldap";
   config =
     let
       constants = import ../constants.nix lib;

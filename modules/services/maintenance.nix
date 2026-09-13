@@ -9,7 +9,7 @@
   ...
 }:
 {
-  options.modules.autoUpdate = lib.mkEnableOption "Enable automatic system updates";
+  options.modules.autoUpdate = lib.mkEnableOption "automatic system updates";
   config = {
     # Enable automatic upgrades.
     system.autoUpgrade = lib.mkIf config.modules.autoUpdate {

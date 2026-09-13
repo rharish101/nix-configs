@@ -10,7 +10,7 @@
 }:
 {
   options.modules.minecraft = {
-    enable = lib.mkEnableOption "Enable Minecraft servers";
+    enable = lib.mkEnableOption "Minecraft servers";
     dataDir = lib.mkOption {
       description = "The Minecraft directory path";
       type = lib.types.str;

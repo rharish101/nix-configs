@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.caddy-wg-client = {
-    enable = lib.mkEnableOption "Enable Caddy reverse proxy with a WireGuard client";
+    enable = lib.mkEnableOption "Caddy reverse proxy with a WireGuard client";
     wireguard = {
       server = {
         publicKey = lib.mkOption {
@@ -23,8 +23,8 @@
       };
     };
   };
-  options.modules.bentopdf.enable = lib.mkEnableOption "Enable BentoPDF";
-  options.modules.feishin.enable = lib.mkEnableOption "Enable Feishin Web";
+  options.modules.bentopdf.enable = lib.mkEnableOption "BentoPDF";
+  options.modules.feishin.enable = lib.mkEnableOption "Feishin Web";
 
   config =
     let

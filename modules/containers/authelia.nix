@@ -4,7 +4,7 @@
 
 { config, lib, ... }:
 {
-  options.modules.authelia.enable = lib.mkEnableOption "Enable Authelia";
+  options.modules.authelia.enable = lib.mkEnableOption "Authelia";
 
   config =
     let

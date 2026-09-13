@@ -10,7 +10,7 @@
   ...
 }:
 {
-  options.modules.secure-boot.enable = lib.mkEnableOption "Enable UEFI secure boot";
+  options.modules.secure-boot.enable = lib.mkEnableOption "UEFI secure boot";
   imports = [ inputs.lanzaboote.nixosModules.lanzaboote ];
   config = lib.mkIf config.modules.secure-boot.enable {
     # For debugging and troubleshooting Secure Boot.

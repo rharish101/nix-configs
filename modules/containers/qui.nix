@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.qui = {
-    enable = lib.mkEnableOption "Enable qui";
+    enable = lib.mkEnableOption "qui";
     dataDir = lib.mkOption {
       description = "The data directory path for qui";
       type = lib.types.str;

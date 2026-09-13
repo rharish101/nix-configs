@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.bazarr = {
-    enable = lib.mkEnableOption "Enable Bazarr";
+    enable = lib.mkEnableOption "Bazarr";
     dataDir = lib.mkOption {
       description = "The data directory path for Bazarr";
       type = lib.types.str;

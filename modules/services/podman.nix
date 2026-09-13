@@ -4,7 +4,7 @@
 
 { config, lib, ... }:
 {
-  options.modules.podman.enable = lib.mkEnableOption "Enable podman for OCI containers";
+  options.modules.podman.enable = lib.mkEnableOption "Podman for OCI containers";
   config.virtualisation = lib.mkIf config.modules.podman.enable {
     podman.enable = true;
     oci-containers.backend = "podman";

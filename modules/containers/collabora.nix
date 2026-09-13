@@ -4,7 +4,7 @@
 
 { config, lib, ... }:
 {
-  options.modules.collabora.enable = lib.mkEnableOption "Enable Collabora Online";
+  options.modules.collabora.enable = lib.mkEnableOption "Collabora Online";
   config =
     let
       constants = import ../constants.nix lib;

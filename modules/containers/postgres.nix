@@ -5,7 +5,7 @@
 { config, lib, ... }:
 {
   options.modules.postgres = {
-    enable = lib.mkEnableOption "Enable PostgreSQL";
+    enable = lib.mkEnableOption "PostgreSQL server";
     dataDir = lib.mkOption {
       description = "The PostgreSQL directory path";
       type = lib.types.str;
