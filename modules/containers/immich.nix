@@ -2,7 +2,12 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{ config, lib, ... }:
+{
+  config,
+  inputs,
+  lib,
+  ...
+}:
 {
   options.modules.immich = {
     enable = lib.mkEnableOption "Enable Immich";
@@ -46,6 +51,9 @@
         config =
           { pkgs, ... }:
           {
+            disabledModules = [ "services/web-apps/immich.nix" ];
+            imports = [ "${inputs.nixpkgs-unstable}/nixos/modules/services/web-apps/immich.nix" ];
+
             hardware.graphics = {
               enable = true;
               extraPackages = with pkgs; [
@@ -57,6 +65,7 @@
 
             services.immich = {
               enable = true;
+              package = (import inputs.nixpkgs-unstable { system = pkgs.stdenv.hostPlatform.system; }).immich;
               host = "0.0.0.0";
               port = constants.ports.immich;
               secretsFile = "/run/credentials/@system/env";
