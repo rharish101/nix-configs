@@ -31,6 +31,27 @@
         "type": "github"
       }
     },
+    "dilbert-viewer": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1789585631,
+        "narHash": "sha256-H1HDp/Vnm6d76B8sgKi//KsJnbfsG9zIggcTPI9P+bc=",
+        "owner": "rharish101",
+        "repo": "dilbert-viewer",
+        "rev": "19ef0504a09f2f622e3a4f4460d770cb82476c18",
+        "type": "github"
+      },
+      "original": {
+        "owner": "rharish101",
+        "ref": "homelab",
+        "repo": "dilbert-viewer",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -206,6 +227,7 @@
     },
     "root": {
       "inputs": {
+        "dilbert-viewer": "dilbert-viewer",
         "impermanence": "impermanence",
         "lanzaboote": "lanzaboote",
         "nix-minecraft": "nix-minecraft",

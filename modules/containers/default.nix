@@ -12,6 +12,7 @@
     ./caddy-wg-server.nix
     ./collabora.nix
     ./crowdsec-lapi.nix
+    ./dilbert.nix
     ./immich.nix
     ./jellyfin.nix
     ./lidarr.nix

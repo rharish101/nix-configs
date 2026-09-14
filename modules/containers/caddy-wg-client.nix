@@ -180,6 +180,9 @@
                 virtualHosts."http://${subdomains.collabora}.${domain}".extraConfig = ''
                   reverse_proxy ${collabora.ip4}:${toString constants.ports.collabora}
                 '';
+                virtualHosts."http://${subdomains.dilbert}.${domain}".extraConfig = ''
+                  reverse_proxy ${dilbert.ip4}:${toString constants.ports.dilbert}
+                '';
                 virtualHosts."http://${subdomains.immich}.${domain}".extraConfig = ''
                   reverse_proxy ${immich.ip4}:${toString constants.ports.immich}
                 '';

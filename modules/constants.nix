@@ -45,6 +45,7 @@ lib: rec {
       sonarr = getIps 17;
       bazarr = getIps 18;
       lidarr = getIps 19;
+      dilbert = getIps 20;
     };
 
   # Container dependencies for a container's systemd unit.
@@ -65,6 +66,10 @@ lib: rec {
     ];
     collabora = [ "caddy-wg-client" ];
     crowdsec-lapi = [
+      "caddy-wg-client"
+      "postgres"
+    ];
+    dilbert = [
       "caddy-wg-client"
       "postgres"
     ];
@@ -134,6 +139,7 @@ lib: rec {
       "jellyfin"
       "minecraft"
     ];
+    dilbert = [ "caddy-wg-client" ];
     immich = [ "caddy-wg-client" ];
     jellyfin = [ "caddy-wg-client" ];
     lidarr = [
@@ -150,6 +156,7 @@ lib: rec {
       "authelia"
       "bazarr"
       "crowdsec-lapi"
+      "dilbert"
       "immich"
       "lidarr"
       "lldap"
@@ -271,6 +278,7 @@ lib: rec {
     bazarr = 6767;
     collabora = 9980;
     crowdsec = 20546; # Avoid default 8080 to prevent conflicts
+    dilbert = 5000;
     immich = 2283;
     jellyfin = 8096;
     lidarr = 8686;
@@ -296,6 +304,7 @@ lib: rec {
       authelia = "auth";
       bentopdf = "pdf";
       collabora = "office";
+      dilbert = "dilbert-viewer";
       immich = "photos";
       jellyfin = "media";
       opencloud = "cloud";
@@ -331,6 +340,10 @@ lib: rec {
       memory = 1;
     };
     collabora = {
+      cpu = 1;
+      memory = 1;
+    };
+    dilbert = {
       cpu = 1;
       memory = 1;
     };

@@ -118,6 +118,7 @@ in
     enable = true;
     dataDir = "/data/crowdsec";
   };
+  modules.dilbert.enable = true;
   modules.feishin.enable = true;
   modules.immich = {
     enable = true;

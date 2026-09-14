@@ -50,6 +50,7 @@
                 host sameuser authelia    ${authelia.ip4}/32      scram-sha-256
                 host sameuser bazarr      ${bazarr.ip4}/32        scram-sha-256
                 host sameuser crowdsec    ${crowdsec-lapi.ip4}/32 scram-sha-256
+                host sameuser dilbert     ${dilbert.ip4}/32       scram-sha-256
                 host sameuser immich      ${immich.ip4}/32        scram-sha-256
                 host sameuser lidarr      ${lidarr.ip4}/32        scram-sha-256
                 host sameuser lldap       ${lldap.ip4}/32         scram-sha-256
@@ -71,6 +72,10 @@
                 })
                 (lib.mkIf config.modules.crowdsec-lapi.enable {
                   name = "crowdsec";
+                  ensureDBOwnership = true;
+                })
+                (lib.mkIf config.modules.dilbert.enable {
+                  name = "dilbert";
                   ensureDBOwnership = true;
                 })
                 (lib.mkIf config.modules.immich.enable {
@@ -114,6 +119,7 @@
                 (lib.mkIf config.modules.authelia.enable "authelia")
                 (lib.mkIf config.modules.bazarr.enable "bazarr")
                 (lib.mkIf config.modules.crowdsec-lapi.enable "crowdsec")
+                (lib.mkIf config.modules.dilbert.enable "dilbert")
                 (lib.mkIf config.modules.immich.enable "immich")
                 (lib.mkIf config.modules.lidarr.enable "lidarr")
                 (lib.mkIf config.modules.lldap.enable "lldap")
