@@ -193,7 +193,11 @@
                       // value;
                     proxyConfig = ''
                       ${rateLimitConfig}
-                      reverse_proxy ${clientIp}:80
+                      reverse_proxy ${clientIp}:80 {
+                        transport http {
+                          proxy_protocol v2
+                        }
+                      }
                     '';
                   in
                   builtins.mapAttrs addLogFormat (
@@ -204,7 +208,7 @@
                       '';
                       ${domain}.extraConfig = proxyConfig;
                       "www.${domain}".extraConfig = ''
-                            ${rateLimitConfig}
+                        ${rateLimitConfig}
                         redir https://${domain} 301
                       '';
                     }

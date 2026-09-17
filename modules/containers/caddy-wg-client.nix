@@ -101,6 +101,15 @@
               with config.modules.caddy-wg-client.wireguard;
               with constants.domain;
               with constants.bridge;
+              let
+                # Trust the WireGuard server, which is also a reverse proxy, so that we use the
+                # source IPs it reports (used by CrowdSec for blocking bad actors)
+                proxyProtocolConfig = ''
+                  proxy_protocol {
+                    allow ${constants.veths.tunnel.server.ip4}/32
+                  }
+                '';
+              in
               {
                 enable = true;
                 package = pkgs.caddy.withPlugins {
@@ -118,7 +127,7 @@
                     layer4 {
                       tcp/:${toString mcPort} {
                         route {
-                          proxy_protocol
+                          ${proxyProtocolConfig}
                           proxy {
                             proxy_protocol v2
                             upstream tcp/${mcAddr}:${toString mcPort}
@@ -127,7 +136,7 @@
                       }
                       udp/:${toString mcPort} {
                         route {
-                          proxy_protocol
+                          ${proxyProtocolConfig}
                           proxy {
                             proxy_protocol v2
                             upstream udp/${mcAddr}:${toString mcPort}
@@ -135,10 +144,10 @@
                         }
                       }
                     }
-                    # Trust the WireGuard server, which is also a reverse proxy, so that we use the
-                    # source IPs it reports (used by CrowdSec for blocking bad actors)
                     servers {
-                      trusted_proxies static ${constants.veths.tunnel.server.ip4}/24 ${server.address}
+                      listener_wrappers {
+                        ${proxyProtocolConfig}
+                      }
                     }
                   '';
                 virtualHosts.":80".extraConfig = ''
