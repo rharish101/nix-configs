@@ -124,8 +124,9 @@
                     "github.com/caddy-dns/cloudflare@v0.2.4"
                     "github.com/mholt/caddy-l4@v0.1.2"
                     "github.com/mholt/caddy-ratelimit@v0.1.1-0.20260612195517-5625512f24f6"
+                    "github.com/WeidiDeng/caddy-cloudflare-ip@v0.0.0-20231130002422-f53b62aa13cb"
                   ];
-                  hash = "sha256-x7fN1kGwlyoJVapVMxcgVRcFNyH22QeO/DHSvWjY2ao=";
+                  hash = "sha256-7iYV/ZCc7M2Ym3rz3STl4TE5cCvIlOPOCV5S8pZy2eE=";
                 };
                 environmentFile = "/run/credentials/@system/caddy-env";
                 email = "harish.rajagopals@gmail.com";
@@ -157,6 +158,14 @@
                         }
                       }
                     }
+                  }
+                  # Trust Cloudflare, so that we use the source IPs it reports (used by CrowdSec for
+                  # blocking bad actors)
+                  servers {
+                    trusted_proxies cloudflare {
+                      timeout 10s
+                    }
+                    trusted_proxies_strict
                   }
                 '';
                 virtualHosts =
