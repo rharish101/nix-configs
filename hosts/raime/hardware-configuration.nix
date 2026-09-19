@@ -90,16 +90,6 @@
     ];
   };
 
-  fileSystems."/nix/.snapshots" = {
-    device = "/dev/disk/by-uuid/76177813-16ba-4a28-98fc-10efcdea03b1";
-    fsType = "btrfs";
-    options = [
-      "subvol=@snapshots-nix"
-      "noatime"
-      "compress-force=zstd:1"
-    ];
-  };
-
   fileSystems."/home" = {
     device = "/dev/disk/by-uuid/76177813-16ba-4a28-98fc-10efcdea03b1";
     fsType = "btrfs";
