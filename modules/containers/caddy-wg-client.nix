@@ -29,14 +29,20 @@
   config =
     let
       constants = import ../constants.nix lib;
-      caddyDataDir = "/var/lib/containers/caddy";
+      forwardAuthCfg = ''
+        forward_auth ${constants.bridge.authelia.ip4}:${toString constants.ports.authelia} {
+          header_up X-Forwarded-Proto https
+          uri /api/authz/forward-auth
+          copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
+        }
+      '';
     in
     lib.mkIf config.modules.caddy-wg-client.enable {
       modules.containers.caddy-wg-client = {
         username = "caddywg";
 
         dirMounts.dataDir = {
-          hostPath = caddyDataDir;
+          hostPath = "/var/lib/containers/caddy";
           mountPoint = "/var/lib/caddy";
           isReadOnly = false;
         };
@@ -157,10 +163,7 @@
                   reverse_proxy ${crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
                 '';
                 virtualHosts."http://${subdomains.arr}.${domain}".extraConfig = ''
-                  forward_auth ${authelia.ip4}:${toString constants.ports.authelia} {
-                    uri /api/authz/forward-auth
-                    copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
-                  }
+                  ${forwardAuthCfg}
                   @prowlarr path /indexers /indexers/*
                   handle @prowlarr {
                     reverse_proxy ${prowlarr.ip4}:${toString constants.ports.prowlarr}
@@ -184,7 +187,9 @@
                   respond 404
                 '';
                 virtualHosts."http://${subdomains.authelia}.${domain}".extraConfig = ''
-                  reverse_proxy ${authelia.ip4}:${toString constants.ports.authelia}
+                  reverse_proxy ${authelia.ip4}:${toString constants.ports.authelia} {
+                    header_up X-Forwarded-Proto https
+                  }
                 '';
                 virtualHosts."http://${subdomains.collabora}.${domain}".extraConfig = ''
                   reverse_proxy ${collabora.ip4}:${toString constants.ports.collabora}
@@ -217,12 +222,9 @@
               domain = with constants.domain; "http://${subdomains.bentopdf}.${domain}";
               caddy = {
                 enable = true;
-                virtualHost.extraConfig = with constants; ''
+                virtualHost.extraConfig = ''
                   encode
-                  forward_auth ${bridge.authelia.ip4}:${toString ports.authelia} {
-                    uri /api/authz/forward-auth
-                    copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
-                  }
+                  ${forwardAuthCfg}
                 '';
               };
             };
