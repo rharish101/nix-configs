@@ -204,7 +204,9 @@
                   reverse_proxy ${jellyfin.ip4}:${toString constants.ports.jellyfin}
                 '';
                 virtualHosts."http://${subdomains.opencloud}.${domain}".extraConfig = ''
-                  reverse_proxy ${opencloud.ip4}:${toString constants.ports.opencloud}
+                  reverse_proxy ${opencloud.ip4}:${toString constants.ports.opencloud} {
+                    header_up X-Forwarded-Proto https
+                  }
                 '';
                 virtualHosts."http://${subdomains.qui}.${domain}".extraConfig = ''
                   reverse_proxy ${qui.ip4}:${toString constants.ports.qui}
