@@ -139,10 +139,17 @@
                   }
                 '';
               extraConfig = ''
+                (reverse-proxy) {
+                  reverse_proxy {args[:]} {
+                    # Some services get annoyed by `X-Forwarded-Proto: http`.
+                    header_up X-Forwarded-Proto https
+                    {block}
+                  }
+                }
                 (pathbase-proxy) {
                   @{args[0]} path /{args[1]} /{args[1]}/*
                   handle @{args[0]} {
-                    reverse_proxy {args[2:]}
+                    import reverse-proxy {args[2:]}
                   }
                 }
                 (forward-auth) {
@@ -162,7 +169,7 @@
                     respond "hello world"
                   '';
                   ":${toString constants.ports.crowdsec}".extraConfig = ''
-                    reverse_proxy ${crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
+                    import reverse-proxy ${crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
                   '';
                   "http://${subdomains.arr}.${domain}".extraConfig = ''
                     import forward-auth
@@ -174,31 +181,31 @@
                     respond 404
                   '';
                   "http://${subdomains.authelia}.${domain}".extraConfig = ''
-                    reverse_proxy ${authelia.ip4}:${toString constants.ports.authelia}
+                    import reverse-proxy ${authelia.ip4}:${toString constants.ports.authelia}
                   '';
                   "http://${subdomains.collabora}.${domain}".extraConfig = ''
-                    reverse_proxy ${collabora.ip4}:${toString constants.ports.collabora}
+                    import reverse-proxy ${collabora.ip4}:${toString constants.ports.collabora}
                   '';
                   "http://${subdomains.dilbert}.${domain}".extraConfig = ''
-                    reverse_proxy ${dilbert.ip4}:${toString constants.ports.dilbert}
+                    import reverse-proxy ${dilbert.ip4}:${toString constants.ports.dilbert}
                   '';
                   "http://${subdomains.immich}.${domain}".extraConfig = ''
-                    reverse_proxy ${immich.ip4}:${toString constants.ports.immich}
+                    import reverse-proxy ${immich.ip4}:${toString constants.ports.immich}
                   '';
                   "http://${subdomains.jellyfin}.${domain}".extraConfig = ''
-                    reverse_proxy ${jellyfin.ip4}:${toString constants.ports.jellyfin}
+                    import reverse-proxy ${jellyfin.ip4}:${toString constants.ports.jellyfin}
                   '';
                   "http://${subdomains.opencloud}.${domain}".extraConfig = ''
-                    reverse_proxy ${opencloud.ip4}:${toString constants.ports.opencloud}
+                    import reverse-proxy ${opencloud.ip4}:${toString constants.ports.opencloud}
                   '';
                   "http://${subdomains.qui}.${domain}".extraConfig = ''
-                    reverse_proxy ${qui.ip4}:${toString constants.ports.qui}
+                    import reverse-proxy ${qui.ip4}:${toString constants.ports.qui}
                   '';
                   "http://${subdomains.tandoor}.${domain}".extraConfig = ''
-                    reverse_proxy ${tandoor.ip4}:${toString constants.ports.tandoor}
+                    import reverse-proxy ${tandoor.ip4}:${toString constants.ports.tandoor}
                   '';
                   "http://${subdomains.vaultwarden}.${domain}".extraConfig = ''
-                    reverse_proxy ${vaultwarden.ip4}:${toString constants.ports.vaultwarden}
+                    import reverse-proxy ${vaultwarden.ip4}:${toString constants.ports.vaultwarden}
                   '';
                 };
             };
