@@ -28,7 +28,6 @@
   config =
     let
       constants = import ../constants.nix lib;
-      caddyDataDir = "/var/lib/containers/caddy";
     in
     lib.mkIf config.modules.caddy-wg-server.enable {
       modules.containers.caddy-wg-server = {
@@ -64,7 +63,7 @@
         ];
 
         dirMounts.dataDir = {
-          hostPath = caddyDataDir;
+          hostPath = "/var/lib/containers/caddy";
           mountPoint = "/var/lib/caddy";
           isReadOnly = false;
         };
@@ -130,101 +129,107 @@
                 };
                 environmentFile = "/run/credentials/@system/caddy-env";
                 email = "harish.rajagopals@gmail.com";
-                globalConfig = with constants.ports; ''
-                  # Configure DNS provider for getting TLS certs from LetsEncrypt through ACME.
-                  dns cloudflare {
-                    zone_token {env.ZONE_TOKEN}
-                    api_token {env.DNS_TOKEN}
-                  }
-                  # Enable ECH for the main domain (as it's the only one I control directly with the
-                  # DNS provider)
-                  ech ${constants.domain.domain}
-                  # Reverse proxy for Minecraft with proxy protocol v2 for logging source IPs (used
-                  # by CrowdSec for blocking bad actors)
-                  layer4 {
-                    tcp/:${toString minecraft} {
-                      route {
-                        proxy {
-                          proxy_protocol v2
-                          upstream tcp/${clientIp}:${toString minecraft}
-                        }
-                      }
-                    }
-                    udp/:${toString minecraft} {
-                      route {
-                        proxy {
-                          proxy_protocol v2
-                          upstream udp/${clientIp}:${toString minecraft}
-                        }
-                      }
-                    }
-                  }
-                  # Trust Cloudflare, so that we use the source IPs it reports (used by CrowdSec for
-                  # blocking bad actors)
-                  servers {
-                    trusted_proxies cloudflare {
-                      timeout 10s
-                    }
-                    trusted_proxies_strict
-                  }
-                '';
-                virtualHosts =
+                globalConfig =
+                  # Caddyfile snippets don't work in the layer4 global config.
                   let
-                    inherit (constants.domain) domain;
+                    mcPort = toString constants.ports.minecraft;
+                    mcProxyConfig = proto: ''
+                      ${proto}/:${mcPort} {
+                        route {
+                          proxy {
+                            proxy_protocol v2
+                            upstream ${proto}/${clientIp}:${mcPort}
+                          }
+                        }
+                      }
+                    '';
+                  in
+                  ''
+                    # Configure DNS provider for getting TLS certs from LetsEncrypt through ACME.
+                    dns cloudflare {
+                      zone_token {env.ZONE_TOKEN}
+                      api_token {env.DNS_TOKEN}
+                    }
+                    # Enable ECH for the main domain (as it's the only one I control directly with the
+                    # DNS provider)
+                    ech ${constants.domain.domain}
+                    # Reverse proxy for Minecraft with proxy protocol v2 for logging source IPs
+                    # (used by CrowdSec for blocking bad actors)
+                    layer4 {
+                      ${mcProxyConfig "tcp"}
+                      ${mcProxyConfig "udp"}
+                    }
+                    # Trust Cloudflare, so that we use the source IPs it reports (used by CrowdSec for
+                    # blocking bad actors)
+                    servers {
+                      trusted_proxies cloudflare {
+                        timeout 10s
+                      }
+                      trusted_proxies_strict
+                    }
+                  '';
+                extraConfig = ''
+                  (rate-limit) {
                     # NOTE: Make sure that this isn't too low.
                     # For reference, one load of the Jellyfin homepage takes ~180 requests (as of
                     # 2026-02-25).
-                    rateLimitConfig = ''
-                      rate_limit {
-                        zone global {
-                          window 10s
-                          events 20000
-                        }
-                        zone per_host {
-                          key {remote_host}
-                          window 10s
-                          events 2000
-                        }
-                        jitter 0.2
+                    rate_limit {
+                      zone global {
+                        window 10s
+                        events 20000
                       }
-                    '';
+                      zone per_host {
+                        key {remote_host}
+                        window 10s
+                        events 2000
+                      }
+                      jitter 0.2
+                    }
+                  }
+                  (reverse-proxy) {
+                    import rate-limit
+                    reverse_proxy ${clientIp}:{args[0]} {
+                      transport http {
+                        proxy_protocol v2
+                      }
+                    }
+                  }
+                '';
+                virtualHosts =
+                  with constants.domain;
+                  let
+                    sanitize = name: builtins.replaceStrings [ "/" " " ] [ "_" "_" ] name;
+                    logFile = name: "${config.services.caddy.logDir}/access-${sanitize name}.log";
                     addLogFormat =
                       name: value:
                       {
                         logFormat = ''
-                          output file ${config.services.caddy.logDir}/access-${
-                            lib.replaceStrings [ "/" " " ] [ "_" "_" ] name
-                          }.log {
+                          output file ${logFile name} {
                             mode 640
                           }
                         '';
                       }
                       // value;
-                    proxyConfig = ''
-                      ${rateLimitConfig}
-                      reverse_proxy ${clientIp}:80 {
-                        transport http {
-                          proxy_protocol v2
-                        }
-                      }
-                    '';
                   in
                   builtins.mapAttrs addLogFormat (
                     {
                       ":${toString constants.ports.crowdsec}".extraConfig = ''
-                            ${rateLimitConfig}
-                        reverse_proxy ${clientIp}:${toString constants.ports.crowdsec}
+                        import reverse-proxy ${toString constants.ports.crowdsec}
                       '';
-                      ${domain}.extraConfig = proxyConfig;
+                      ${domain}.extraConfig = ''
+                        import reverse-proxy 80
+                      '';
                       "www.${domain}".extraConfig = ''
-                        ${rateLimitConfig}
+                        import rate-limit
                         redir https://${domain} 301
                       '';
                     }
                     // lib.mapAttrs' (_: subdomain: {
-                      name = "${subdomain}.${constants.domain.domain}";
-                      value.extraConfig = proxyConfig;
-                    }) constants.domain.subdomains
+                      name = "${subdomain}.${domain}";
+                      value.extraConfig = ''
+                        import reverse-proxy 80
+                      '';
+                    }) subdomains
                   );
               };
 

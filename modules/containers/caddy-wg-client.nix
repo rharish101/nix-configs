@@ -4,10 +4,10 @@
 
 { config, lib, ... }:
 {
-  options.modules.caddy-wg-client = {
-    enable = lib.mkEnableOption "Caddy reverse proxy with a WireGuard client";
-    wireguard = {
-      server = {
+  options.modules = {
+    caddy-wg-client = {
+      enable = lib.mkEnableOption "Caddy reverse proxy with a WireGuard client";
+      wireguard.server = {
         publicKey = lib.mkOption {
           description = "The public key for the server";
           type = lib.types.str;
@@ -22,20 +22,13 @@
         };
       };
     };
+    bentopdf.enable = lib.mkEnableOption "BentoPDF";
+    feishin.enable = lib.mkEnableOption "Feishin Web";
   };
-  options.modules.bentopdf.enable = lib.mkEnableOption "BentoPDF";
-  options.modules.feishin.enable = lib.mkEnableOption "Feishin Web";
 
   config =
     let
       constants = import ../constants.nix lib;
-      forwardAuthCfg = ''
-        forward_auth ${constants.bridge.authelia.ip4}:${toString constants.ports.authelia} {
-          header_up X-Forwarded-Proto https
-          uri /api/authz/forward-auth
-          copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
-        }
-      '';
     in
     lib.mkIf config.modules.caddy-wg-client.enable {
       modules.containers.caddy-wg-client = {
@@ -103,121 +96,112 @@
               "psk:psk"
             ];
 
-            services.caddy =
-              with config.modules.caddy-wg-client.wireguard;
-              with constants.domain;
-              with constants.bridge;
-              let
-                # Trust the WireGuard server, which is also a reverse proxy, so that we use the
-                # source IPs it reports (used by CrowdSec for blocking bad actors)
-                proxyProtocolConfig = ''
-                  proxy_protocol {
-                    allow ${constants.veths.tunnel.server.ip4}/32
-                  }
-                '';
-              in
-              {
-                enable = true;
-                package = pkgs.caddy.withPlugins {
-                  plugins = [ "github.com/mholt/caddy-l4@v0.1.2" ];
-                  hash = "sha256-C+ksbA6ucY3GUsYHSUhkYoh1gTP8SIAJv0MLjhX8BQM=";
-                };
-                globalConfig =
-                  let
-                    mcAddr = minecraft.ip4;
-                    mcPort = constants.ports.minecraft;
-                  in
-                  ''
-                    # Reverse proxy for Minecraft with proxy protocol v2 for logging source IPs
-                    # (used by CrowdSec for blocking bad actors)
-                    layer4 {
-                      tcp/:${toString mcPort} {
-                        route {
-                          ${proxyProtocolConfig}
-                          proxy {
-                            proxy_protocol v2
-                            upstream tcp/${mcAddr}:${toString mcPort}
-                          }
-                        }
-                      }
-                      udp/:${toString mcPort} {
-                        route {
-                          ${proxyProtocolConfig}
-                          proxy {
-                            proxy_protocol v2
-                            upstream udp/${mcAddr}:${toString mcPort}
-                          }
-                        }
-                      }
+            services.caddy = {
+              enable = true;
+              package = pkgs.caddy.withPlugins {
+                plugins = [ "github.com/mholt/caddy-l4@v0.1.2" ];
+                hash = "sha256-C+ksbA6ucY3GUsYHSUhkYoh1gTP8SIAJv0MLjhX8BQM=";
+              };
+              globalConfig =
+                # Caddyfile snippets don't work in the layer4 global config.
+                let
+                  proxyProtocolConfig = ''
+                    proxy_protocol {
+                      # Trust the WireGuard server, which is also a reverse proxy, so that we use
+                      # the source IPs it reports (used by CrowdSec for blocking bad actors).
+                      allow ${constants.veths.tunnel.server.ip4}/32
                     }
-                    servers {
-                      listener_wrappers {
+                  '';
+                  mcPort = toString constants.ports.minecraft;
+                  mcProxyConfig = proto: ''
+                    ${proto}/:${mcPort} {
+                      route {
                         ${proxyProtocolConfig}
+                        proxy {
+                          proxy_protocol v2
+                          upstream ${proto}/${constants.bridge.minecraft.ip4}:${mcPort}
+                        }
                       }
                     }
                   '';
-                virtualHosts.":80".extraConfig = ''
-                  respond "hello world"
+                in
+                ''
+                  # Reverse proxy for Minecraft with proxy protocol v2 for logging source IPs
+                  # (used by CrowdSec for blocking bad actors)
+                  layer4 {
+                    ${mcProxyConfig "tcp"}
+                    ${mcProxyConfig "udp"}
+                  }
+                  servers {
+                    listener_wrappers {
+                      ${proxyProtocolConfig}
+                    }
+                  }
                 '';
-                virtualHosts.":${toString constants.ports.crowdsec}".extraConfig = ''
-                  reverse_proxy ${crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
-                '';
-                virtualHosts."http://${subdomains.arr}.${domain}".extraConfig = ''
-                  ${forwardAuthCfg}
-                  @prowlarr path /indexers /indexers/*
-                  handle @prowlarr {
-                    reverse_proxy ${prowlarr.ip4}:${toString constants.ports.prowlarr}
+              extraConfig = ''
+                (pathbase-proxy) {
+                  @{args[0]} path /{args[1]} /{args[1]}/*
+                  handle @{args[0]} {
+                    reverse_proxy {args[2:]}
                   }
-                  @radarr path /movies /movies/*
-                  handle @radarr {
-                    reverse_proxy ${radarr.ip4}:${toString constants.ports.radarr}
-                  }
-                  @sonarr path /shows /shows/*
-                  handle @sonarr {
-                    reverse_proxy ${sonarr.ip4}:${toString constants.ports.sonarr}
-                  }
-                  @bazarr path /subs /subs/*
-                  handle @bazarr {
-                    reverse_proxy ${bazarr.ip4}:${toString constants.ports.bazarr}
-                  }
-                  @lidarr path /music /music/*
-                  handle @lidarr {
-                    reverse_proxy ${lidarr.ip4}:${toString constants.ports.lidarr}
-                  }
-                  respond 404
-                '';
-                virtualHosts."http://${subdomains.authelia}.${domain}".extraConfig = ''
-                  reverse_proxy ${authelia.ip4}:${toString constants.ports.authelia} {
+                }
+                (forward-auth) {
+                  forward_auth ${constants.bridge.authelia.ip4}:${toString constants.ports.authelia} {
+                    # Authelia gets annoyed by `X-Forwarded-Proto: http`.
                     header_up X-Forwarded-Proto https
+                    uri /api/authz/forward-auth
+                    copy_headers Remote-User Remote-Groups Remote-Email Remote-Name
                   }
-                '';
-                virtualHosts."http://${subdomains.collabora}.${domain}".extraConfig = ''
-                  reverse_proxy ${collabora.ip4}:${toString constants.ports.collabora}
-                '';
-                virtualHosts."http://${subdomains.dilbert}.${domain}".extraConfig = ''
-                  reverse_proxy ${dilbert.ip4}:${toString constants.ports.dilbert}
-                '';
-                virtualHosts."http://${subdomains.immich}.${domain}".extraConfig = ''
-                  reverse_proxy ${immich.ip4}:${toString constants.ports.immich}
-                '';
-                virtualHosts."http://${subdomains.jellyfin}.${domain}".extraConfig = ''
-                  reverse_proxy ${jellyfin.ip4}:${toString constants.ports.jellyfin}
-                '';
-                virtualHosts."http://${subdomains.opencloud}.${domain}".extraConfig = ''
-                  reverse_proxy ${opencloud.ip4}:${toString constants.ports.opencloud} {
-                    header_up X-Forwarded-Proto https
-                  }
-                '';
-                virtualHosts."http://${subdomains.qui}.${domain}".extraConfig = ''
-                  reverse_proxy ${qui.ip4}:${toString constants.ports.qui}
-                '';
-                virtualHosts."http://${subdomains.tandoor}.${domain}".extraConfig = ''
-                  reverse_proxy ${tandoor.ip4}:${toString constants.ports.tandoor}
-                '';
-                virtualHosts."http://${subdomains.vaultwarden}.${domain}".extraConfig = ''
-                  reverse_proxy ${vaultwarden.ip4}:${toString constants.ports.vaultwarden}
-                '';
-              };
+                }
+              '';
+              virtualHosts =
+                with constants.bridge;
+                with constants.domain;
+                {
+                  ":80".extraConfig = ''
+                    respond "hello world"
+                  '';
+                  ":${toString constants.ports.crowdsec}".extraConfig = ''
+                    reverse_proxy ${crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
+                  '';
+                  "http://${subdomains.arr}.${domain}".extraConfig = ''
+                    import forward-auth
+                    import pathbase-proxy prowlarr indexers ${prowlarr.ip4}:${toString constants.ports.prowlarr}
+                    import pathbase-proxy radarr movies ${radarr.ip4}:${toString constants.ports.radarr}
+                    import pathbase-proxy sonarr shows ${sonarr.ip4}:${toString constants.ports.sonarr}
+                    import pathbase-proxy bazarr subs ${bazarr.ip4}:${toString constants.ports.bazarr}
+                    import pathbase-proxy lidarr music ${lidarr.ip4}:${toString constants.ports.lidarr}
+                    respond 404
+                  '';
+                  "http://${subdomains.authelia}.${domain}".extraConfig = ''
+                    reverse_proxy ${authelia.ip4}:${toString constants.ports.authelia}
+                  '';
+                  "http://${subdomains.collabora}.${domain}".extraConfig = ''
+                    reverse_proxy ${collabora.ip4}:${toString constants.ports.collabora}
+                  '';
+                  "http://${subdomains.dilbert}.${domain}".extraConfig = ''
+                    reverse_proxy ${dilbert.ip4}:${toString constants.ports.dilbert}
+                  '';
+                  "http://${subdomains.immich}.${domain}".extraConfig = ''
+                    reverse_proxy ${immich.ip4}:${toString constants.ports.immich}
+                  '';
+                  "http://${subdomains.jellyfin}.${domain}".extraConfig = ''
+                    reverse_proxy ${jellyfin.ip4}:${toString constants.ports.jellyfin}
+                  '';
+                  "http://${subdomains.opencloud}.${domain}".extraConfig = ''
+                    reverse_proxy ${opencloud.ip4}:${toString constants.ports.opencloud}
+                  '';
+                  "http://${subdomains.qui}.${domain}".extraConfig = ''
+                    reverse_proxy ${qui.ip4}:${toString constants.ports.qui}
+                  '';
+                  "http://${subdomains.tandoor}.${domain}".extraConfig = ''
+                    reverse_proxy ${tandoor.ip4}:${toString constants.ports.tandoor}
+                  '';
+                  "http://${subdomains.vaultwarden}.${domain}".extraConfig = ''
+                    reverse_proxy ${vaultwarden.ip4}:${toString constants.ports.vaultwarden}
+                  '';
+                };
+            };
 
             services.bentopdf = lib.mkIf config.modules.bentopdf.enable {
               enable = true;
@@ -226,7 +210,7 @@
                 enable = true;
                 virtualHost.extraConfig = ''
                   encode
-                  ${forwardAuthCfg}
+                  import forward-auth
                 '';
               };
             };
