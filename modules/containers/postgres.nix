@@ -74,10 +74,7 @@
                   name = "crowdsec";
                   ensureDBOwnership = true;
                 })
-                (lib.mkIf config.modules.dilbert.enable {
-                  name = "dilbert";
-                  ensureDBOwnership = true;
-                })
+                (lib.mkIf config.modules.dilbert.enable { name = "dilbert"; }) # read-only
                 (lib.mkIf config.modules.immich.enable {
                   name = "immich";
                   ensureDBOwnership = true;
