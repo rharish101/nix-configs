@@ -221,7 +221,7 @@
                       '';
                       "www.${domain}".extraConfig = ''
                         import rate-limit
-                        redir https://${domain} 301
+                        redir {scheme}://${domain}{uri} permanent
                       '';
                     }
                     // lib.mapAttrs' (_: subdomain: {
