@@ -38,16 +38,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1789585631,
-        "narHash": "sha256-H1HDp/Vnm6d76B8sgKi//KsJnbfsG9zIggcTPI9P+bc=",
+        "lastModified": 1790413493,
+        "narHash": "sha256-jbGMe1/BnRP35U1N2EMm4U+wq6297pi9XcSPRoKnJbc=",
         "owner": "rharish101",
         "repo": "dilbert-viewer",
-        "rev": "19ef0504a09f2f622e3a4f4460d770cb82476c18",
+        "rev": "24ca55504db3ea88f0ba84f94e677218ffc94827",
         "type": "github"
       },
       "original": {
         "owner": "rharish101",
-        "ref": "homelab",
         "repo": "dilbert-viewer",
         "type": "github"
       }

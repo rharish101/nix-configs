@@ -9,7 +9,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     dilbert-viewer = {
-      url = "github:rharish101/dilbert-viewer/homelab";
+      url = "github:rharish101/dilbert-viewer";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     impermanence = {
