@@ -95,6 +95,10 @@
                       default_policy = "deny";
                       rules = [ { subject = "group:tandoor-users"; } ];
                     };
+                    vaultwarden = {
+                      default_policy = "deny";
+                      rules = [ { subject = "group:vaultwarden-users"; } ];
+                    };
                   };
                   cors = {
                     endpoints = [ "token" ];
@@ -242,6 +246,7 @@
                         "profile"
                         "offline_access"
                       ];
+                      authorization_policy = "vaultwarden";
                       response_types = [ "code" ];
                       grant_types = [
                         "refresh_token"
