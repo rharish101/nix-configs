@@ -4,7 +4,14 @@
 
 { config, lib, ... }:
 {
-  options.modules.authelia.enable = lib.mkEnableOption "Authelia";
+  options.modules.authelia = {
+    enable = lib.mkEnableOption "Authelia";
+    redisDir = lib.mkOption {
+      description = "The directory where to persist the Redis RDB file";
+      type = lib.types.str;
+      default = "";
+    };
+  };
 
   config =
     let
@@ -13,6 +20,15 @@
     lib.mkIf config.modules.authelia.enable {
       modules.containers.authelia = {
         allowedPorts.Tcp = [ constants.ports.authelia ];
+        username = "authelia";
+
+        bindMounts.redis =
+          with config.modules.authelia;
+          lib.mkIf (redisDir != "") {
+            hostPath = "${redisDir}/dump.rdb";
+            mountPoint = "/var/lib/redis-authelia/dump.rdb";
+            isReadOnly = false;
+          };
 
         credentials = {
           csec-creds.name = "authelia/crowdsec";

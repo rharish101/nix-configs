@@ -103,7 +103,10 @@ in
   };
   modules.secure-boot.enable = true;
 
-  modules.authelia.enable = true;
+  modules.authelia = {
+    enable = true;
+    redisDir = "/data/authelia";
+  };
   modules.bazarr = {
     enable = true;
     dataDir = "/data/bazarr";
