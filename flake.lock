@@ -224,6 +224,28 @@
         "type": "github"
       }
     },
+    "rharish-homepage": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791029609,
+        "narHash": "sha256-vfsZsttOYrHHpPSo2sR9sxieqmhmX6253eMrIqB0isQ=",
+        "ref": "refs/heads/main",
+        "rev": "e8840c26c7ab3a4eae93eb2da7a64aa2c6de6f87",
+        "revCount": 1,
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/rharish101/homepage.git"
+      },
+      "original": {
+        "submodules": true,
+        "type": "git",
+        "url": "https://github.com/rharish101/homepage.git"
+      }
+    },
     "root": {
       "inputs": {
         "dilbert-viewer": "dilbert-viewer",
@@ -232,6 +254,7 @@
         "nix-minecraft": "nix-minecraft",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
+        "rharish-homepage": "rharish-homepage",
         "sops-nix": "sops-nix",
         "ucodenix": "ucodenix"
       }

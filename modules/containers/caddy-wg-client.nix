@@ -2,7 +2,12 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{ config, lib, ... }:
+{
+  config,
+  inputs,
+  lib,
+  ...
+}:
 {
   options.modules = {
     caddy-wg-client = {
@@ -165,8 +170,14 @@
                 with constants.bridge;
                 with constants.domain;
                 {
-                  ":80".extraConfig = ''
-                    respond "hello world"
+                  "http://${domain}".extraConfig = ''
+                    encode
+                    root ${inputs.rharish-homepage.packages.${pkgs.stdenv.hostPlatform.system}.default}
+                    file_server
+                    handle_errors 404 {
+                      rewrite /{err.status_code}.html
+                      file_server
+                    }
                   '';
                   ":${toString constants.ports.crowdsec}".extraConfig = ''
                     import reverse-proxy ${crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
