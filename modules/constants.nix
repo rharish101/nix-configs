@@ -45,7 +45,7 @@ lib: rec {
       sonarr = getIps 17;
       bazarr = getIps 18;
       lidarr = getIps 19;
-      dilbert = getIps 20;
+      dilbert.ip4 = "${ip4Prefix}20";
     };
 
   # Hard container dependencies for a container's systemd unit.
