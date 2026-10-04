@@ -98,12 +98,12 @@
                   "plugins/Geyser.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/velocity";
                     name = "Geyser";
-                    hash = "sha256-HWqxR3BJTFnhLPAZzCY1aCRyX/opjv0k4hBMYgmyoJg=";
+                    hash = "sha256-PvZLiv6HeIc8BuVeiac/gQkhR4GrH5ZGNgMaUtLu5hk=";
                   };
                   "plugins/Floodgate.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/velocity";
                     name = "Floodgate";
-                    hash = "sha256-9YZ615uQ04q8xydVpoVCj7z0I7UsmDCjn/7VID3mk2o=";
+                    hash = "sha256-ZJg1Ai3jf/CSVfxibUv+e8KjuSbQew368fUeEr83AB0=";
                   };
                 };
                 files."velocity.toml".value = {
@@ -173,7 +173,7 @@
                   "plugins/Floodgate.jar" = pkgs.fetchurl {
                     url = "https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot";
                     name = "Floodgate";
-                    hash = "sha256-n0NsQv/YsQkaQ316Thb4IYG51TFPixcy36nVpP/7Gf4=";
+                    hash = "sha256-IVcK/5zhfWmDko6FUnd3YOHt5QUAJrBMaGsK4RLm/X4=";
                   };
                 };
                 files."config/paper-global.yml".value.proxies.velocity = {
