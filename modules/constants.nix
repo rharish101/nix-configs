@@ -48,81 +48,62 @@ lib: rec {
       dilbert = getIps 20;
     };
 
-  # Container dependencies for a container's systemd unit.
-  # Also used for determining the default gateway, for containers who need internet access.
+  # Hard container dependencies for a container's systemd unit.
   # NOTE: Keys and list values for containers **must** correspond to their names.
-  containerDeps = {
+  containerRequires = {
     authelia = [
-      "caddy-wg-client"
-      "crowdsec-lapi"
       "lldap"
       "postgres"
     ];
+    bazarr = [ "postgres" ];
+    crowdsec-lapi = [ "postgres" ];
+    dilbert = [ "postgres" ];
+    immich = [ "postgres" ];
+    lidarr = [ "postgres" ];
+    lldap = [ "postgres" ];
+    prowlarr = [ "postgres" ];
+    qui = [ "postgres" ];
+    radarr = [ "postgres" ];
+    sonarr = [ "postgres" ];
+    tandoor = [ "postgres" ];
+    vaultwarden = [ "postgres" ];
+  };
+
+  # Soft container dependencies for a container's systemd unit (excluding the gateway).
+  # NOTE: Keys and list values for containers **must** correspond to their names.
+  containerWants = {
+    authelia = [ "crowdsec-lapi" ];
     bazarr = [
-      "caddy-wg-client"
-      "postgres"
       "radarr"
       "sonarr"
     ];
-    collabora = [ "caddy-wg-client" ];
-    crowdsec-lapi = [
-      "caddy-wg-client"
-      "postgres"
-    ];
-    dilbert = [
-      "caddy-wg-client"
-      "postgres"
-    ];
-    immich = [
-      "caddy-wg-client"
-      "postgres"
-    ];
     jellyfin = [
-      "caddy-wg-client"
       "crowdsec-lapi"
+      "lldap"
     ];
     lidarr = [
-      "caddy-wg-client"
-      "postgres"
       "prowlarr"
       "qui"
     ];
-    lldap = [ "postgres" ];
-    minecraft = [
-      "caddy-wg-client"
-      "crowdsec-lapi"
-    ];
-    opencloud = [ "caddy-wg-client" ];
+    minecraft = [ "crowdsec-lapi" ];
     prowlarr = [
-      "caddy-wg-client"
-      "postgres"
-      "qbittorrent"
+      "lidarr"
+      "radarr"
+      "sonarr"
     ];
     qui = [
-      "caddy-wg-client"
-      "postgres"
       "prowlarr"
       "qbittorrent"
+      "radarr"
+      "sonarr"
     ];
     radarr = [
-      "caddy-wg-client"
-      "postgres"
       "prowlarr"
       "qui"
     ];
     sonarr = [
-      "caddy-wg-client"
-      "postgres"
       "prowlarr"
       "qui"
-    ];
-    tandoor = [
-      "caddy-wg-client"
-      "postgres"
-    ];
-    vaultwarden = [
-      "caddy-wg-client"
-      "postgres"
     ];
   };
 
@@ -231,6 +212,7 @@ lib: rec {
     };
   };
 
+  # NOTE: Keys and values for containers **must** correspond to their names.
   gateways = {
     authelia = "caddy-wg-client";
     bazarr = "caddy-wg-client";

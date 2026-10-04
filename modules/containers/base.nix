@@ -350,10 +350,17 @@ in
             }
           );
 
-          # Include dependencies from containerDeps, including bridges for bridge containers.
+          # Include hard dependencies from containerRequires, including bridges for bridge
+          # containers.
           requires =
-            map (name: "container@${name}.service") constants.containerDeps.${name} or [ ]
+            map (name: "container@${name}.service") constants.containerRequires.${name} or [ ]
             ++ lib.optionals (hasAttr name constants.bridge) [ "${bridgeName}-netdev.service" ];
+
+          # Include soft dependencies from containerWants, including the gateway container.
+          wants = map (name: "container@${name}.service") (
+            constants.containerWants.${name} or [ ]
+            ++ lib.optionals (hasAttr name constants.gateways) [ constants.gateways.${name} ]
+          );
         }
       ) config.modules.containers;
 
