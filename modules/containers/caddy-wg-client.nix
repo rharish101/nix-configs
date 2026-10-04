@@ -170,7 +170,7 @@
                 with constants.bridge;
                 with constants.domain;
                 {
-                  "http://${domain}".extraConfig = ''
+                  "http://${subdomains.www}.${domain}".extraConfig = ''
                     encode
                     root ${inputs.rharish-homepage.packages.${pkgs.stdenv.hostPlatform.system}.default}
                     file_server

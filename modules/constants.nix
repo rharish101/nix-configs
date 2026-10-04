@@ -294,6 +294,7 @@ lib: rec {
       qui = "p2p";
       tandoor = "recipes";
       vaultwarden = "vault";
+      www = "www"; # Personal homepage
     };
     ldapBaseDn = "dc=rharish,dc=dev";
   };

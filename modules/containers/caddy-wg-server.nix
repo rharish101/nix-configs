@@ -229,11 +229,8 @@
                         import reverse-proxy ${toString constants.ports.crowdsec}
                       '';
                       ${domain}.extraConfig = ''
-                        import reverse-proxy 80
-                      '';
-                      "www.${domain}".extraConfig = ''
                         import rate-limit
-                        redir {scheme}://${domain}{uri} permanent
+                        redir {scheme}://www.${domain}{uri} permanent
                       '';
                     }
                     // lib.mapAttrs' (_: subdomain: {
