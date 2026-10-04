@@ -28,15 +28,27 @@
   config =
     let
       constants = import ../constants.nix lib;
+      hostName = config.networking.hostName;
     in
     lib.mkIf config.modules.caddy-wg-server.enable {
+      sops.secrets."caddy/wg-server/crowdsec" = { };
+      sops.templates."caddy/wg-server/csec-creds".content = ''
+        url: http://${constants.veths.tunnel.client.ip4}:${toString constants.ports.crowdsec}
+        login: ${hostName}-caddy
+        password: ${config.sops.placeholder."caddy/wg-server/crowdsec"}
+      '';
+
       modules.containers.caddy-wg-server = {
         username = "caddywg";
+
         credentials = {
           priv-key.name = "wireguard/server";
           psk.name = "wireguard/psk";
           caddy-env.name = "cloudflare";
-          csec-creds.name = "crowdsec/caddy-creds";
+          csec-creds = {
+            name = "caddy/wg-server/csec-creds";
+            sopsType = "template";
+          };
         };
 
         forwardPorts = with config.modules.caddy-wg-server; [
@@ -236,7 +248,7 @@
             services.crowdsec = lib.mkIf globalConfig.modules.caddy-wg-server.crowdsec.enable {
               enable = true;
               autoUpdateService = true;
-              name = "${globalConfig.networking.hostName}-caddy";
+              name = "${hostName}-caddy";
 
               localConfig.acquisitions = [
                 {

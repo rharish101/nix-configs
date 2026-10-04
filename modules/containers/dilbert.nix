@@ -15,6 +15,7 @@
       constants = import ../constants.nix lib;
     in
     lib.mkIf config.modules.dilbert.enable {
+      sops.secrets."dilbert/postgres" = { };
       sops.templates."dilbert/env".content =
         let
           pgPassword = config.sops.placeholder."dilbert/postgres";
@@ -27,12 +28,9 @@
       modules.containers.dilbert = {
         allowedPorts.Tcp = [ constants.ports.dilbert ];
 
-        credentials = {
-          postgres.name = "dilbert/postgres";
-          env = {
-            name = "dilbert/env";
-            sopsType = "template";
-          };
+        credentials.env = {
+          name = "dilbert/env";
+          sopsType = "template";
         };
 
         config =

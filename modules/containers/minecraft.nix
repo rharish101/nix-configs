@@ -25,6 +25,13 @@
       };
     in
     lib.mkIf config.modules.minecraft.enable {
+      sops.secrets."minecraft/crowdsec" = { };
+      sops.templates."minecraft/csec-creds".content = ''
+        url: http://${constants.bridge.crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
+        login: ${config.networking.hostName}-minecraft
+        password: ${config.sops.placeholder."minecraft/crowdsec"}
+      '';
+
       sops.templates."minecraft/env".content = ''
         VELOCITY_SECRET=${config.sops.placeholder."minecraft/velocity"}
       '';
@@ -44,7 +51,10 @@
         };
 
         credentials = {
-          csec-creds.name = "crowdsec/mc-creds";
+          csec-creds = {
+            name = "minecraft/csec-creds";
+            sopsType = "template";
+          };
           velocity-secret.name = "minecraft/velocity";
           floodgate-secret.name = "minecraft/floodgate";
           env = {

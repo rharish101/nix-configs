@@ -18,6 +18,13 @@
       constants = import ../constants.nix lib;
     in
     lib.mkIf config.modules.authelia.enable {
+      sops.secrets."authelia/crowdsec" = { };
+      sops.templates."authelia/csec-creds".content = ''
+        url: http://${constants.bridge.crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
+        login: ${config.networking.hostName}-authelia
+        password: ${config.sops.placeholder."authelia/crowdsec"}
+      '';
+
       modules.containers.authelia = {
         allowedPorts.Tcp = [ constants.ports.authelia ];
         username = "authelia";
@@ -31,7 +38,10 @@
           };
 
         credentials = {
-          csec-creds.name = "authelia/crowdsec";
+          csec-creds = {
+            name = "authelia/csec-creds";
+            sopsType = "template";
+          };
           jwt.name = "authelia/jwt";
           ldap-pass.name = "authelia/ldap";
           oidc-hmac.name = "authelia/oidc-hmac";

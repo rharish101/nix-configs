@@ -17,9 +17,15 @@
       gpuDevice = "/dev/dri/renderD128";
     in
     lib.mkIf config.modules.jellyfin.enable {
+      sops.secrets."jellyfin/crowdsec" = { };
+      sops.templates."jellyfin/csec-creds".content = ''
+        url: http://${constants.bridge.crowdsec-lapi.ip4}:${toString constants.ports.crowdsec}
+        login: ${config.networking.hostName}-jellyfin
+        password: ${config.sops.placeholder."jellyfin/crowdsec"}
+      '';
+
       modules.containers.jellyfin = {
         allowedPorts.Tcp = [ constants.ports.jellyfin ];
-        credentials.csec-creds.name = "jellyfin/crowdsec";
         username = "jellyfin";
 
         allowedDevices = [
@@ -28,6 +34,11 @@
             modifier = "rw";
           }
         ];
+
+        credentials.csec-creds = {
+          name = "jellyfin/csec-creds";
+          sopsType = "template";
+        };
 
         dirMounts = with config.modules.jellyfin; {
           data = {

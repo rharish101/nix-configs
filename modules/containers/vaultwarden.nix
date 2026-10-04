@@ -17,10 +17,35 @@
       constants = import ../constants.nix lib;
     in
     lib.mkIf config.modules.vaultwarden.enable {
+      sops.secrets = {
+        "vaultwarden/postgres" = { };
+        "vaultwarden/smtp" = { };
+        "vaultwarden/oidc" = { };
+        "vaultwarden/push/id" = { };
+        "vaultwarden/push/key" = { };
+      };
+
+      sops.templates."vaultwarden/env".content =
+        let
+          pgPassword = config.sops.placeholder."vaultwarden/postgres";
+          pgHost = "${constants.bridge.postgres.ip4}:${toString constants.ports.postgres}";
+        in
+        ''
+          DATABASE_URL='postgres://vaultwarden:${pgPassword}@${pgHost}/vaultwarden'
+          SMTP_PASSWORD='${config.sops.placeholder."vaultwarden/smtp"}'
+          SSO_CLIENT_SECRET=${config.sops.placeholder."vaultwarden/oidc"}
+          PUSH_INSTALLATION_ID=${config.sops.placeholder."vaultwarden/push/id"}
+          PUSH_INSTALLATION_KEY=${config.sops.placeholder."vaultwarden/push/key"}
+        '';
+
       modules.containers.vaultwarden = {
         allowedPorts.Tcp = [ constants.ports.vaultwarden ];
-        credentials.env.name = "vaultwarden";
         username = "vaultwarden";
+
+        credentials.env = {
+          name = "vaultwarden/env";
+          sopsType = "template";
+        };
 
         dirMounts.dataDir = {
           hostPath = config.modules.vaultwarden.dataDir;

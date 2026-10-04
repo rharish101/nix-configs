@@ -12,7 +12,19 @@
     };
   };
   config = lib.mkIf config.modules.crowdsec-sshd.enable {
-    sops.secrets."crowdsec/sshd-creds".restartUnits = [ "crowdsec.service" ];
+    sops.secrets."crowdsec/passwords/sshd" = { };
+    sops.templates."crowdsec/sshd-creds" =
+      let
+        constants = import ../constants.nix lib;
+      in
+      {
+        content = ''
+          url: http://${constants.veths.caddy-wg-server.local.ip4}:${toString constants.ports.crowdsec}
+          login: ${config.networking.hostName}-sshd
+          password: ${config.sops.placeholder."crowdsec/passwords/sshd"}
+        '';
+        restartUnits = [ "crowdsec.service" ];
+      };
 
     services.crowdsec = {
       enable = true;
@@ -31,7 +43,7 @@
       settings.general.api.client.credentials_path = lib.mkForce "\${CREDENTIALS_DIRECTORY}/csec-creds";
     };
     systemd.services.crowdsec.serviceConfig.LoadCredential = [
-      "csec-creds:${config.sops.secrets."crowdsec/sshd-creds".path}"
+      "csec-creds:${config.sops.templates."crowdsec/sshd-creds".path}"
     ];
   };
 }

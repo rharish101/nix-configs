@@ -10,11 +10,22 @@
       constants = import ../constants.nix lib;
     in
     lib.mkIf config.modules.lldap.enable {
+      sops.secrets."lldap/db" = { };
+      sops.templates."lldap/db-url".content =
+        let
+          pgPassword = config.sops.placeholder."lldap/db";
+          pgHost = "${constants.bridge.postgres.ip4}:${toString constants.ports.postgres}";
+        in
+        "postgres://lldap:${pgPassword}@${pgHost}/lldap";
+
       modules.containers.lldap = {
         allowedPorts.Tcp = [ constants.ports.lldap ];
 
         credentials = {
-          db-url.name = "lldap/db";
+          db-url = {
+            name = "lldap/db-url";
+            sopsType = "template";
+          };
           jwt.name = "lldap/jwt";
           key-seed.name = "lldap/key";
           user-pass.name = "lldap/pass";
