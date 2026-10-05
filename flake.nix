@@ -25,7 +25,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     rharish-homepage = {
-      url = "git+https://github.com/rharish101/homepage.git?submodules=1";
+      url = "git+https://github.com/rharish101/homepage.git?submodules=1&lfs=1&shallow=1";
       flake = true;
       inputs.nixpkgs.follows = "nixpkgs";
     };

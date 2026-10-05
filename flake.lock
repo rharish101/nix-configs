@@ -232,15 +232,18 @@
       },
       "locked": {
         "lastModified": 1791127544,
-        "narHash": "sha256-gFPwUHaGLgoo8to9UOXlh/KxOoyCKawi2ZoIC3O7iys=",
+        "lfs": true,
+        "narHash": "sha256-9X5ClVzu3Rgz4heZq2eNWfvdl0gnB+oIx6nT9id28V4=",
         "ref": "refs/heads/main",
         "rev": "43b97229a57dd2d4b82af8aeadca52ad54faecd9",
-        "revCount": 2,
+        "shallow": true,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/rharish101/homepage.git"
       },
       "original": {
+        "lfs": true,
+        "shallow": true,
         "submodules": true,
         "type": "git",
         "url": "https://github.com/rharish101/homepage.git"
