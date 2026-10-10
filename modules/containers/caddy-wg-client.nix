@@ -194,6 +194,9 @@
                   "http://${subdomains.authelia}.${domain}".extraConfig = ''
                     import reverse-proxy ${authelia.ip4}:${toString constants.ports.authelia}
                   '';
+                  "http://${subdomains.bookorbit}.${domain}".extraConfig = ''
+                    import reverse-proxy ${bookorbit.ip4}:${toString constants.ports.bookorbit}
+                  '';
                   "http://${subdomains.collabora}.${domain}".extraConfig = ''
                     import reverse-proxy ${collabora.ip4}:${toString constants.ports.collabora}
                   '';

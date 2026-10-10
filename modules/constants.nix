@@ -46,6 +46,7 @@ lib: rec {
       bazarr = getIps 18;
       lidarr = getIps 19;
       dilbert.ip4 = "${ip4Prefix}20";
+      bookorbit = getIps 21;
     };
 
   # Hard container dependencies for a container's systemd unit.
@@ -56,6 +57,7 @@ lib: rec {
       "postgres"
     ];
     bazarr = [ "postgres" ];
+    bookorbit = [ "postgres" ];
     crowdsec-lapi = [ "postgres" ];
     dilbert = [ "postgres" ];
     immich = [ "postgres" ];
@@ -113,6 +115,7 @@ lib: rec {
   firewallOpen = {
     authelia = [ "caddy-wg-client" ];
     bazarr = [ "caddy-wg-client" ];
+    bookorbit = [ "caddy-wg-client" ];
     collabora = [ "caddy-wg-client" ];
     crowdsec-lapi = [
       "authelia"
@@ -136,6 +139,7 @@ lib: rec {
     postgres = [
       "authelia"
       "bazarr"
+      "bookorbit"
       "crowdsec-lapi"
       "dilbert"
       "immich"
@@ -216,6 +220,7 @@ lib: rec {
   gateways = {
     authelia = "caddy-wg-client";
     bazarr = "caddy-wg-client";
+    bookorbit = "caddy-wg-client";
     collabora = "caddy-wg-client";
     crowdsec-lapi = "caddy-wg-client";
     immich = "caddy-wg-client";
@@ -254,11 +259,13 @@ lib: rec {
     sonarr = 65536 * 24;
     bazarr = 65536 * 25;
     lidarr = 65536 * 26;
+    bookorbit = 65536 * 27;
   };
 
   ports = {
     authelia = 9091;
     bazarr = 6767;
+    bookorbit = 3000;
     collabora = 9980;
     crowdsec = 20546; # Avoid default 8080 to prevent conflicts
     dilbert = 5000;
@@ -286,6 +293,7 @@ lib: rec {
       arr = "arr";
       authelia = "auth";
       bentopdf = "pdf";
+      bookorbit = "books";
       collabora = "office";
       dilbert = "dilbert-viewer";
       immich = "photos";
@@ -314,6 +322,10 @@ lib: rec {
     authelia = {
       cpu = 2;
       memory = 2;
+    };
+    bookorbit = {
+      cpu = 1;
+      memory = 1;
     };
     caddy-wg-client = {
       cpu = 1;

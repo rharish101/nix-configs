@@ -8,6 +8,7 @@
     ./base.nix
     ./authelia.nix
     ./bazarr.nix
+    ./bookorbit.nix
     ./caddy-wg-client.nix
     ./caddy-wg-server.nix
     ./collabora.nix

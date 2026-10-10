@@ -49,6 +49,7 @@
               authentication = with constants.bridge; ''
                 host sameuser authelia    ${authelia.ip4}/32      scram-sha-256
                 host sameuser bazarr      ${bazarr.ip4}/32        scram-sha-256
+                host sameuser bookorbit   ${bookorbit.ip4}/32     scram-sha-256
                 host sameuser crowdsec    ${crowdsec-lapi.ip4}/32 scram-sha-256
                 host sameuser dilbert     ${dilbert.ip4}/32       scram-sha-256
                 host sameuser immich      ${immich.ip4}/32        scram-sha-256
@@ -68,6 +69,10 @@
                 })
                 (lib.mkIf config.modules.bazarr.enable {
                   name = "bazarr";
+                  ensureDBOwnership = true;
+                })
+                (lib.mkIf config.modules.bookorbit.enable {
+                  name = "bookorbit";
                   ensureDBOwnership = true;
                 })
                 (lib.mkIf config.modules.crowdsec-lapi.enable {
@@ -115,6 +120,7 @@
               ensureDatabases = [
                 (lib.mkIf config.modules.authelia.enable "authelia")
                 (lib.mkIf config.modules.bazarr.enable "bazarr")
+                (lib.mkIf config.modules.bookorbit.enable "bookorbit")
                 (lib.mkIf config.modules.crowdsec-lapi.enable "crowdsec")
                 (lib.mkIf config.modules.dilbert.enable "dilbert")
                 (lib.mkIf config.modules.immich.enable "immich")

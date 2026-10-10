@@ -115,6 +115,10 @@ in
       "rharish/shows" = "${jellyfinDir}/media/rharish/Shows";
     };
   };
+  modules.bookorbit = {
+    enable = true;
+    dataDir = "/data/bookorbit";
+  };
   modules.bentopdf.enable = true;
   modules.collabora.enable = true;
   modules.crowdsec-lapi = {

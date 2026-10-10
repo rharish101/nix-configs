@@ -294,6 +294,22 @@
                       token_endpoint_auth_method = "client_secret_post";
                       pre_configured_consent_duration = "1 month";
                     }
+                    {
+                      client_id = "AVPqAoRkZefEH0~Z_-5lR~Tbrcn7MymBdh0JK1H81K5XIToM28y3t8qCopT0p4tA2lUImqfK";
+                      client_name = "BookOrbit";
+                      client_secret = "$pbkdf2-sha512$310000$UILI.QkaJqCvXFcUS1Tt8A$P8oXbFJB4TnFrQ3.Ii8OImGqykXnzV7Ilx/9ry214Mn79F7ZhoMoGhTIkdaaYKtj2CKevPWl3JrMgihrRmNBiA";
+                      redirect_uris = [
+                        "https://${subdomains.bookorbit}.${domain}/oauth2-callback"
+                        "bookorbit://oauth2-callback"
+                      ];
+                      scopes = [
+                        "openid"
+                        "profile"
+                        "email"
+                      ];
+                      token_endpoint_auth_method = "client_secret_post";
+                      pre_configured_consent_duration = "1 month";
+                    }
                   ];
                 };
               };
