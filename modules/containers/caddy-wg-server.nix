@@ -137,7 +137,7 @@
                     "github.com/mholt/caddy-ratelimit@v0.1.1-0.20260612195517-5625512f24f6"
                     "github.com/WeidiDeng/caddy-cloudflare-ip@v0.0.0-20231130002422-f53b62aa13cb"
                   ];
-                  hash = "sha256-7iYV/ZCc7M2Ym3rz3STl4TE5cCvIlOPOCV5S8pZy2eE=";
+                  hash = "sha256-eCMhDxgOmxKfhZ7n8rf+AMe9SZZVqLvgZxuaO5kJahU=";
                 };
                 environmentFile = "/run/credentials/@system/caddy-env";
                 email = "harish.rajagopals@gmail.com";
