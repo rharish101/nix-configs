@@ -29,11 +29,11 @@
         allowedPorts.Tcp = [ constants.ports.authelia ];
         username = "authelia";
 
-        bindMounts.redis =
+        dirMounts.redis =
           with config.modules.authelia;
           lib.mkIf (redisDir != "") {
-            hostPath = "${redisDir}/dump.rdb";
-            mountPoint = "/var/lib/redis-authelia/dump.rdb";
+            hostPath = "${redisDir}";
+            mountPoint = "/var/lib/redis-authelia";
             isReadOnly = false;
           };
 
