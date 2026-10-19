@@ -52,7 +52,10 @@
             isReadOnly = false;
           };
         };
-        bindMounts.render.mountPoint = "/dev/dri";
+        bindMounts.render = {
+          mountPoint = gpuDevice;
+          isReadOnly = false;
+        };
 
         config =
           let
@@ -63,13 +66,43 @@
             hardware.graphics = {
               enable = true;
               extraPackages = with pkgs; [
+                intel-ocl
                 intel-media-driver
                 vpl-gpu-rt
                 intel-compute-runtime
               ];
             };
+            nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "intel-ocl" ];
 
-            services.jellyfin.enable = true;
+            services.jellyfin = {
+              enable = true;
+              hardwareAcceleration = {
+                enable = true;
+                device = gpuDevice;
+                type = "qsv";
+              };
+              transcoding = {
+                enableHardwareEncoding = true;
+                enableIntelLowPowerEncoding = true;
+                deleteSegments = false;
+                hardwareDecodingCodecs = {
+                  av1 = true;
+                  h264 = true;
+                  hevc = true;
+                  hevc10bit = true;
+                  hevcRExt10bit = true;
+                  hevcRExt12bit = true;
+                  mpeg2 = true;
+                  vp8 = true;
+                  vp9 = true;
+                };
+                hardwareEncodingCodecs = {
+                  hevc = true;
+                  av1 = true;
+                };
+              };
+            };
+            systemd.services.jellyfin.environment.LIBVA_DRIVER_NAME = "iHD";
 
             services.crowdsec = lib.mkIf config.modules.crowdsec-lapi.enable {
               enable = true;
