@@ -339,6 +339,10 @@ lib: rec {
       cpu = 1;
       memory = 1;
     };
+    crowdsec-lapi = {
+      cpu = 1;
+      memory = 1;
+    };
     dilbert = {
       cpu = 1;
       memory = 1;
@@ -350,6 +354,10 @@ lib: rec {
     jellyfin = {
       cpu = 4;
       memory = 4;
+    };
+    lldap = {
+      cpu = 1;
+      memory = 1;
     };
     minecraft = {
       cpu = 6;
@@ -368,6 +376,10 @@ lib: rec {
       memory = 6;
     };
     qui = {
+      cpu = 1;
+      memory = 1;
+    };
+    tandoor = {
       cpu = 1;
       memory = 1;
     };
