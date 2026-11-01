@@ -17,6 +17,6 @@
     ./ssh-agent.nix
   ];
 
-  modules.autoUpdate = lib.mkDefault true;
+  modules.autoUpdate.enable = lib.mkDefault true;
   modules.snapshots.enable = lib.mkDefault true;
 }

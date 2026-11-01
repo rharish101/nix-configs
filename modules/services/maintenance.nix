@@ -9,17 +9,25 @@
   ...
 }:
 {
-  options.modules.autoUpdate = lib.mkEnableOption "automatic system updates";
+  options.modules.autoUpdate = {
+    enable = lib.mkEnableOption "automatic system updates";
+    schedule = lib.mkOption {
+      description = "Schedule for auto updates";
+      type = lib.types.str;
+      default = "weekly";
+    };
+  };
+
   config = {
     # Enable automatic upgrades.
-    system.autoUpgrade = lib.mkIf config.modules.autoUpdate {
+    system.autoUpgrade = lib.mkIf config.modules.autoUpdate.enable {
       enable = true;
       flake = "/etc/nixos";
       flags = builtins.concatMap (inp: [
         "--update-input"
         inp
       ]) (builtins.attrNames inputs);
-      dates = "Tue *-*-* 03:00:00";
+      dates = config.modules.autoUpdate.schedule;
       runGarbageCollection = true;
       allowReboot = true;
     };

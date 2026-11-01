@@ -126,6 +126,7 @@ in
     };
   };
 
+  modules.autoUpdate.schedule = "Mon *-*-* 03:00:00";
   modules.clamav.enable = true;
   modules.crowdsec-bouncer = {
     enable = true;

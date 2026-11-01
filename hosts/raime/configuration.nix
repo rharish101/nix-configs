@@ -83,6 +83,7 @@ in
   services.fwupd.enable = true;
   services.btrfs.autoScrub.enable = true;
 
+  modules.autoUpdate.schedule = "Tue *-*-* 03:00:00";
   modules.clamav = {
     enable = true;
     extraScanDirs = [ "/data" ];
