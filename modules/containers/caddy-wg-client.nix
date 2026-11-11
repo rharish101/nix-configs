@@ -105,7 +105,7 @@
               enable = true;
               package = pkgs.caddy.withPlugins {
                 plugins = [ "github.com/mholt/caddy-l4@v0.1.2" ];
-                hash = "sha256-Dz510teYCUvEA7MR8ERpaKsDHS5dBCDO+AjszV96si4=";
+                hash = "sha256-FwGmHobFqBkEI7LN/YaPsL0t+dJn8uZMhCp9asDEsYw=";
               };
               globalConfig =
                 # Caddyfile snippets don't work in the layer4 global config.
