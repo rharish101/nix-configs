@@ -2,7 +2,12 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-{ config, lib, ... }:
+{
+  config,
+  inputs,
+  lib,
+  ...
+}:
 {
   options.modules.jellyfin = {
     enable = lib.mkEnableOption "Jellyfin";
@@ -63,6 +68,9 @@
           in
           { pkgs, ... }:
           {
+            disabledModules = [ "services/misc/jellyfin.nix" ];
+            imports = [ "${inputs.nixpkgs-unstable}/nixos/modules/services/misc/jellyfin.nix" ];
+
             hardware.graphics = {
               enable = true;
               extraPackages = with pkgs; [
@@ -76,6 +84,7 @@
 
             services.jellyfin = {
               enable = true;
+              package = (import inputs.nixpkgs-unstable { system = pkgs.stdenv.hostPlatform.system; }).jellyfin;
               hardwareAcceleration = {
                 enable = true;
                 device = gpuDevice;
