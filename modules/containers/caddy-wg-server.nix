@@ -198,13 +198,22 @@
                       jitter 0.2
                     }
                   }
-                  (reverse-proxy) {
-                    import rate-limit
+                  (tls-dns) {
+                    tls {
+                      dns
+                    }
+                  }
+                  (reverse-proxy-raw) {
                     reverse_proxy ${clientIp}:{args[0]} {
                       transport http {
                         proxy_protocol v2
                       }
                     }
+                  }
+                  (reverse-proxy) {
+                    import rate-limit
+                    import tls-dns
+                    import reverse-proxy-raw {args[:]}
                   }
                 '';
                 virtualHosts =
@@ -226,10 +235,11 @@
                   builtins.mapAttrs addLogFormat (
                     {
                       ":${toString constants.ports.crowdsec}".extraConfig = ''
-                        import reverse-proxy ${toString constants.ports.crowdsec}
+                        import reverse-proxy-raw ${toString constants.ports.crowdsec}
                       '';
                       ${domain}.extraConfig = ''
                         import rate-limit
+                        import tls-dns
                         redir {scheme}://www.${domain}{uri} permanent
                       '';
                     }
